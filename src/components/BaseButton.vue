@@ -14,10 +14,7 @@ export default {
             type: String,
             default: ""
         },
-        onClickFunc: {
-            type: Function,
-            default: ()=>{}
-        },
+        onClickFunc: Function,
     }
 }
 </script>

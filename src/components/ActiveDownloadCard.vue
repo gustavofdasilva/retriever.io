@@ -5,11 +5,12 @@
             <h1 style="font-size: 1.5em;">{{mediaStore.getTitle}}</h1>
             <p style="font-size: 1em; color:var(--black-background-600)">{{mediaStore.getChannel}}</p>
 
-            <BaseButton btnClass="red" text="Download" style="width: 100%; margin-top: 1em;"/>
+            <BaseButton btnClass="red" text="Download" style="width: 100%; margin-top: 1em;" :onClickFunc="()=>{download()}" />
         </div>
     </div>
 </template>
 <script>
+import { invoke } from '@tauri-apps/api/core';
 import { useMediaStore } from '../stores/media';
 import BaseButton from './BaseButton.vue';
 import BaseIconButton from './BaseIconButton.vue';
@@ -25,6 +26,11 @@ import BaseIconButton from './BaseIconButton.vue';
 
             return { 
                 mediaStore
+            }
+        },
+        methods: {
+            download() {
+                invoke('download',{url: this.mediaStore.getUrl})
             }
         }
     }

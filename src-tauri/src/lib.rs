@@ -18,7 +18,7 @@ fn login(user: String, password: String) -> Result<String, String> {
   }
 
 #[tauri::command]
-fn get_metadata(url: String) -> Vec<String> {
+async fn get_metadata(url: String) -> Vec<String> {
     use std::process::Command;
 
     println!("Received!, lets start");
@@ -48,13 +48,28 @@ fn get_metadata(url: String) -> Vec<String> {
     return data;
 }
   
+#[tauri::command]
+async fn download(url: String) -> String {
+  use std::process::Command;
+
+  println!("Received!, lets start");
+
+  let output = Command::new("yt-dlp")
+      .arg(url)
+      .output();
+
+      println!("STDOUT {}",String::from_utf8_lossy(&output.as_ref().cloned().unwrap().stdout).to_string());
+      println!("STDERR {}",String::from_utf8(output.as_ref().cloned().unwrap().stderr).unwrap_or("null".to_string()));
+
+  return "Done".to_string();
+}
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![login])
-        .invoke_handler(tauri::generate_handler![get_metadata])
+        .invoke_handler(tauri::generate_handler![login, get_metadata, download])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

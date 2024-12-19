@@ -2,16 +2,21 @@
     <div class="container">
         <main>
             <h1>Simple</h1>
-            <div style="width: 1em; height: 10em;"></div>
-            <div class="search-sub-container" :style="[ loadingSearch ? {display: 'none'} : {display:'flex'}]">
-                <BaseSearchBar
-                    @start-loading="()=>{loadingSearch = true}"
-                    @end-loading="()=>{loadingSearch = false}"  />
-                <p style="padding-top: 1em;"><a href="/">Detailed download</a> if you need more options</p>
-                <p><a href="/">Multiple download</a> if you need many downloads</p>
-            </div>
-            <ActiveDownloadCard/>
-            <div style="width: 100%;">
+            <div style="width: 1em; height: 8em;"></div>
+                <div class="search-sub-container" :style="[ loadingSearch ? {display: 'none'} : {display:'flex'}]">
+                    <BaseSearchBar
+                        @start-loading="()=>{loadingSearch = true}"
+                        @end-loading="()=>{loadingSearch = false}"  />
+                    <template v-if="mediaStore.getTitle == ''">
+                        <p style="padding-top: 1em;"><a href="/">Detailed download</a> if you need more options</p>
+                        <p><a href="/">Multiple download</a> if you need many downloads</p>
+                    </template>
+                </div>
+            <template v-if="mediaStore.getTitle != ''">
+                <ActiveDownloadCard/>
+            </template>
+
+            <div style="width: 100%; margin-top: 4em;">
                 <h2 class="sub-title" >Recent Downloads</h2>
                 <RecentDownloadCard/>
                 <RecentDownloadCard/>
