@@ -1,31 +1,44 @@
 <template>
     <div class="recent-card-container">
-        <div class="thumbnail"></div>
+        <div :style="{'background-image': 'url('+thumbnailUrl+')'}" class="thumbnail"></div>
         <p style="font-weight: bold;">
-            Video Title
+            {{ title }}
         </p>
         <p>
-            Channel
+            {{ channel }}
         </p>
         <p>
-            <span style="color: var(--black-background-600);">Quality</span> 1080p
+            <span style="color: var(--black-background-600);">Quality</span> {{ quality }}
         </p>
         <p>
-            <span style="color: var(--black-background-600);">Format</span> Video
+            <span style="color: var(--black-background-600);">Format</span> {{format}}
         </p>
         <p>
-            20:20
+            {{ length }}
         </p>
         <BaseIconButton btnIcon="menu" />
     </div>
 </template>
-<script>
+<script lang="ts">
 import BaseIconButton from './BaseIconButton.vue';
 
 
     export default {
         components: {
             BaseIconButton
+        },
+        props: {
+            thumbnailUrl: String,
+            title: String,
+            channel: String,
+            quality: String,
+            format: String,
+            length: Number,
+        },
+        methods: {
+            formatLength() {
+
+            }
         }
     }
 
@@ -33,8 +46,8 @@ import BaseIconButton from './BaseIconButton.vue';
 
 <style scoped>
     .recent-card-container {
-        max-width: 100%;
-        min-width: 90%;
+        justify-self: center;
+        width: 100%;
         height: 3.5em;
         background-color: var(--black-background-900);
         border: 1px solid var(--black-background-800);
@@ -58,7 +71,12 @@ import BaseIconButton from './BaseIconButton.vue';
     }
 
     p {
-        font-size: 0.92em;
+        font-size: 0.8em;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        max-width: 150px;
+        text-align: start;
     }
     
 </style>

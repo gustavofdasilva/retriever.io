@@ -55,8 +55,7 @@ import { useFSStore } from '../stores/fileSystem';
 
 <style scoped>
     .active-card-container {
-        max-width: 100%;
-        min-width: 90%;
+        width: 100%;
         height: 12.5em;
         background-color: var(--black-background-900);
         border: 1px solid var(--black-background-800);

@@ -20,6 +20,12 @@ export const useMediaStore = defineStore("media", {
         },
         setUrl(newUrl: string) {
             this.url = newUrl
+        },
+        reset() {
+            this.title = '';
+            this.channel = '';
+            this.thumbnail = '';
+            this.url = '';
         }
     }
 })

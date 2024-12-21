@@ -9,6 +9,13 @@
     "core:default",
     "shell:allow-open",
     "dialog:default",
-    "dialog:default"
+    "fs:default",
+    "fs:allow-applocaldata-meta",
+    "fs:allow-applocaldata-meta-recursive",
+    "fs:allow-applocaldata-read",
+    "fs:allow-applocaldata-read-recursive",
+    "fs:allow-applocaldata-write",
+    "fs:allow-applocaldata-write-recursive",
+    "log:default"
   ]
 }

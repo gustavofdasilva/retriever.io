@@ -2,6 +2,12 @@
     <div class="container">
         <main>
             <h1>Simple</h1>
+            <div v-if="false" style="width: 100px;">
+                <button @click="createFile" >Create file</button>
+                <button @click="readFile; loadDownloadHistory()" >Read file</button>
+                <button @click="addDownload(mockDownloadLog)" >Add download</button>
+                <button @click="clearInfo()" >Clear history</button>
+            </div>
             <div style="width: 1em; height: 8em;"></div>
                 <div class="search-sub-container" :style="[ loadingSearch ? {display: 'none'} : {display:'flex'}]">
                     <BaseSearchBar
@@ -14,28 +20,34 @@
                 </div>
             <template v-if="mediaStore.getTitle != ''">
                 <ActiveDownloadCard
-                    @download-successful="(val)=>{checkDownload(val)}"
+                    @download-successful="(val:boolean)=>{checkDownload(val)}"
                 />
                 <p>{{ downloadResultMsg }}</p>
             </template>
 
             <div style="width: 100%; margin-top: 4em;">
                 <h2 class="sub-title" >Recent Downloads</h2>
-                <RecentDownloadCard/>
-                <RecentDownloadCard/>
-                <RecentDownloadCard/>
-                <RecentDownloadCard/>
-                <RecentDownloadCard/>
-                <RecentDownloadCard/>
+                
+                <RecentDownloadCard v-for="download in downloadLog"
+                    :thumbnail-url="download.thumbnailUrl"
+                    :title="download.title" 
+                    :channel="download.channel" 
+                    :quality="download.quality" 
+                    :format="download.format" 
+                    :length="download.length"/>
+                
+                <p v-if="downloadLog.length==0" style="text-align: center; margin-top: 2em;">No recent downloads found. Start retrieving!</p>
             </div>
         </main>
     </div>
 </template>
-<script>
+<script lang="ts">
 import ActiveDownloadCard from '../components/ActiveDownloadCard.vue';
 import BaseSearchBar from '../components/BaseSearchBar.vue';
 import RecentDownloadCard from '../components/RecentDownloadCard.vue';
 import TheHeader from '../components/TheHeader.vue';
+import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/history';
+import { useFSStore } from '../stores/fileSystem';
 import { useMediaStore } from '../stores/media';
 
     export default {
@@ -46,25 +58,71 @@ import { useMediaStore } from '../stores/media';
             ActiveDownloadCard
         },
         setup() {
-            const mediaStore = useMediaStore()
+            const mediaStore = useMediaStore();
+            const fsStore = useFSStore();
+            const readFile = () => readHistFile();
+            const createFile = () => createHistFile();
+            const addDownload = (newLog: DownloadLog) => addToHist(newLog);
+            const clearInfo = () => clearHist();
 
             return {
-                mediaStore
+                mediaStore,
+                fsStore,
+                readFile,
+                createFile,
+                addDownload,
+                clearInfo
             }
         },
         data() {
             return {
                 loadingSearch: false,
-                downloadResultMsg: ''
+                downloadResultMsg: '',
+                downloadLog: [] as DownloadLog[],
+                mockDownloadLog: {
+                    title: 'Video Title',
+                    channel: 'Channel',
+                    quality: '1080p',
+                    format: 'Video' ,
+                    length: 1600,
+                    path: 'C:/Users/Gusta'
+                } as DownloadLog
             }
         },
+        mounted() {
+            this.loadDownloadHistory();
+        },
         methods: {
-            checkDownload(val){
+            async loadDownloadHistory() {
+                this.readFile().then((downloadArr: DownloadLog[] | null)=>{
+                    if(downloadArr != null) {
+                        this.downloadLog = downloadArr
+                    }
+                })
+            },
+            async checkDownload(val: boolean){
                 this.downloadResultMsg = val ? 'Download successful!' : 'Could not download'
                 setTimeout(()=>{
                     this.downloadResultMsg = ''
                 },2000)
-            }
+
+                if(val) {
+                    const activeDownloadLog:DownloadLog = {
+                        thumbnailUrl: this.mediaStore.getThumbnail,
+                        title: this.mediaStore.getTitle,
+                        channel: this.mediaStore.getChannel,
+                        format: 'Video',
+                        quality: 'Best',
+                        length: 0,
+                        path: this.fsStore.getDefaultOutput
+                    } 
+
+                    await this.addDownload(activeDownloadLog);
+                    await this.loadDownloadHistory();
+                    this.mediaStore.reset();
+                }
+            },
+            
         }
     }
 </script>
