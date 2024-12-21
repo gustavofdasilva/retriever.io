@@ -38,4 +38,12 @@ export default {
         color: var(--red-stroke);
         border-color: var(--red-stroke);
     }
+
+    .disable {
+        background-color: var(--black-background-900);
+        color: var(--black-background-700);
+        border-color: var(--black-background-800);
+        cursor: unset;
+    }
+
 </style>

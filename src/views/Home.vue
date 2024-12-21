@@ -13,7 +13,10 @@
                     </template>
                 </div>
             <template v-if="mediaStore.getTitle != ''">
-                <ActiveDownloadCard/>
+                <ActiveDownloadCard
+                    @download-successful="(val)=>{checkDownload(val)}"
+                />
+                <p>{{ downloadResultMsg }}</p>
             </template>
 
             <div style="width: 100%; margin-top: 4em;">
@@ -33,7 +36,6 @@ import ActiveDownloadCard from '../components/ActiveDownloadCard.vue';
 import BaseSearchBar from '../components/BaseSearchBar.vue';
 import RecentDownloadCard from '../components/RecentDownloadCard.vue';
 import TheHeader from '../components/TheHeader.vue';
-import { useLoadingStore } from '../stores/loading';
 import { useMediaStore } from '../stores/media';
 
     export default {
@@ -53,9 +55,16 @@ import { useMediaStore } from '../stores/media';
         data() {
             return {
                 loadingSearch: false,
+                downloadResultMsg: ''
             }
         },
         methods: {
+            checkDownload(val){
+                this.downloadResultMsg = val ? 'Download successful!' : 'Could not download'
+                setTimeout(()=>{
+                    this.downloadResultMsg = ''
+                },2000)
+            }
         }
     }
 </script>

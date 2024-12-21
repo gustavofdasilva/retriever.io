@@ -5,7 +5,7 @@
             <h1 style="font-size: 1.5em;">{{mediaStore.getTitle}}</h1>
             <p style="font-size: 1em; color:var(--black-background-600)">{{mediaStore.getChannel}}</p>
 
-            <BaseButton btnClass="red" text="Download" style="width: 100%; margin-top: 1em;" :onClickFunc="()=>{download()}" />
+            <BaseButton :btnClass="loading ? 'disable' : 'red'" text="Download" style="width: 100%; margin-top: 1em;" :onClickFunc="()=>{if(!loading){download()}}" />
         </div>
     </div>
 </template>
@@ -14,6 +14,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useMediaStore } from '../stores/media';
 import BaseButton from './BaseButton.vue';
 import BaseIconButton from './BaseIconButton.vue';
+import { useFSStore } from '../stores/fileSystem';
 
 
     export default {
@@ -21,16 +22,31 @@ import BaseIconButton from './BaseIconButton.vue';
             BaseIconButton,
             BaseButton
         },
+        data() {
+            return {
+                loading: false,
+            }
+        },
         setup() {
             const mediaStore = useMediaStore()
+            const fsStore = useFSStore()
 
             return { 
-                mediaStore
+                mediaStore,
+                fsStore
             }
         },
         methods: {
             download() {
-                invoke('download',{url: this.mediaStore.getUrl})
+                this.loading=true
+                const output = `${this.fsStore.getDefaultOutput}/${this.mediaStore.getTitle}`
+                invoke('download',{url: this.mediaStore.getUrl, output: output}).then(()=>{
+                    this.$emit('download-successful',true)
+                }).catch(()=>{
+                    this.$emit('download-successful',false)
+                }).finally(()=>{
+                    this.loading = false
+                })
             }
         }
     }

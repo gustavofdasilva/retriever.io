@@ -1,8 +1,6 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
-use std::fmt::Debug;
-
-use serde::de::value::Error;
+use std::{fmt::Debug, fs::File};
 
 const defaultDownloadPath: &str = "/downloads";
 
@@ -47,19 +45,21 @@ async fn get_metadata(url: String) -> Vec<String> {
     data.push(thumbnail);
     return data;
 }
-  
+
 #[tauri::command]
-async fn download(url: String) -> String {
+async fn download(url: String, output:String) -> String {
   use std::process::Command;
 
   println!("Received!, lets start");
 
   let output = Command::new("yt-dlp")
-      .arg(url)
-      .output();
+    .arg("-o")
+    .arg(output)
+    .arg(url)
+    .output();
 
-      println!("STDOUT {}",String::from_utf8_lossy(&output.as_ref().cloned().unwrap().stdout).to_string());
-      println!("STDERR {}",String::from_utf8(output.as_ref().cloned().unwrap().stderr).unwrap_or("null".to_string()));
+    println!("STDOUT {}",String::from_utf8_lossy(&output.as_ref().cloned().unwrap().stdout).to_string());
+    println!("STDERR {}",String::from_utf8(output.as_ref().cloned().unwrap().stderr).unwrap_or("null".to_string()));
 
   return "Done".to_string();
 }
@@ -68,7 +68,8 @@ async fn download(url: String) -> String {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_shell::init())
+        // .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![login, get_metadata, download])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

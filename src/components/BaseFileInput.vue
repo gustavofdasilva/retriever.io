@@ -10,20 +10,36 @@
     </div>
 </template>
 <script>
+import { open } from '@tauri-apps/plugin-dialog';
 import VueFeather from 'vue-feather';
+import { useFSStore } from '../stores/fileSystem';
+
+
 export default {
     components: {
         VueFeather
     },
     data() {
         return {
-            path: "/Downloads"
+            path: '?'
+        }
+    },
+    setup() {
+        const fsStore = useFSStore();
+
+        return {
+            fsStore
         }
     },
     methods: {
-        openInput() {
-            console.log(this.$refs.fileInput.click());
-        }
+        async openInput() {
+            const dir = await open({
+                directory: true,
+                title:'Select default output'
+            })
+            this.path = dir
+            this.fsStore.setDefaultOutput(this.path);
+        },
     }
 }
 </script>
