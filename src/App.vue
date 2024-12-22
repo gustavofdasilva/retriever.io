@@ -16,45 +16,5 @@ import TheHeader from './components/TheHeader.vue';
   }
 </script>
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  font-size: 100%;
-  vertical-align: baseline;
-}
 
-:root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
-
-  color: var(--white-text);
-  background-color: #0f0f0f;
-
-
-  --black-background-600: #6D6D6D;
-  --black-background-700: #5A5A5A;
-  --black-background-800: #3B3B3B;
-  --black-background-850: #1E1E1E;
-  --black-background-900: #1B1B1B;
-
-  --red-stroke: #D7003D;
-  --red-fill: #371720;
-
-  --white-text: #e9e9e9;
-}
-
-a {
-  color: var(--red-stroke);
-}
-
-.icon-white {
-  color: var(--white-text);
-}
-
-.icon-grey {
-  color: var(--black-background-600);
-}
 </style>

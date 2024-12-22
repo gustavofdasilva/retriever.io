@@ -1,3 +1,4 @@
+@import '@oruga-ui/theme-oruga/dist/oruga.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -36,3 +37,14 @@
   .icon-grey {
     color: var(--black-background-600);
   }
+
+  .base-container {
+    background-color: var(--black-background-900);
+    border: 1px solid var(--black-background-800);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    border-radius: 8px;
+    padding: 0.5em 1em;
+}

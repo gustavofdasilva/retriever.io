@@ -1,7 +1,7 @@
 <template>
     <div class="container">
         <main>
-            <h1>Simple</h1>
+
             <div v-if="false" style="width: 100px;">
                 <button @click="createFile" >Create file</button>
                 <button @click="readFile; loadDownloadHistory()" >Read file</button>
@@ -166,4 +166,6 @@ import { useMediaStore } from '../stores/media';
         font-size: 0.86em;
         margin-top: 0.3em;
     }
+
+    
 </style>
