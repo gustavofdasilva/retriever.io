@@ -3,39 +3,55 @@
         <div class="thumbnail" :style="{backgroundImage: 'url('+mediaStore.getThumbnail+')'}"></div>
         <div class="metadata">
             <h1 style="font-size: 1.5em;">{{mediaStore.getTitle}}</h1>
-            <p style="font-size: 1em; color:var(--black-background-600); margin: 1em 0 1em 0;">{{mediaStore.getChannel}}</p>
+            <p style="font-size: 1em; color:var(--black-background-600); margin: .5em 0 1em 0;">{{mediaStore.getChannel}}</p>
             <div class="options-container">
                 <div class="options-subcontainer" style="margin-right: 2em;">
-                    <p style="margin-right: .5em;" >Quality</p>
-                    <o-dropdown class="dropdown-menu">
-                        <template #trigger="{ active }">
-                            <o-button
-                                class="base-container dropdown-button"
-                                variant="primary"
-                                :label="quality == '' ? 'Quality':quality"
-                                :icon-right="active ? 'chevron-up' : 'chevron-down'" />
-                        </template>
-
-                        <o-dropdown-item class="dropdown-item" label="240p"  @click="()=>quality='240p'" />
-                        <o-dropdown-item class="dropdown-item" label="360p"  @click="()=>quality='360p'" />
-                        <o-dropdown-item class="dropdown-item" label="480p"  @click="()=>quality='480p'" />
-                        <o-dropdown-item class="dropdown-item" label="720p"  @click="()=>quality='720p'" />
-                        <o-dropdown-item class="dropdown-item" label="1080p"  @click="()=>quality='1080p'" />
-                    </o-dropdown>
-                </div>
-                <div class="options-subcontainer" >
-                    <p style="margin-right: .5em;" >Format</p>
-                    <o-dropdown class="dropdown-menu">
+                    <p style="margin-right: 1em;" >Format</p>
+                    <o-dropdown v-model="format" class="dropdown-menu" >
                         <template #trigger="{ active }">
                             <o-button
                                 class="base-container dropdown-button"
                                 variant="primary"
                                 :label="format == '' ? 'Format':format"
-                                :icon-right="active ? 'caret-up' : 'caret-down'" />
+                                :icon-right="active ? 'chevron-up':'chevron-down'"/>
                         </template>
+
+                        <o-dropdown-item 
+                            v-for="f in formats"
+                            class="dropdown-item" 
+                            :label="f.label"  
+                            :value="f.value"
+                            @click="()=>{
+                                
+                                if(f.value=='Audio') {
+                                    if(qualities != audioQualities) quality=''
+                                    qualities = audioQualities
+                                } else {
+                                    if(qualities != videoQualities) quality=''
+                                    qualities = videoQualities
+                                }
+                            }"/>
     
-                        <o-dropdown-item class="dropdown-item" label="Audio" @click="()=>format='Audio'" />
-                        <o-dropdown-item class="dropdown-item" label="Video" @click="()=>format='Video'"  />
+                    </o-dropdown>
+                </div>
+
+                <div class="options-subcontainer">
+                    <p style="margin-right: 1em;" >Quality</p>
+                    <o-dropdown v-model="quality" class="dropdown-menu" :disabled="format==''" >
+                        <template #trigger="{ active }">
+                            <o-button
+                                class="base-container dropdown-button"
+                                variant="primary"
+                                :label="quality == '' ? 'Quality':quality"
+                                :icon-right="active ? 'chevron-up':'chevron-down'"/>
+                        </template>
+
+                        <o-dropdown-item 
+                            v-for="q in qualities"
+                            :key="q"
+                            class="dropdown-item" 
+                            :label="q.label" 
+                            :value="q.value"/>
                     </o-dropdown>
                 </div>
                 
@@ -61,6 +77,22 @@ import { useFSStore } from '../stores/fileSystem';
             return {
                 loading: false,
                 format: '',
+                formats:[
+                    {label:"Audio (mp3)",value:"Audio"},
+                    {label:"Video (mp4)",value:"Video"},
+                ],
+                videoQualities: [
+                    {label:'144p',value:"144p"},
+                    {label:'240p',value:"240p"},
+                    {label:'360p',value:"360p"},
+                    {label:'720p',value:"720p"},
+                    {label:'1080p',value:"1080p"},
+                ],
+                audioQualities: [
+                    {label:'128kbps',value:"128kbps"},
+                    {label:'320kbps',value:"320kbps"},
+                ],
+                qualities:[],
                 quality: '',
             }
         },
@@ -76,8 +108,11 @@ import { useFSStore } from '../stores/fileSystem';
         methods: {
             download() {
                 this.loading=true
+                const fileType = this.format == "Audio" ? 'mp3' : 'mp4';
                 const output = `${this.fsStore.getDefaultOutput}/${this.mediaStore.getTitle}`
-                invoke('download',{url: this.mediaStore.getUrl, output: output}).then(()=>{
+                invoke('download',{url: this.mediaStore.getUrl, output: output, format: fileType, quality: this.quality}).then(()=>{
+                    this.mediaStore.setFormat(this.format)
+                    this.mediaStore.setQuality(this.quality);
                     this.$emit('download-successful',true)
                 }).catch(()=>{
                     this.$emit('download-successful',false)
@@ -108,7 +143,7 @@ import { useFSStore } from '../stores/fileSystem';
         background-repeat: no-repeat;
         background-position: center;
         background-size: cover;
-        height: 10em;
+        height: 12em;
         width: 15em;
         border-radius: 8px;
     }

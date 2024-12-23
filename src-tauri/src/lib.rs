@@ -53,14 +53,26 @@ async fn get_metadata(url: String) -> Vec<String> {
 }
 
 #[tauri::command]
-async fn download(url: String, output: String) -> String {
+async fn download(url: String, output: String, format: String, quality: String) -> String {
     use std::process::Command;
 
     println!("Received!, lets start");
 
+    let quality_number = quality.trim_end_matches('p');
+
+    let is_audio = if format=="mp3" {true} else {false};
+
+    println!("{}",is_audio);
+
+    let audio_args = vec!["-x","--audio-format","mp3","--audio-quality","0"];
+    
+
     let output = Command::new("yt-dlp")
+        .args(if is_audio {audio_args} else {vec![]})
         .arg("-o")
-        .arg(output)
+        .arg(format!("{output}"))
+        .arg("-S")
+        .arg(format!("res:{}",quality_number))
         .arg(url)
         .output();
 

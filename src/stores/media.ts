@@ -1,12 +1,21 @@
 import { defineStore } from "pinia";
 
 export const useMediaStore = defineStore("media", {
-    state: () =>({title:'',channel:'',thumbnail:'',url:''}),
+    state: () =>({
+            title:'',
+            channel:'',
+            thumbnail:'',
+            url:'',
+            format:'' as "Video" | "Audio",
+            quality:''
+        }),
     getters: {
         getTitle: (state)=>state.title,
         getChannel: (state)=>state.channel,
         getThumbnail: (state)=>state.thumbnail,
-        getUrl: (state)=>state.url    
+        getUrl: (state)=>state.url,    
+        getFormat: (state)=>state.format,
+        getQuality: (state)=>state.quality,
     },
     actions: {
         setTitle(newTitle: string) {
@@ -20,6 +29,12 @@ export const useMediaStore = defineStore("media", {
         },
         setUrl(newUrl: string) {
             this.url = newUrl
+        },
+        setFormat(newFormat: "Video" | "Audio") {
+            this.format = newFormat
+        },
+        setQuality(newQuality: string) {
+            this.quality = newQuality
         },
         reset() {
             this.title = '';
