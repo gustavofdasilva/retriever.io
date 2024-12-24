@@ -2,12 +2,14 @@
     <nav>
         <div class="options">
             <img src="../assets/vue.svg" alt="logo"/>
-            <BaseButton text="Simple" :btnClass="checkView('/') ? 'red' : ''" :onClickFunc="()=>{changeView('/')}"/>
-            <BaseButton text="Detailed" :btnClass="checkView('/singleDetailed') ? 'red' : ''"  :onClickFunc="()=>{changeView('/singleDetailed')}"/>
-            <BaseButton text="Multiple" :btnClass="checkView('/multiple') ? 'red' : ''"  :onClickFunc="()=>{changeView('/multiple')}"/>
+            <div style="margin-left: 2em;">
+                <BaseButton text="Simple" :btnClass="(checkView('/') ? 'red' : '') + ' header-button'" :onClickFunc="()=>{changeView('/')}"/>
+                <BaseButton text="Detailed" :btnClass="(checkView('/singleDetailed') ? 'red' : '') + ' header-button'"  :onClickFunc="()=>{changeView('/singleDetailed')}"/>
+                <BaseButton text="Multiple" :btnClass="(checkView('/multiple') ? 'red' : '') + ' header-button'"  :onClickFunc="()=>{changeView('/multiple')}"/>
+            </div>
         </div>
         <div class="path-and-settings">
-            <BaseFileInput style="margin: 0 10px 0 0; font-size: 0.93em;"/>
+            <BaseFileInput style="margin: 0 1em 0 0; font-size: 0.93em;"/>
             <BaseIconButton btnIcon="settings" btnWidth="20" btnHeight="20" />
         </div>
     </nav>
@@ -59,11 +61,10 @@ import { invoke } from '@tauri-apps/api/core';
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 10px;
+        padding: 0 2em;
     }
 
     .options {
-        width: 23em;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -73,4 +74,10 @@ import { invoke } from '@tauri-apps/api/core';
         display: flex;
         align-items: center;
     }
+
+    .header-button {
+        padding: .3em 1.1em;
+        margin-right: 1em;
+    }
+
 </style>

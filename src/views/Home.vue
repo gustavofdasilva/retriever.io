@@ -1,5 +1,5 @@
 <template>
-    <div class="container">
+    <div class="container" >
         <main>
 
             <div v-if="false" style="width: 100px;">
@@ -8,9 +8,11 @@
                 <button @click="addDownload(mockDownloadLog)" >Add download</button>
                 <button @click="clearInfo()" >Clear history</button>
             </div>
-            <div style="width: 1em; height: 8em;"></div>
-                <div class="search-sub-container" :style="[ loadingSearch ? {display: 'none'} : {display:'flex'}]">
+            <div class="main-sub-container">
+                <div class="loader" :style="[ loadingSearch ? {opacity: '1'} : {opacity:'0'}]" ></div>
+                <div class="search-sub-container" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]">
                     <BaseSearchBar
+                        :disabled="loadingSearch"
                         @start-loading="()=>{loadingSearch = true}"
                         @end-loading="()=>{loadingSearch = false}"  />
                     <template v-if="mediaStore.getTitle == ''">
@@ -18,12 +20,14 @@
                         <p><a href="/">Multiple download</a> if you need many downloads</p>
                     </template>
                 </div>
-            <template v-if="mediaStore.getTitle != ''">
-                <ActiveDownloadCard
-                    @download-successful="(val:boolean)=>{checkDownload(val)}"
-                />
-                <p>{{ downloadResultMsg }}</p>
-            </template>
+                <template v-if="mediaStore.getTitle != ''" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]" >
+                    <ActiveDownloadCard
+                        :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]"
+                        @download-successful="(val:boolean)=>{checkDownload(val)}"
+                    />
+                    <p>{{ downloadResultMsg }}</p>
+                </template>
+            </div>
 
             <div style="width: 100%; margin-top: 4em;">
                 <h2 class="sub-title" >Recent Downloads</h2>
@@ -143,18 +147,47 @@ import { useMediaStore } from '../stores/media';
         background-size: cover;
     }
 
+    .main-sub-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        margin-top: 25vh;
+        height: 30vh;
+        width: 100%;
+    }
+
     .search-sub-container{
         display: flex;
         align-items: center;
         justify-content: center;
         flex-direction: column;
         width: 100%;
+        transition: all .2s ease;
+    }
+
+
+    .loader {
+        position: absolute;
+        z-index: 1;
+        top: 50%;
+        width: 50px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: 
+            radial-gradient(farthest-side,var(--red-stroke) 94%,#0000) top/8px 8px no-repeat,
+            conic-gradient(#0000 30%,var(--red-stroke));
+        -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 8px),#000 0);
+        animation: l13 1s infinite linear;
+        }
+        @keyframes l13{ 
+        100%{transform: rotate(1turn)}
     }
 
     main {
         min-height: 87.7%;
         margin: auto;
-        width: 50%;
+        width: 55%;
         display: flex;
         align-items: center;
         justify-content: center;

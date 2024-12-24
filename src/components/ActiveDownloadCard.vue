@@ -1,9 +1,13 @@
 <template>
-    <div class="active-card-container">
+    <div class="active-card-container" :style="style">
+        
         <div class="thumbnail" :style="{backgroundImage: 'url('+mediaStore.getThumbnail+')'}"></div>
         <div class="metadata">
-            <h1 style="font-size: 1.5em;">{{mediaStore.getTitle}}</h1>
-            <p style="font-size: 1em; color:var(--black-background-600); margin: .5em 0 1em 0;">{{mediaStore.getChannel}}</p>
+            <div class="button-w-title-container">
+                <h1 style="font-size: 1.5em;">{{mediaStore.getTitle}}</h1>
+                <BaseIconButton :onClickFunc="()=>{exit()}" btnIcon="x" />
+            </div>
+            <p style="font-size: 1em; color:var(--black-background-600); margin: .2em 0 .6em 0;">{{mediaStore.getChannel}}</p>
             <div class="options-container">
                 <div class="options-subcontainer" style="margin-right: 2em;">
                     <p style="margin-right: 1em;" >Format</p>
@@ -18,7 +22,7 @@
 
                         <o-dropdown-item 
                             v-for="f in formats"
-                            class="dropdown-item" 
+                            :class="'dropdown-item'" 
                             :label="f.label"  
                             :value="f.value"
                             @click="()=>{
@@ -66,12 +70,17 @@ import { useMediaStore } from '../stores/media';
 import BaseButton from './BaseButton.vue';
 import BaseIconButton from './BaseIconButton.vue';
 import { useFSStore } from '../stores/fileSystem';
+import { useOruga } from '@oruga-ui/oruga-next';
 
+const oruga = useOruga();
 
     export default {
         components: {
             BaseIconButton,
             BaseButton
+        },
+        props: {
+            style: Object
         },
         data() {
             return {
@@ -113,13 +122,28 @@ import { useFSStore } from '../stores/fileSystem';
                 invoke('download',{url: this.mediaStore.getUrl, output: output, format: fileType, quality: this.quality}).then(()=>{
                     this.mediaStore.setFormat(this.format)
                     this.mediaStore.setQuality(this.quality);
+                    this.newNotification("Download successful!");
                     this.$emit('download-successful',true)
                 }).catch(()=>{
+                    this.newNotification("Something went wrong :(");
                     this.$emit('download-successful',false)
                 }).finally(()=>{
                     this.loading = false
                 })
-            }
+            },
+            exit() {
+                this.mediaStore.reset();
+            },
+            newNotification(message) {
+                oruga.notification.open({
+                    duration: 3000,
+                    closable: true,
+                    message: message,
+                    rootClass: "toast toast-notification",
+                    position: "bottom-right",
+            })
+}
+
         }
     }
 
@@ -137,14 +161,16 @@ import { useFSStore } from '../stores/fileSystem';
         border-radius: 8px;
         padding: 1.5em 1em;
         margin: 0.5em 0.5em;
+        position: relative;
     }
 
     .thumbnail {
         background-repeat: no-repeat;
         background-position: center;
         background-size: cover;
-        height: 12em;
-        width: 15em;
+        height: 100%;
+        width: 50%;
+        margin-right: 1em;
         border-radius: 8px;
     }
     
@@ -155,7 +181,6 @@ import { useFSStore } from '../stores/fileSystem';
         flex-direction: column;
         width: 70%;
         height: 80%;
-        padding-left: 1em;
     }
 
     p {
@@ -167,10 +192,11 @@ import { useFSStore } from '../stores/fileSystem';
         display: flex;
         flex-direction: row;
         justify-content: space-between;
+        margin: .5em 0;
     }
 
     .options-subcontainer {
-        flex: 1;
+        width: 100%;
         display: flex; 
         align-items: center; 
         justify-content: space-between; 
@@ -202,5 +228,18 @@ import { useFSStore } from '../stores/fileSystem';
     .dropdown-button:focus {
         box-shadow: none;
     }
+
+    .button-w-title-container {
+        display: flex;
+        align-items: flex-start;
+        align-self: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+        .button-w-title-container h1 {
+            width: 80%;
+            text-align: start;
+        }
+
     
 </style>

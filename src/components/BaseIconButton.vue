@@ -1,5 +1,5 @@
 <template>
-    <button :class="checkBorder()" v-on:click="onClickFunc" >
+    <button :class="checkBorder() + (disabled ? ' disabled' : '')" v-on:click="onClickFunc" :disabled="disabled" >
         <VueFeather :type="btnIcon" size="24" :class="checkBorder()"/>
     </button>
 </template>
@@ -15,7 +15,11 @@ export default {
         btnHeight: String,
         btnIcon: String,
         btnBorder: Boolean,
-        onClickFunc: Function
+        onClickFunc: Function,
+        disabled: {
+            type: Boolean,
+            default: false
+        }
     },
     methods: {
         checkBorder() {

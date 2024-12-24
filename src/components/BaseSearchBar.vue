@@ -1,7 +1,7 @@
 <template>
     <div class="search-bar-container">
         <input v-model="inputText" type="text" name="text" id="text" placeholder="Paste your url...">
-        <BaseIconButton btnIcon="search" :btnBorder="true" style="position: absolute; right: 10px;" :onClickFunc="()=>{getMetadata()}" />
+        <BaseIconButton :disabled="disabled" btnIcon="search" :btnBorder="true" style="position: absolute; right: 10px;" :onClickFunc="()=>{getMetadata()}" />
     </div>
 </template>
 <script>
@@ -9,10 +9,17 @@ import { invoke } from '@tauri-apps/api/core';
 import BaseIconButton from './BaseIconButton.vue';
 import { useMediaStore } from '../stores/media';
 import { useLoadingStore } from '../stores/loading';
+import { info } from '@tauri-apps/plugin-log';
 
 export default {
     components: {
         BaseIconButton
+    },
+    props: {
+        disabled: {
+            type: Boolean,
+            default: false
+        }
     },
     data() {
         return {
@@ -31,6 +38,8 @@ export default {
     },
     methods: {
         getMetadata() {
+            console.log(this.disabled)
+            if(this.loadingStore.loading) return
             this.$emit('start-loading')
             invoke('get_metadata',{url: this.inputText}).then((res)=>{
                 if(Array.isArray(res)) {

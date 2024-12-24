@@ -17,7 +17,7 @@
             {{ length }}
         </p>
         <o-dropdown class="dropdown-menu" >
-            <template #trigger="{ active }">
+            <template #trigger="{}">
                 <o-button
                     class="base-container dropdown-button"
                     variant="primary"
@@ -25,7 +25,6 @@
             </template>
 
             <o-dropdown-item
-            
                 class="dropdown-item"
                 label="Open in explorer"
 

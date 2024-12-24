@@ -9,18 +9,6 @@ import { Oruga } from "@oruga-ui/oruga-next";
 
 const app = createApp(App)
 const pinia = createPinia()
-const customIconConfig = {
-    customIconPacks: {
-        fas: {
-            sizes: {
-                default: null,
-                small: null,
-                medium: "fa-lg",
-                large: "fa-xl"
-            }
-        }
-    }
-}
 
 app.use(router)
 app.use(pinia)

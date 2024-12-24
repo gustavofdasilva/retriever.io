@@ -3,6 +3,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes toast-animation{
+  from {
+    transform: translate(100%,0);
+  }
+
+  to {
+    transform: translate(0,0);
+  }
+}
   
   :root {
     font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
@@ -49,3 +59,39 @@
     border-radius: 8px;
     padding: 0.5em 1em;
 }
+
+
+.toast-notification {
+  text-align: center;
+  box-shadow:
+      0 1px 4px rgb(0 0 0 / 12%),
+      0 0 6px rgb(0 0 0 / 4%);
+  border-radius: 12px;
+  padding: 0.75em 3em 0.75em 1em;
+  pointer-events: auto;
+  color: var(--white-text);
+  background: var(--black-background-850);
+  border: 1px solid var(--black-background-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  --oruga-notification-animantion: toast-animation .1s ease;
+}
+  .toast-notification .o-notification__close {
+    position: absolute;
+    top: 50%;
+    transform: translate(0,-50%);
+    padding-right: .5em;
+    background-color: transparent;
+    color: var(--white-text);
+    
+  }
+
+.disabled {
+  cursor: unset !important; 
+}
+
+  .dropdown-item.first-item-label-video::before {
+    content: 'Hello';
+  }
