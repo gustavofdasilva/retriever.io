@@ -9,16 +9,18 @@
             </div>
         </div>
         <div class="path-and-settings">
-            <BaseFileInput style="margin: 0 1em 0 0; font-size: 0.93em;"/>
+            <BaseFileInput 
+                style="margin: 0 1em 0 0; font-size: 0.93em;"
+                @folder-selected="setDefaultFolder"/>
             <BaseIconButton btnIcon="settings" btnWidth="20" btnHeight="20" />
         </div>
     </nav>
 </template>
 <script lang="ts">
+import { useFSStore } from '../stores/fileSystem';
 import BaseButton from './BaseButton.vue';
 import BaseFileInput from './BaseFileInput.vue';
 import BaseIconButton from './BaseIconButton.vue';
-import { invoke } from '@tauri-apps/api/core';
 
     export default {
         name: "TheHeader",
@@ -33,6 +35,13 @@ import { invoke } from '@tauri-apps/api/core';
                 message: ''
             }
         },
+        setup() {
+            const fsStore = useFSStore()
+
+            return {
+                fsStore
+            }
+        },
         methods: {
             checkView(view: string) {
                 console.log(this.$route.path);
@@ -41,13 +50,10 @@ import { invoke } from '@tauri-apps/api/core';
             changeView(newViewPath: string) {
                 this.$router.push(newViewPath);
             },
-            rustFunc() {
-                invoke('custom_func',{msg: 'This is Javascript!'}).then((res)=>{
-                    if(typeof res == 'string')  {
-                        this.message = res;
-                    }
-                })
-            }
+            setDefaultFolder(path: string) {
+                this.fsStore.setDefaultOutput(path);
+                console.log(this.fsStore.getDefaultOutput);
+            },
         }
     }
 </script>

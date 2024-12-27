@@ -21,7 +21,7 @@ export default {
     },
     data() {
         return {
-            path: '?'
+            path: ''
         }
     },
     setup() {
@@ -31,6 +31,11 @@ export default {
             fsStore
         }
     },
+    mounted() {
+        if(this.fsStore.getDefaultOutput != '') {
+            this.path = this.fsStore.getDefaultOutput;
+        }
+    },
     methods: {
         async openInput() {
             const dir = await open({
@@ -38,7 +43,7 @@ export default {
                 title:'Select default output'
             })
             this.path = dir
-            this.fsStore.setDefaultOutput(this.path);
+            this.$emit('folder-selected',this.path)
         },
     }
 }
@@ -58,7 +63,7 @@ export default {
 
     .container {
         border-radius: 10px;
-        border: 1px solid var(--black-background-700);
+        border: 1px solid var(--black-background-800);
         font-size: 1em;
         padding: 0.5em 1em;
         font-weight: 500;

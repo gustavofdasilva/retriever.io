@@ -7,7 +7,8 @@ export const useMediaStore = defineStore("media", {
             thumbnail:'',
             url:'',
             format:'' as "Video" | "Audio",
-            quality:''
+            quality:'',
+            dateCreated: new Date(),
         }),
     getters: {
         getTitle: (state)=>state.title,
@@ -16,6 +17,7 @@ export const useMediaStore = defineStore("media", {
         getUrl: (state)=>state.url,    
         getFormat: (state)=>state.format,
         getQuality: (state)=>state.quality,
+        getDateCreated: (state)=>state.dateCreated,
     },
     actions: {
         setTitle(newTitle: string) {
@@ -35,6 +37,9 @@ export const useMediaStore = defineStore("media", {
         },
         setQuality(newQuality: string) {
             this.quality = newQuality
+        },
+        setDateCreated(newDateCreated: Date) {
+            this.dateCreated = newDateCreated
         },
         reset() {
             this.title = '';

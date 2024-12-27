@@ -5,5 +5,6 @@ type DownloadLog = {
     quality: string,
     format: 'Video' | 'Audio',
     length: number,
-    path: string
+    path: string,
+    dateCreated: Date
 }

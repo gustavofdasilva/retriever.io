@@ -8,40 +8,16 @@
                 <BaseIconButton :onClickFunc="()=>{exit()}" btnIcon="x" />
             </div>
             <p style="font-size: 1em; color:var(--black-background-600); margin: .2em 0 .6em 0;">{{mediaStore.getChannel}}</p>
+            <div class="options-container media-info">
+                <p ><span>Views:</span> 00</p>
+                <p ><span>Likes:</span> </p>
+                <p ><span>Dislikes:</span> </p>
+            </div>
+            <h2>Output file</h2>
             <div class="options-container">
-                <div class="options-subcontainer" style="margin-right: 2em;">
-                    <p style="margin-right: 1em;" >Format</p>
-                    <o-dropdown v-model="format" class="dropdown-menu" >
-                        <template #trigger="{ active }">
-                            <o-button
-                                class="base-container dropdown-button"
-                                variant="primary"
-                                :label="format == '' ? 'Format':format"
-                                :icon-right="active ? 'chevron-up':'chevron-down'"/>
-                        </template>
-
-                        <o-dropdown-item 
-                            v-for="f in formats"
-                            :class="'dropdown-item'" 
-                            :label="f.label"  
-                            :value="f.value"
-                            @click="()=>{
-                                
-                                if(f.value=='Audio') {
-                                    if(qualities != audioQualities) quality=''
-                                    qualities = audioQualities
-                                } else {
-                                    if(qualities != videoQualities) quality=''
-                                    qualities = videoQualities
-                                }
-                            }"/>
-    
-                    </o-dropdown>
-                </div>
-
                 <div class="options-subcontainer">
-                    <p style="margin-right: 1em;" >Quality</p>
-                    <o-dropdown v-model="quality" class="dropdown-menu" :disabled="format==''" >
+                    <p>Quality</p>
+                    <o-dropdown v-model="quality" class="dropdown-menu" >
                         <template #trigger="{ active }">
                             <o-button
                                 class="base-container dropdown-button"
@@ -52,14 +28,93 @@
 
                         <o-dropdown-item 
                             v-for="q in qualities"
-                            :key="q"
-                            class="dropdown-item" 
-                            :label="q.label" 
+                            :class="'dropdown-item'" 
+                            :label="q.label"  
                             :value="q.value"/>
+    
                     </o-dropdown>
+                </div>
+
+                <div class="options-subcontainer">
+                    <p >File type</p>
+                    <o-dropdown v-model="fileType" class="dropdown-menu">
+                        <template #trigger="{ active }">
+                            <o-button
+                                class="base-container dropdown-button"
+                                variant="primary"
+                                :label="fileType == '' ? 'File type':fileType"
+                                :icon-right="active ? 'chevron-up':'chevron-down'"/>
+                        </template>
+
+                        <o-dropdown-item 
+                            v-for="ft in fileTypes"
+                            :key="ft"
+                            class="dropdown-item" 
+                            :label="ft.label" 
+                            :value="ft.value"/>
+                    </o-dropdown>
+                </div>
+
+                <div class="options-subcontainer">
+                    <p>Max size</p>
+                    <div class="fileName" style="padding: 0;">
+                        <aside style="right: 10%;">mb</aside>
+                        <input v-model="maxSize" style="width: 100%;" type="number" name="maxSize" id="maxSize" >
+                    </div>
                 </div>
                 
             </div>
+            <div class="options-container">
+                <div class="options-subcontainer">
+                    <div class="double-input">
+                        <p>Range</p>
+                        <input placeholder="Start" type="text" name="start" id="start" v-model="range.start">
+                        <input placeholder="Finish" type="text" name="finish" id="finish" v-model="range.finish">
+                    </div>
+                </div>
+            </div>
+
+            <h2>Output path</h2>
+            <div style="width: 100%; padding: 0 1em;">
+
+                <BaseFileInput
+                    style="width: 100%; justify-content: flex-start; font-size: .9em;"
+                />
+            </div>
+
+            <h2>File name</h2>
+            <div class="fileName">
+                <aside >.{{ fileType }}</aside>
+                <input v-model="fileName" type="text" name="filename" id="filename" style="width: 100%;">
+            </div>
+            <div style="width: 100%; padding: 0 1em;">
+                <BaseVariableNameHelper/>
+            </div>
+
+            <!--Div Var connected to some input-->
+
+            <div class="thumbnail-container">
+                <div style="display: flex; align-items: center; ">
+                    <h2 style="margin-top:.7em;">Thumbnail</h2> <!--Tool tip too-->
+                    <o-tooltip label="Download thumbnail image?" position="right" :delay="100">
+                    <o-field style="margin: .6em 0 0 1em">
+                        
+                            <o-switch
+                                size="small"
+                                v-model="thumbnail.download">
+                            </o-switch>
+                    </o-field>
+                    </o-tooltip>
+                </div>
+                <template v-if="thumbnail.download" >
+                    <h2 style="margin-top: .5em;">File name</h2>
+                    <div style="width: 100%; padding: 0 1em;">
+                        <input v-model="thumbnail.fileName" type="text" name="thumbfilename" id="thumbfilename" style="width: 100%;">
+                        <BaseVariableNameHelper/>
+                    </div>
+                </template>
+            </div>
+
             <BaseButton :btnClass="loading ? 'disable' : 'red'" text="Download" style="width: 100%; margin-top: 1em;" :onClickFunc="()=>{if(!loading){download()}}" />
         </div>
     </div>
@@ -71,13 +126,17 @@ import BaseButton from './BaseButton.vue';
 import BaseIconButton from './BaseIconButton.vue';
 import { useFSStore } from '../stores/fileSystem';
 import { useOruga } from '@oruga-ui/oruga-next';
+import BaseFileInput from './BaseFileInput.vue';
+import BaseVariableNameHelper from './BaseVariableNameHelper.vue';
 
 const oruga = useOruga();
 
     export default {
         components: {
             BaseIconButton,
-            BaseButton
+            BaseButton,
+            BaseFileInput,
+            BaseVariableNameHelper
         },
         props: {
             style: Object
@@ -85,24 +144,37 @@ const oruga = useOruga();
         data() {
             return {
                 loading: false,
-                format: '',
-                formats:[
-                    {label:"Audio (mp3)",value:"Audio"},
-                    {label:"Video (mp4)",value:"Video"},
-                ],
-                videoQualities: [
+                // format: '',
+                // formats:[
+                //     {label:"Audio (mp3)",value:"Audio"},
+                //     {label:"Video (mp4)",value:"Video"},
+                // ],
+                qualities: [
                     {label:'144p',value:"144p"},
                     {label:'240p',value:"240p"},
                     {label:'360p',value:"360p"},
                     {label:'720p',value:"720p"},
                     {label:'1080p',value:"1080p"},
                 ],
-                audioQualities: [
-                    {label:'128kbps',value:"128kbps"},
-                    {label:'320kbps',value:"320kbps"},
+                fileTypes: [
+                    {label:'.mp4',value:"mp4"},
+                    {label:'.m4a',value:"m4a"},
+                    {label:'.mp3',value:"mp3"},
+                    {label:'.wav',value:"wav"},
                 ],
-                qualities:[],
-                quality: '',
+                range: {
+                    start: '0',
+                    finish: '0',
+                },
+                quality: '1080p',
+                fileType:'mp4',
+                maxSize: 10,
+                fileName:'Video',
+                thumbnail: {
+                    download: false,
+                    fileName: 'thumbnail',
+                },
+
             }
         },
         setup() {
@@ -151,6 +223,18 @@ const oruga = useOruga();
 </script>
 
 <style scoped>
+
+        
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+    }
+
+    input[type=number] {
+    -moz-appearance: textfield;
+    }
+
     .active-card-container {
         width: 100%;
         background-color: var(--black-background-900);
@@ -158,7 +242,7 @@ const oruga = useOruga();
         display: flex;
         align-items: center;
         justify-content: space-between;
-        flex-direction: row;
+        flex-direction: column;
         border-radius: 8px;
         padding: 1.5em 1em;
         margin: 0.5em 0.5em;
@@ -169,9 +253,9 @@ const oruga = useOruga();
         background-repeat: no-repeat;
         background-position: center;
         background-size: cover;
-        height: 100%;
-        width: 50%;
-        margin-right: 1em;
+        height: 20vh;
+        width: 100%;
+        margin-bottom: 1.5em;
         border-radius: 8px;
     }
     
@@ -180,12 +264,27 @@ const oruga = useOruga();
         align-items: flex-start;
         justify-content: center;
         flex-direction: column;
-        width: 70%;
+        width: 100%;
         height: 80%;
+    }
+
+    h2 {
+        font-weight: 600;
+        font-size: 1.2em;
+        margin-bottom: .5em;
+        margin-top: 2.5em;
     }
 
     p {
         font-size: 0.92em;
+    }
+
+    input {
+        background: var(--black-background-900);
+        border: 1px solid var(--black-background-800);
+        border-radius: 8px;
+        padding: .4em .9em;
+        outline: none;
     }
 
     .options-container {
@@ -194,6 +293,45 @@ const oruga = useOruga();
         flex-direction: row;
         justify-content: space-between;
         margin: .5em 0;
+        padding: 0 1em;
+    }
+
+    .media-info {
+        border: 1px solid var(--black-background-800); 
+        border-radius: 8px; 
+        padding: .5em 1em;
+        margin: .7em 0 0 0;
+    }
+        .media-info p {
+            font-size: 1em;
+        }
+
+    .double-input {
+        display: flex;
+        align-items: center;
+    }
+
+    .double-input input {
+        max-width: 4.5em;
+        text-align: center;
+        margin-right: 1em;
+    }
+
+    .fileName {
+        width: 100%; 
+        padding: 0 1em; 
+        position: relative;
+    }
+        .fileName aside {
+            position: absolute; 
+            top: 50%; 
+            transform: translate(0,-50%); 
+            right: 40px; 
+            color: var(--white-text);
+        }
+
+    .options-container .options-subcontainer:not(:last-child) {
+        margin-right: 1.5em;
     }
 
     .options-subcontainer {
@@ -202,6 +340,11 @@ const oruga = useOruga();
         align-items: center; 
         justify-content: space-between; 
     }
+
+        .options-subcontainer p {
+            white-space: nowrap;
+            margin-right: 1em;
+        }
 
     .dropdown-menu {
         --oruga-dropdown-menu-background: var(--black-background-900);
@@ -242,5 +385,9 @@ const oruga = useOruga();
             text-align: start;
         }
 
+    .thumbnail-container {
+        margin-top: 2em;
+        width: 100%;
+    }
     
 </style>

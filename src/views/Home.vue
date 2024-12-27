@@ -16,8 +16,8 @@
                         @start-loading="()=>{loadingSearch = true}"
                         @end-loading="()=>{loadingSearch = false}"  />
                     <template v-if="mediaStore.getTitle == ''">
-                        <p style="padding-top: 1em;"><a href="/">Detailed download</a> if you need more options</p>
-                        <p><a href="/">Multiple download</a> if you need many downloads</p>
+                        <p style="padding-top: 1em;"><RouterLink to="/singleDetailed" >Detailed download</RouterLink> if you need more options</p>
+                        <p><RouterLink to="/multiple">Multiple download</RouterLink> if you need many downloads</p>
                     </template>
                 </div>
                 <template v-if="mediaStore.getTitle != ''" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]" >
@@ -46,6 +46,7 @@
     </div>
 </template>
 <script lang="ts">
+import { RouterLink } from 'vue-router';
 import ActiveDownloadCard from '../components/ActiveDownloadCard.vue';
 import BaseSearchBar from '../components/BaseSearchBar.vue';
 import RecentDownloadCard from '../components/RecentDownloadCard.vue';
@@ -59,7 +60,8 @@ import { useMediaStore } from '../stores/media';
             TheHeader,
             BaseSearchBar,
             RecentDownloadCard,
-            ActiveDownloadCard
+            ActiveDownloadCard,
+            RouterLink
         },
         setup() {
             const mediaStore = useMediaStore();
@@ -98,11 +100,19 @@ import { useMediaStore } from '../stores/media';
         },
         methods: {
             async loadDownloadHistory() {
-                this.readFile().then((downloadArr: DownloadLog[] | null)=>{
-                    if(downloadArr != null) {
-                        this.downloadLog = downloadArr
+                const teste = new Date()
+                console.log(Number(teste.getTime()))
+                const downloadArr = await this.readFile()
+
+                if(downloadArr != null) {
+                    if(downloadArr.length == 0) {
+                        await this.createFile();
+                        this.loadDownloadHistory();
+                        return
                     }
-                })
+
+                    this.downloadLog = downloadArr
+                }
             },
             async checkDownload(val: boolean){
                 this.downloadResultMsg = val ? 'Download successful!' : 'Could not download'
@@ -118,7 +128,8 @@ import { useMediaStore } from '../stores/media';
                         format: this.mediaStore.getFormat,
                         quality: this.mediaStore.getQuality,
                         length: 0,
-                        path: this.fsStore.getDefaultOutput
+                        path: this.fsStore.getDefaultOutput,
+                        dateCreated: new Date()
                     } 
 
                     await this.addDownload(activeDownloadLog);
@@ -139,7 +150,7 @@ import { useMediaStore } from '../stores/media';
     }
 
     .container {
-        min-height: 100vh;
+        min-height: 88vh;
         background-color: var(--black-background-850);
         background-image: url(../assets/bg-simple-1.svg);
         background-repeat: no-repeat;
@@ -152,7 +163,7 @@ import { useMediaStore } from '../stores/media';
         align-items: center;
         justify-content: center;
         flex-direction: column;
-        margin-top: 25vh;
+        margin-top: 15vh;
         height: 30vh;
         width: 100%;
     }

@@ -56,10 +56,15 @@ export async function createHistFile() {
 export async function readHistFile(): Promise<DownloadLog[] | null> {
     info('Starting read hist file')
     return readTextFile('download-history.json',{baseDir: BaseDirectory.AppLocalData}).then((content)=>{
-        const data:DownloadLog[] = JSON.parse(content);
+        let data:DownloadLog[] = JSON.parse(content);
 
-        info(content);
-        return data.reverse()
+        data.sort((a,b)=>{
+            const dateA = new Date(a.dateCreated).getTime();
+            const dateB = new Date(b.dateCreated).getTime();
+            return dateA < dateB ? 1: -1;
+        })
+
+        return data
     }).catch(()=>{
         return null
     }).finally(()=>{

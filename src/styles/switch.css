@@ -1,0 +1,7 @@
+.o-switch {
+    --oruga-switch-active-background-color: var(--red-stroke)
+}
+
+.o-switch *:focus {
+    box-shadow: none !important;
+}
