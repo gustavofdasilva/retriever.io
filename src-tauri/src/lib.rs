@@ -88,13 +88,13 @@ async fn download(url: String, output: String, format: String, fileExt: String, 
     
 
     let output = Command::new("yt-dlp")
+        .arg("--download-sections")
+        .arg(format!("*{startSection}-{endSection}"))
         .args(if is_audio {audio_args} else {vec![]})
         .arg("-o")
         .arg(format!("{output}"))
         .arg("-S")
         .arg(format!("res:{},ext:{}",quality_number,fileExt_default_handle))
-        // .arg("--download-sections")
-        // .arg(format!("*{startSection}-{endSection}"))
         .arg(url)
         .output();
 

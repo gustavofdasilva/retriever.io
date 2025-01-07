@@ -1,6 +1,6 @@
 <template>
     <div class="active-card-container" :style="style">
-        
+        <p>path: {{ outputPath }} </p>
         <div class="thumbnail" :style="{backgroundImage: 'url('+mediaStore.getThumbnail+')'}"></div>
         <div class="metadata">
             <div class="button-w-title-container">
@@ -78,6 +78,7 @@
             <div style="width: 100%; padding: 0 1em;">
 
                 <BaseFileInput
+                    @folder-selected="setOutputPath"
                     style="width: 100%; justify-content: flex-start; font-size: .9em;"
                 />
             </div>
@@ -169,7 +170,8 @@ const oruga = useOruga();
                 quality: '1080p',
                 fileExt:'mp4',
                 maxSize: 10,
-                fileName:'Video',
+                fileName:'',
+                outputPath: '',
                 thumbnail: {
                     download: false,
                     fileName: 'thumbnail',
@@ -190,6 +192,9 @@ const oruga = useOruga();
             this.range.end = this.mediaStore.getDuration
         },
         methods: {
+            setOutputPath(path) {
+                this.outputPath = path;
+            },
             download() {
                 this.loading=true
                 
@@ -202,7 +207,7 @@ const oruga = useOruga();
                 }
 
                 const fileExt = this.fileExt
-                const output = `${this.fsStore.getDefaultOutput}/${this.mediaStore.getTitle}`
+                const output = `${this.outputPath == '' ? this.fsStore.getDefaultOutput : this.outputPath}/${this.fileName == '' ? this.mediaStore.getTitle : this.fileName}`
                 invoke('download',{
                     url: this.mediaStore.getUrl, 
                     output: output, 

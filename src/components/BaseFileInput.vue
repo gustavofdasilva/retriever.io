@@ -43,7 +43,7 @@ export default {
                 title:'Select default output'
             })
             this.path = dir
-            this.$emit('folder-selected',this.path)
+            this.$emit('folder-selected',dir)
         },
     }
 }
