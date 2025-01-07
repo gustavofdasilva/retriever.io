@@ -28,6 +28,14 @@ async fn get_metadata(url: String) -> Vec<String> {
         .arg("channel")
         .arg("--print")
         .arg("thumbnail")
+        .arg("--print")
+        .arg("view_count")
+        .arg("--print")
+        .arg("like_count")
+        .arg("--print")
+        .arg("dislike_count")
+        .arg("--print")
+        .arg("duration_string")
         .arg(url)
         .output();
 
@@ -36,7 +44,7 @@ async fn get_metadata(url: String) -> Vec<String> {
         String::from_utf8_lossy(&output.as_ref().cloned().unwrap().stdout).to_string()
     );
     println!(
-        "STDERR {}",
+    "STDERR {}",
         String::from_utf8(output.as_ref().cloned().unwrap().stderr).unwrap_or("null".to_string())
     );
 
@@ -46,25 +54,37 @@ async fn get_metadata(url: String) -> Vec<String> {
     let title = stdout.lines().nth(0).unwrap().to_string();
     let channel = stdout.lines().nth(1).unwrap().to_string();
     let thumbnail = stdout.lines().nth(2).unwrap().to_string();
+    let views = stdout.lines().nth(3).unwrap().to_string();
+    let likes = stdout.lines().nth(4).unwrap().to_string();
+    let dislikes = stdout.lines().nth(5).unwrap().to_string();
+    let duration = stdout.lines().nth(6).unwrap().to_string();
     data.push(title);
     data.push(channel);
     data.push(thumbnail);
+    data.push(views);
+    data.push(likes);
+    data.push(dislikes);
+    data.push(duration);
     return data;
 }
 
 #[tauri::command]
-async fn download(url: String, output: String, format: String, quality: String) -> String {
+async fn download(url: String, output: String, format: String, fileExt: String, quality: String,startSection: String,endSection:String) -> String {
     use std::process::Command;
 
     println!("Received!, lets start");
 
     let quality_number = quality.trim_end_matches('p');
 
-    let is_audio = if format=="mp3" {true} else {false};
+    let is_audio = if format=="Audio" {true} else {false};
+
+    let fileExt_default_handle = if fileExt != "" {fileExt} else {"mp4".to_string()};
+
+    let range = format!("*{startSection}-{endSection}");
 
     println!("{}",is_audio);
 
-    let audio_args = vec!["-x","--audio-format","mp3","--audio-quality","0"];
+    let audio_args = vec!["-x","--audio-format",String::as_str(&fileExt_default_handle),"--audio-quality","0"];
     
 
     let output = Command::new("yt-dlp")
@@ -72,9 +92,15 @@ async fn download(url: String, output: String, format: String, quality: String) 
         .arg("-o")
         .arg(format!("{output}"))
         .arg("-S")
-        .arg(format!("res:{}",quality_number))
+        .arg(format!("res:{},ext:{}",quality_number,fileExt_default_handle))
+        // .arg("--download-sections")
+        // .arg(format!("*{startSection}-{endSection}"))
         .arg(url)
         .output();
+
+        println!("ARGS:");
+        println!("--download-sections");
+        println!("{}",format!("\"*{startSection}-{endSection}\""));
 
     println!(
         "STDOUT {}",

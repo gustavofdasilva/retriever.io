@@ -119,7 +119,15 @@ const oruga = useOruga();
                 this.loading=true
                 const fileType = this.format == "Audio" ? 'mp3' : 'mp4';
                 const output = `${this.fsStore.getDefaultOutput}/${this.mediaStore.getTitle}`
-                invoke('download',{url: this.mediaStore.getUrl, output: output, format: fileType, quality: this.quality}).then(()=>{
+                invoke('download',{
+                    url: this.mediaStore.getUrl, 
+                    output: output, 
+                    format: this.format, 
+                    fileExt: fileType,
+                    quality: this.quality,
+                    startSection: "00:00",
+                    endSection: this.mediaStore.getDuration
+                }).then(()=>{
                     this.mediaStore.setFormat(this.format)
                     this.mediaStore.setQuality(this.quality);
                     

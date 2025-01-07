@@ -47,6 +47,10 @@ export default {
                     this.mediaStore.setTitle(this.basicMetadata[0]);
                     this.mediaStore.setChannel(this.basicMetadata[1]);
                     this.mediaStore.setThumbnail(this.basicMetadata[2]);
+                    this.mediaStore.setViews(this.basicMetadata[3]);
+                    this.mediaStore.setLikes(this.basicMetadata[4]);
+                    this.mediaStore.setDislikes(this.basicMetadata[5]);
+                    this.mediaStore.setDuration(this.basicMetadata[6]);
                     this.mediaStore.setUrl(this.inputText);
                     this.$emit('end-loading')
                 }

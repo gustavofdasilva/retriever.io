@@ -125,7 +125,7 @@ import { useMediaStore } from '../stores/media';
                         thumbnailUrl: this.mediaStore.getThumbnail,
                         title: this.mediaStore.getTitle,
                         channel: this.mediaStore.getChannel,
-                        format: this.mediaStore.getFormat,
+                        format: this.mediaStore.getFormat ? this.mediaStore.getFormat : "Video",
                         quality: this.mediaStore.getQuality,
                         length: 0,
                         path: this.fsStore.getDefaultOutput,

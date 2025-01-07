@@ -9,9 +9,9 @@
             </div>
             <p style="font-size: 1em; color:var(--black-background-600); margin: .2em 0 .6em 0;">{{mediaStore.getChannel}}</p>
             <div class="options-container media-info">
-                <p ><span>Views:</span> 00</p>
-                <p ><span>Likes:</span> </p>
-                <p ><span>Dislikes:</span> </p>
+                <p ><span>Views:</span> {{ mediaStore.getViews }}</p>
+                <p ><span>Likes:</span> {{ mediaStore.getLikes }} </p>
+                <p ><span>Dislikes:</span> {{ mediaStore.getDislikes }} </p>
             </div>
             <h2>Output file</h2>
             <div class="options-container">
@@ -37,17 +37,17 @@
 
                 <div class="options-subcontainer">
                     <p >File type</p>
-                    <o-dropdown v-model="fileType" class="dropdown-menu">
+                    <o-dropdown v-model="fileExt" class="dropdown-menu">
                         <template #trigger="{ active }">
                             <o-button
                                 class="base-container dropdown-button"
                                 variant="primary"
-                                :label="fileType == '' ? 'File type':fileType"
+                                :label="fileExt == '' ? 'File type':fileExt"
                                 :icon-right="active ? 'chevron-up':'chevron-down'"/>
                         </template>
 
                         <o-dropdown-item 
-                            v-for="ft in fileTypes"
+                            v-for="ft in fileExts"
                             :key="ft"
                             class="dropdown-item" 
                             :label="ft.label" 
@@ -69,7 +69,7 @@
                     <div class="double-input">
                         <p>Range</p>
                         <input placeholder="Start" type="text" name="start" id="start" v-model="range.start">
-                        <input placeholder="Finish" type="text" name="finish" id="finish" v-model="range.finish">
+                        <input placeholder="Finish" type="text" name="finish" id="finish" v-model="range.end">
                     </div>
                 </div>
             </div>
@@ -84,7 +84,7 @@
 
             <h2>File name</h2>
             <div class="fileName">
-                <aside >.{{ fileType }}</aside>
+                <aside >.{{ fileExt }}</aside>
                 <input v-model="fileName" type="text" name="filename" id="filename" style="width: 100%;">
             </div>
             <div style="width: 100%; padding: 0 1em;">
@@ -156,18 +156,18 @@ const oruga = useOruga();
                     {label:'720p',value:"720p"},
                     {label:'1080p',value:"1080p"},
                 ],
-                fileTypes: [
+                fileExts: [
                     {label:'.mp4',value:"mp4"},
                     {label:'.m4a',value:"m4a"},
                     {label:'.mp3',value:"mp3"},
                     {label:'.wav',value:"wav"},
                 ],
                 range: {
-                    start: '0',
+                    start: '00:00',
                     finish: '0',
                 },
                 quality: '1080p',
-                fileType:'mp4',
+                fileExt:'mp4',
                 maxSize: 10,
                 fileName:'Video',
                 thumbnail: {
@@ -186,19 +186,39 @@ const oruga = useOruga();
                 fsStore
             }
         },
+        mounted() {
+            this.range.end = this.mediaStore.getDuration
+        },
         methods: {
             download() {
                 this.loading=true
-                const fileType = this.format == "Audio" ? 'mp3' : 'mp4';
+                
+                let fileType;
+
+                if (this.fileExt == "mp4" || this.fileExt == "m4a") {
+                    fileType = "Video"
+                } else {
+                    fileType = "Audio"
+                }
+
+                const fileExt = this.fileExt
                 const output = `${this.fsStore.getDefaultOutput}/${this.mediaStore.getTitle}`
-                invoke('download',{url: this.mediaStore.getUrl, output: output, format: fileType, quality: this.quality}).then(()=>{
+                invoke('download',{
+                    url: this.mediaStore.getUrl, 
+                    output: output, 
+                    format: fileType, 
+                    fileExt: fileExt,
+                    quality: this.quality,
+                    startSection: this.range.start,
+                    endSection: this.range.end,}).then(()=>{
                     this.mediaStore.setFormat(this.format)
                     this.mediaStore.setQuality(this.quality);
                     
                     this.newNotification("Download successful!");
                     this.$emit('download-successful',true)
-                }).catch(()=>{
+                }).catch((err)=>{
                     this.newNotification("Something went wrong :(");
+                    console.log(err)
                     this.$emit('download-successful',false)
                 }).finally(()=>{
                     this.loading = false
