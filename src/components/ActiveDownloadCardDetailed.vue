@@ -1,6 +1,5 @@
 <template>
     <div class="active-card-container" :style="style">
-        <p>path: {{ outputPath }} </p>
         <div class="thumbnail" :style="{backgroundImage: 'url('+mediaStore.getThumbnail+')'}"></div>
         <div class="metadata">
             <div class="button-w-title-container">
@@ -56,22 +55,13 @@
                 </div>
 
                 <div class="options-subcontainer">
-                    <p>Max size</p>
+                    <p>Goal size</p>
                     <div class="fileName" style="padding: 0;">
                         <aside style="right: 10%;">mb</aside>
-                        <input v-model="maxSize" style="width: 100%;" type="number" name="maxSize" id="maxSize" >
+                        <input v-model="goalSize" style="width: 100%;" type="number" name="goalSize" id="goalSize" >
                     </div>
                 </div>
                 
-            </div>
-            <div class="options-container">
-                <div class="options-subcontainer">
-                    <div class="double-input">
-                        <p>Range</p>
-                        <input placeholder="Start" type="text" name="start" id="start" v-model="range.start">
-                        <input placeholder="Finish" type="text" name="finish" id="finish" v-model="range.end">
-                    </div>
-                </div>
             </div>
 
             <h2>Output path</h2>
@@ -93,6 +83,34 @@
             </div>
 
             <!--Div Var connected to some input-->
+
+            
+
+            <div style="margin-top: 2em; width: 100%;">
+                <div style="display: flex; align-items: center; ">
+                    <h2 style="margin-top:.7em;">Trim</h2> <!--Tool tip too-->
+                    <o-tooltip label="Select video range" position="right" :delay="100">
+                    <o-field style="margin: .6em 0 0 1em">
+                        
+                            <o-switch
+                                size="small"
+                                v-model="trim">
+                            </o-switch>
+                    </o-field>
+                    </o-tooltip>
+                </div>
+                <template v-if="trim" >
+                    <div style="width: 100%;">
+                        <div class="double-input" style="justify-content: center;">
+                            <p style="margin-right: 1.2em; font-weight: 600;">Range:</p>
+                            <p style="margin-right: .8em;">Start</p>
+                            <input placeholder="Start" type="text" name="start" id="start" v-model="range.start">
+                            <p style="margin-right: .8em; margin-left: .5em;">Finish</p>
+                            <input placeholder="Finish" type="text" name="finish" id="finish" v-model="range.end">
+                        </div>
+                    </div>
+                </template>
+            </div>
 
             <div class="thumbnail-container">
                 <div style="display: flex; align-items: center; ">
@@ -169,13 +187,14 @@ const oruga = useOruga();
                 },
                 quality: '1080p',
                 fileExt:'mp4',
-                maxSize: 10,
+                goalSize: 10,
                 fileName:'',
                 outputPath: '',
                 thumbnail: {
                     download: false,
                     fileName: 'thumbnail',
                 },
+                trim: false,
 
             }
         },
@@ -207,15 +226,21 @@ const oruga = useOruga();
                 }
 
                 const fileExt = this.fileExt
-                const output = `${this.outputPath == '' ? this.fsStore.getDefaultOutput : this.outputPath}/${this.fileName == '' ? this.mediaStore.getTitle : this.fileName}`
+                const outputPath = this.outputPath == '' ? this.fsStore.getDefaultOutput : this.outputPath 
+                const output = `${outputPath}/${this.fileName == '' ? this.mediaStore.getTitle : this.fileName}`
+                const thumbnailPath = this.thumbnail.download ? `${outputPath}/${this.thumbnail.fileName}` : ""
+  
                 invoke('download',{
                     url: this.mediaStore.getUrl, 
                     output: output, 
                     format: fileType, 
                     fileExt: fileExt,
                     quality: this.quality,
-                    startSection: this.range.start,
-                    endSection: this.range.end,}).then(()=>{
+                    startSection: this.trim ? this.range.start : '',
+                    endSection: this.trim ? this.range.end : '',
+                    goalFileSize: this.goalSize.toString(),
+                    thumbnailPath: thumbnailPath
+                }).then(()=>{
                     this.mediaStore.setFormat(this.format)
                     this.mediaStore.setQuality(this.quality);
                     

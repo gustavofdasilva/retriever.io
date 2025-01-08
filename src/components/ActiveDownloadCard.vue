@@ -125,8 +125,9 @@ const oruga = useOruga();
                     format: this.format, 
                     fileExt: fileType,
                     quality: this.quality,
-                    startSection: "00:00",
-                    endSection: this.mediaStore.getDuration
+                    startSection: "",
+                    endSection: "",
+                    goalFileSize: "100"
                 }).then(()=>{
                     this.mediaStore.setFormat(this.format)
                     this.mediaStore.setQuality(this.quality);

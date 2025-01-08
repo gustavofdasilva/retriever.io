@@ -1,6 +1,6 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
-use std::{fmt::Debug, fs::File};
+use std::{fmt::Debug, fs::File, vec};
 
 const defaultDownloadPath: &str = "/downloads";
 
@@ -69,38 +69,65 @@ async fn get_metadata(url: String) -> Vec<String> {
 }
 
 #[tauri::command]
-async fn download(url: String, output: String, format: String, fileExt: String, quality: String,startSection: String,endSection:String) -> String {
+async fn download(
+    url: String, 
+    output: String, 
+    format: String, 
+    fileExt: String, 
+    quality: String,
+    startSection: String,
+    endSection:String,
+    goalFileSize: String,
+    thumbnailPath: String) -> String {
     use std::process::Command;
 
     println!("Received!, lets start");
+
+    let mut args: Vec<String> = vec![];
 
     let quality_number = quality.trim_end_matches('p');
 
     let is_audio = if format=="Audio" {true} else {false};
 
-    let fileExt_default_handle = if fileExt != "" {fileExt} else {"mp4".to_string()};
+    let trim = if startSection == "" || endSection == "" {false} else {true};
 
-    let range = format!("*{startSection}-{endSection}");
+    let fileExt_default_handle = if fileExt != "" {fileExt} else {"mp4".to_string()};
 
     println!("{}",is_audio);
 
-    let audio_args = vec!["-x","--audio-format",String::as_str(&fileExt_default_handle),"--audio-quality","0"];
+    let mut audio_args:Vec<String> = vec!["-x".to_string(),"--audio-format".to_string(),fileExt_default_handle.clone(),"--audio-quality".to_string(),"0".to_string()];
     
+    if trim {
+        args.push("--download-sections".to_string());
+        args.push(format!("*{startSection}-{endSection}"))
+    }
+
+    if is_audio {
+        args.append(&mut audio_args);
+    }
+
+    if thumbnailPath != "" {
+        args.push("--write-thumbnail".to_string());
+        args.push("-P".to_string());
+        args.push(format!("{thumbnailPath}"));
+    }
+
+    // if goalFileSize != "" {
+    //     goalFileSize = "10".to_string();
+    // }
+
+    args.push("-o".to_string());
+    args.push(format!("{output}"));
+    args.push("-S".to_string());
+    args.push(format!("res:{},ext:{},filesize~{}M",quality_number,fileExt_default_handle,goalFileSize));
+    args.push(url);
 
     let output = Command::new("yt-dlp")
-        .arg("--download-sections")
-        .arg(format!("*{startSection}-{endSection}"))
-        .args(if is_audio {audio_args} else {vec![]})
-        .arg("-o")
-        .arg(format!("{output}"))
-        .arg("-S")
-        .arg(format!("res:{},ext:{}",quality_number,fileExt_default_handle))
-        .arg(url)
+        .args(args.clone())
         .output();
 
         println!("ARGS:");
-        println!("--download-sections");
-        println!("{}",format!("\"*{startSection}-{endSection}\""));
+        println!("{}",args.clone().join("\n"));
 
     println!(
         "STDOUT {}",

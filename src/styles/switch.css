@@ -1,5 +1,6 @@
 .o-switch {
-    --oruga-switch-active-background-color: var(--red-stroke)
+    --oruga-switch-active-background-color: var(--red-stroke);
+    --oruga-switch-background: var(--black-background-800);
 }
 
 .o-switch *:focus {
