@@ -1,10 +1,12 @@
 <template>
     <div class="active-card-container" :style="style">
         
-        <div class="thumbnail" :style="{backgroundImage: 'url('+mediaStore.getThumbnail+')'}"></div>
+        <div class="thumbnail">
+            <p style="font-size: 2em; font-weight: 500;" >{{ mediaStore.getMultiUrls.length }}</p>
+        </div>
         <div class="metadata">
             <div class="button-w-title-container">
-                <h1 style="font-size: 1.5em;">{{mediaStore.getTitle}}</h1>
+                <h1 style="font-size: 1.5em;">{{mediaStore.getMultiUrls.length}} Videos selected</h1>
                 <BaseIconButton :onClickFunc="()=>{exit()}" btnIcon="x" />
             </div>
             <p style="font-size: 1em; color:var(--black-background-600); margin: .2em 0 .6em 0;">{{mediaStore.getChannel}}</p>
@@ -71,6 +73,8 @@ import BaseButton from './BaseButton.vue';
 import BaseIconButton from './BaseIconButton.vue';
 import { useFSStore } from '../stores/fileSystem';
 import { useOruga } from '@oruga-ui/oruga-next';
+import { info } from '@tauri-apps/plugin-log';
+import { addToHist, createHistFile, readHistFile } from '../helpers/history';
 
 const oruga = useOruga();
 
@@ -106,43 +110,96 @@ const oruga = useOruga();
             }
         },
         setup() {
-            const mediaStore = useMediaStore()
-            const fsStore = useFSStore()
+            const mediaStore = useMediaStore();
+            const fsStore = useFSStore();
+            const readFile = () => readHistFile();
+            const createFile = () => createHistFile();
+            const addDownload = (newLog) => addToHist(newLog);
+            const clearInfo = () => clearHist();
 
-            return { 
+            return {
                 mediaStore,
-                fsStore
+                fsStore,
+                readFile,
+                createFile,
+                addDownload,
+                clearInfo
             }
         },
         methods: {
-            download() {
+            async download() {
                 this.loading=true
+
                 const fileType = this.format == "Audio" ? 'mp3' : 'mp4';
-                const output = `${this.fsStore.getDefaultOutput}/${this.mediaStore.getTitle}`
-                invoke('download',{
-                    url: this.mediaStore.getUrl, 
-                    output: output, 
-                    format: this.format, 
-                    fileExt: fileType,
-                    quality: this.quality,
-                    startSection: "",
-                    endSection: "",
-                    goalFileSize: "100",
-                    thumbnailPath: "",
-                }).then(()=>{
-                    this.mediaStore.setFormat(this.format)
-                    this.mediaStore.setQuality(this.quality);
+                
+                for (const url of this.mediaStore.getMultiUrls) {
                     
-                    this.newNotification("Download successful!");
-                    this.$emit('download-successful',true)
-                }).catch((err)=>{
-                    this.newNotification("Something went wrong :(");
-                    console.log(err)
-                    this.$emit('download-successful',false)
-                }).finally(()=>{
-                    this.loading = false
-                })
+                    console.log(`VIDEO ${this.mediaStore.getMultiUrls.indexOf(url)+1} STARTED`)
+
+                    const videoData = await this.getMetadata(url)
+
+                    const output = `${this.fsStore.getDefaultOutput}/${videoData.title}`
+
+                    invoke('download',{
+                        url: url, 
+                        output: output, 
+                        format: this.format, 
+                        fileExt: fileType,
+                        quality: this.quality,
+                        startSection: "",
+                        endSection: "",
+                        goalFileSize: "100",
+                        thumbnailPath:"",
+                    }).then(async()=>{
+                        
+                        console.log(`VIDEO ${this.mediaStore.getMultiUrls.indexOf(url)+1} DOWNLOADED`)
+                        const activeDownloadLog = {
+                            thumbnailUrl: videoData.thumbnail,
+                            title: videoData.title,
+                            channel: videoData.channel,
+                            format: this.format,
+                            quality: this.quality,
+                            length: 0,
+                            path: this.fsStore.getDefaultOutput,
+                            dateCreated: new Date()
+                        } 
+    
+                        await this.addDownload(activeDownloadLog);
+
+                        this.newNotification("Download successful!");
+                        console.log(`VIDEO ${this.mediaStore.getMultiUrls.indexOf(url)+1} DOWNLOAD LOG SUCCESSFUL`)
+                    }).finally(()=>{
+                        this.$emit('download-successful',true);
+                        const index = this.mediaStore.getMultiUrls.indexOf(url);
+                        const length = this.mediaStore.getMultiUrls.length;
+
+                        if (index+1 == length) this.loading = false;
+                    })
+                }
+                
             },
+
+            async getMetadata(url) {
+                const res = await invoke('get_metadata',{url: url})
+                if(Array.isArray(res)) {
+                    const basicMetadata = res;
+                    // this.mediaStore.setTitle(basicMetadata[0]);
+                    // this.mediaStore.setChannel(basicMetadata[1]);
+                    // this.mediaStore.setThumbnail(basicMetadata[2]);
+                    // this.mediaStore.setViews(basicMetadata[3]);
+                    // this.mediaStore.setLikes(basicMetadata[4]);
+                    // this.mediaStore.setDislikes(basicMetadata[5]);
+                    // this.mediaStore.setDuration(basicMetadata[6]);
+                    // this.mediaStore.setUrl(url);
+
+                    return {
+                        title: basicMetadata[0],
+                        channel: basicMetadata[1],
+                        thumbnail: basicMetadata[2],
+                    }
+                }
+            },
+
             exit() {
                 this.mediaStore.reset();
             },
@@ -180,6 +237,10 @@ const oruga = useOruga();
         background-repeat: no-repeat;
         background-position: center;
         background-size: cover;
+        background-color: var(--black-background-850);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         height: 100%;
         width: 50%;
         margin-right: 1em;

@@ -13,6 +13,7 @@
                 <div class="search-sub-container" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]">
                     <BaseSearchBar
                         :disabled="loadingSearch"
+                        @on-click-func="getMetadata"
                         @start-loading="()=>{loadingSearch = true}"
                         @end-loading="()=>{loadingSearch = false}"  />
                     <template v-if="mediaStore.getTitle == ''">
@@ -25,7 +26,6 @@
                         :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]"
                         @download-successful="(val:boolean)=>{checkDownload(val)}"
                     />
-                    <p>{{ downloadResultMsg }}</p>
                 </template>
             </div>
 
@@ -54,6 +54,8 @@ import TheHeader from '../components/TheHeader.vue';
 import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/history';
 import { useFSStore } from '../stores/fileSystem';
 import { useMediaStore } from '../stores/media';
+import { useLoadingStore } from '../stores/loading';
+import { invoke } from '@tauri-apps/api/core';
 
     export default {
         components: {
@@ -66,6 +68,7 @@ import { useMediaStore } from '../stores/media';
         setup() {
             const mediaStore = useMediaStore();
             const fsStore = useFSStore();
+            const loadingStore = useLoadingStore();
             const readFile = () => readHistFile();
             const createFile = () => createHistFile();
             const addDownload = (newLog: DownloadLog) => addToHist(newLog);
@@ -74,6 +77,7 @@ import { useMediaStore } from '../stores/media';
             return {
                 mediaStore,
                 fsStore,
+                loadingStore,
                 readFile,
                 createFile,
                 addDownload,
@@ -99,6 +103,26 @@ import { useMediaStore } from '../stores/media';
             this.loadDownloadHistory();
         },
         methods: {
+
+            getMetadata(inputText: string) {
+                if(this.loadingStore.loading) return
+
+                this.loadingSearch = true
+                invoke('get_metadata',{url: inputText}).then((res)=>{
+                    if(Array.isArray(res)) {
+                        const basicMetadata = res
+                        this.mediaStore.setTitle(basicMetadata[0]);
+                        this.mediaStore.setChannel(basicMetadata[1]);
+                        this.mediaStore.setThumbnail(basicMetadata[2]);
+                        this.mediaStore.setViews(basicMetadata[3]);
+                        this.mediaStore.setLikes(basicMetadata[4]);
+                        this.mediaStore.setDislikes(basicMetadata[5]);
+                        this.mediaStore.setDuration(basicMetadata[6]);
+                        this.mediaStore.setUrl(inputText);
+                        this.loadingSearch = false;
+                    }
+                })
+            },
             async loadDownloadHistory() {
                 const teste = new Date()
                 console.log(Number(teste.getTime()))

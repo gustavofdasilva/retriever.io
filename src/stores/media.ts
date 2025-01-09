@@ -13,6 +13,7 @@ export const useMediaStore = defineStore("media", {
             likes:null as number | null | "NA",
             dislikes:null as number | null | "NA",
             duration:"",
+            multipleDownloadUrls: [] as string[]
 
         }),
     getters: {
@@ -27,6 +28,7 @@ export const useMediaStore = defineStore("media", {
         getQuality: (state)=>state.quality,
         getDateCreated: (state)=>state.dateCreated,
         getDuration: (state)=>state.duration,
+        getMultiUrls: (state)=>state.multipleDownloadUrls,
     },
     actions: {
         setTitle(newTitle: string) {
@@ -53,6 +55,9 @@ export const useMediaStore = defineStore("media", {
         setUrl(newUrl: string) {
             this.url= newUrl
         },
+        setMultiUrls(newUrls: string[]) {
+            this.multipleDownloadUrls = newUrls
+        },
         setFormat(newFormat: "Video" | "Audio") {
             this.format = newFormat
         },
@@ -73,7 +78,8 @@ export const useMediaStore = defineStore("media", {
             this.duration="",
             this.format = null;
             this.quality = '';
-            this.dateCreated = null
+            this.dateCreated = null;
+            this.multipleDownloadUrls = [];
         }
     }
 })

@@ -12,8 +12,7 @@
                 <div class="search-sub-container" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]">
                     <BaseSearchBar
                         :disabled="loadingSearch"
-                        @start-loading="()=>{loadingSearch = true}"
-                        @end-loading="()=>{loadingSearch = false}"  />
+                        @on-click-func="getMetadata" />
                     <template v-if="mediaStore.getTitle == ''">
                         <p style="padding-top: 1em;"><RouterLink to="/">Simple download</RouterLink> if you need more options</p>
                         <p><RouterLink to="/">Multiple download</RouterLink> if you need many downloads</p>
@@ -39,6 +38,8 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
 import { useFSStore } from '../stores/fileSystem';
 import { useMediaStore } from '../stores/media';
 import ActiveDownloadCardDetailed from '../components/ActiveDownloadCardDetailed.vue';
+import { invoke } from '@tauri-apps/api/core';
+import { useLoadingStore } from '../stores/loading';
 
     export default {
         components: {
@@ -51,6 +52,7 @@ import ActiveDownloadCardDetailed from '../components/ActiveDownloadCardDetailed
         setup() {
             const mediaStore = useMediaStore();
             const fsStore = useFSStore();
+            const loadingStore = useLoadingStore();
             const readFile = () => readHistFile();
             const createFile = () => createHistFile();
             const addDownload = (newLog: DownloadLog) => addToHist(newLog);
@@ -59,6 +61,7 @@ import ActiveDownloadCardDetailed from '../components/ActiveDownloadCardDetailed
             return {
                 mediaStore,
                 fsStore,
+                loadingStore,
                 readFile,
                 createFile,
                 addDownload,
@@ -84,6 +87,26 @@ import ActiveDownloadCardDetailed from '../components/ActiveDownloadCardDetailed
             this.loadDownloadHistory();
         },
         methods: {
+            
+            getMetadata(inputText: string) {
+                if(this.loadingStore.loading) return
+
+                this.loadingSearch = true
+                invoke('get_metadata',{url: inputText}).then((res)=>{
+                    if(Array.isArray(res)) {
+                        const basicMetadata = res
+                        this.mediaStore.setTitle(basicMetadata[0]);
+                        this.mediaStore.setChannel(basicMetadata[1]);
+                        this.mediaStore.setThumbnail(basicMetadata[2]);
+                        this.mediaStore.setViews(basicMetadata[3]);
+                        this.mediaStore.setLikes(basicMetadata[4]);
+                        this.mediaStore.setDislikes(basicMetadata[5]);
+                        this.mediaStore.setDuration(basicMetadata[6]);
+                        this.mediaStore.setUrl(inputText);
+                        this.loadingSearch = false;
+                    }
+                })
+            },
             async loadDownloadHistory() {
                 const teste = new Date()
                 console.log(Number(teste.getTime()))
@@ -110,7 +133,7 @@ import ActiveDownloadCardDetailed from '../components/ActiveDownloadCardDetailed
                         thumbnailUrl: this.mediaStore.getThumbnail,
                         title: this.mediaStore.getTitle,
                         channel: this.mediaStore.getChannel,
-                        format: this.mediaStore.getFormat,
+                        format: this.mediaStore.getFormat ? this.mediaStore.getFormat : "Video",
                         quality: this.mediaStore.getQuality,
                         length: 0,
                         path: this.fsStore.getDefaultOutput,

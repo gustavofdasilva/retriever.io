@@ -1,15 +1,18 @@
 <template>
     <div class="search-bar-container">
-        <input v-model="inputText" type="text" name="text" id="text" placeholder="Paste your url...">
-        <BaseIconButton :disabled="disabled" btnIcon="search" :btnBorder="true" style="position: absolute; right: 10px;" :onClickFunc="()=>{getMetadata()}" />
+        <template v-if="multiline" >
+            <textarea v-model="inputText" type="text" name="text" id="text" placeholder="Paste your urls (Separated by enter)..." rows="5"></textarea>
+        </template>
+        <template v-else>
+            <input v-model="inputText" type="text" name="text" id="text" placeholder="Paste your url...">
+        </template>
+        <BaseIconButton :disabled="disabled" btnIcon="search" :btnBorder="true" style="position: absolute; right: 10px;" :onClickFunc="()=>{emitOnClick()}" />
     </div>
 </template>
 <script>
-import { invoke } from '@tauri-apps/api/core';
 import BaseIconButton from './BaseIconButton.vue';
 import { useMediaStore } from '../stores/media';
 import { useLoadingStore } from '../stores/loading';
-import { info } from '@tauri-apps/plugin-log';
 
 export default {
     components: {
@@ -17,6 +20,10 @@ export default {
     },
     props: {
         disabled: {
+            type: Boolean,
+            default: false
+        },
+        multiline: {
             type: Boolean,
             default: false
         }
@@ -37,26 +44,9 @@ export default {
       }
     },
     methods: {
-        getMetadata() {
-            console.log(this.disabled)
-            if(this.loadingStore.loading) return
-            this.$emit('start-loading')
-            invoke('get_metadata',{url: this.inputText}).then((res)=>{
-                if(Array.isArray(res)) {
-                    this.basicMetadata = res
-                    this.mediaStore.setTitle(this.basicMetadata[0]);
-                    this.mediaStore.setChannel(this.basicMetadata[1]);
-                    this.mediaStore.setThumbnail(this.basicMetadata[2]);
-                    this.mediaStore.setViews(this.basicMetadata[3]);
-                    this.mediaStore.setLikes(this.basicMetadata[4]);
-                    this.mediaStore.setDislikes(this.basicMetadata[5]);
-                    this.mediaStore.setDuration(this.basicMetadata[6]);
-                    this.mediaStore.setUrl(this.inputText);
-                    this.$emit('end-loading')
-                }
-            })
+        emitOnClick() {
+            this.$emit('on-click-func',this.inputText)
         }
-        
     }
 }
 </script>
@@ -69,7 +59,7 @@ export default {
         width: 100%;
     }
 
-    input {
+    input, textarea {
         width: 100%;
         background-color: var(--black-background-900);
         border: 1px solid var(--black-background-800);

@@ -1,37 +1,142 @@
 <template>
-    <div class="container">
+    <div class="container" >
         <main>
-            <h1>Multiple</h1>
-            <div style="width: 1em; height: 10em;"></div>
-            <BaseSearchBar/>
-            <p style="padding-top: 1em;"><a href="/">Detailed download</a> if you need more options</p>
-            <p><a href="/">Multiple download</a> if you need many downloads</p>
-            <div style="width: 100%;">
+
+            <div v-if="false" style="width: 100px;">
+                <button @click="createFile" >Create file</button>
+                <button @click="readFile; loadDownloadHistory()" >Read file</button>
+                <button @click="addDownload(mockDownloadLog)" >Add download</button>
+                <button @click="clearInfo()" >Clear history</button>
+            </div>
+            <div class="main-sub-container">
+                <div class="loader" :style="[ loadingSearch ? {opacity: '1'} : {opacity:'0'}]" ></div>
+                <div class="search-sub-container" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]">
+                    <template v-if="mediaStore.getMultiUrls.length == 0">
+                        <BaseSearchBar
+                            :disabled="loadingSearch"
+                            :multiline="true"
+                            @on-click-func="prepareDownload"/>
+                        <p style="padding-top: 1em;"><RouterLink to="/">Home</RouterLink> if you need it simple</p>
+                        <p><RouterLink to="/singleDetailed" >Detailed download</RouterLink> if you need more options</p>
+                    </template>
+                </div>
+                <template v-if="mediaStore.getMultiUrls.length != 0" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]" >
+                    <ActiveDownloadCardMultiple
+                        :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]"
+                        @download-successful="(val:boolean)=>{checkDownload(val)}"
+                    />
+                </template>
+            </div>
+
+            <div style="width: 100%; margin-top: 4em;">
                 <h2 class="sub-title" >Recent Downloads</h2>
-                <RecentDownloadCard/>
-                <RecentDownloadCard/>
-                <RecentDownloadCard/>
-                <RecentDownloadCard/>
-                <RecentDownloadCard/>
-                <RecentDownloadCard/>
+                
+                <RecentDownloadCard v-for="download in downloadLog"
+                    :key="download.title"
+                    :thumbnail-url="download.thumbnailUrl"
+                    :title="download.title" 
+                    :channel="download.channel" 
+                    :quality="download.quality" 
+                    :format="download.format" 
+                    :length="download.length"/>
+                
+                <p v-if="downloadLog.length==0" style="text-align: center; margin-top: 2em;">No recent downloads found. Start retrieving!</p>
             </div>
         </main>
     </div>
 </template>
-
-<script>
+<script lang="ts">
+import { RouterLink } from 'vue-router';
 import BaseSearchBar from '../components/BaseSearchBar.vue';
 import RecentDownloadCard from '../components/RecentDownloadCard.vue';
 import TheHeader from '../components/TheHeader.vue';
+import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/history';
+import { useFSStore } from '../stores/fileSystem';
+import { useMediaStore } from '../stores/media';
+import ActiveDownloadCardMultiple from '../components/ActiveDownloadCardMultiple.vue';
+
     export default {
         components: {
             TheHeader,
             BaseSearchBar,
-            RecentDownloadCard
-        }   
+            RecentDownloadCard,
+            ActiveDownloadCardMultiple,
+            RouterLink
+        },
+        setup() {
+            const mediaStore = useMediaStore();
+            const fsStore = useFSStore();
+            const readFile = () => readHistFile();
+            const createFile = () => createHistFile();
+            const addDownload = (newLog: DownloadLog) => addToHist(newLog);
+            const clearInfo = () => clearHist();
+
+            return {
+                mediaStore,
+                fsStore,
+                readFile,
+                createFile,
+                addDownload,
+                clearInfo
+            }
+        },
+        data() {
+            return {
+                loadingSearch: false,
+                downloadResultMsg: '',
+                downloadLog: [] as DownloadLog[],
+                mockDownloadLog: {
+                    title: 'Video Title',
+                    channel: 'Channel',
+                    quality: '1080p',
+                    format: 'Video' ,
+                    length: 1600,
+                    path: 'C:/Users/Gusta'
+                } as DownloadLog
+            }
+        },
+        mounted() {
+            this.loadDownloadHistory();
+        },
+        methods: {
+
+            prepareDownload(inputText: string) {
+                const urlsArray = inputText.split("\n");
+
+                this.mediaStore.setMultiUrls(urlsArray)
+            },
+
+            async loadDownloadHistory() {
+                const teste = new Date()
+                console.log(Number(teste.getTime()))
+                const downloadArr = await this.readFile()
+
+                if(downloadArr != null) {
+                    if(downloadArr.length == 0) {
+                        await this.createFile();
+                        this.loadDownloadHistory();
+                        return
+                    }
+
+                    this.downloadLog = downloadArr
+                }
+            },
+            async checkDownload(val: boolean){
+                this.downloadResultMsg = val ? 'Download successful!' : 'Could not download'
+                setTimeout(()=>{
+                    this.downloadResultMsg = ''
+                },2000)
+
+                console.log(this.downloadResultMsg)
+
+                if(val) {
+                    await this.loadDownloadHistory();
+                }
+            },
+            
+        }
     }
 </script>
-
 <style scoped>
     .sub-title{
         margin: 2em 0 0.6em 0;
@@ -41,7 +146,7 @@ import TheHeader from '../components/TheHeader.vue';
     }
 
     .container {
-        min-height: 100vh;
+        min-height: 88vh;
         background-color: var(--black-background-850);
         background-image: url(../assets/bg-simple-1.svg);
         background-repeat: no-repeat;
@@ -49,10 +154,47 @@ import TheHeader from '../components/TheHeader.vue';
         background-size: cover;
     }
 
+    .main-sub-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        margin-top: 15vh;
+        height: 30vh;
+        width: 100%;
+    }
+
+    .search-sub-container{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        width: 100%;
+        transition: all .2s ease;
+    }
+
+
+    .loader {
+        position: absolute;
+        z-index: 1;
+        top: 50%;
+        width: 50px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: 
+            radial-gradient(farthest-side,var(--red-stroke) 94%,#0000) top/8px 8px no-repeat,
+            conic-gradient(#0000 30%,var(--red-stroke));
+        -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 8px),#000 0);
+        animation: l13 1s infinite linear;
+        }
+        @keyframes l13{ 
+        100%{transform: rotate(1turn)}
+    }
+
     main {
         min-height: 87.7%;
         margin: auto;
-        width: 50%;
+        width: 55%;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -64,4 +206,6 @@ import TheHeader from '../components/TheHeader.vue';
         font-size: 0.86em;
         margin-top: 0.3em;
     }
+
+    
 </style>
