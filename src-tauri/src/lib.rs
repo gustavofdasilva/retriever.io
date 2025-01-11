@@ -1,6 +1,6 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
-use std::{fmt::Debug, fs::File, vec};
+use std::{collections::HashMap, fmt::Debug, fs::File, hash::Hash, vec};
 
 const defaultDownloadPath: &str = "/downloads";
 
@@ -36,6 +36,7 @@ async fn get_metadata(url: String) -> Vec<String> {
         .arg("dislike_count")
         .arg("--print")
         .arg("duration_string")
+        .arg("--skip-download")
         .arg(url)
         .output();
 
@@ -78,7 +79,7 @@ async fn download(
     startSection: String,
     endSection:String,
     goalFileSize: String,
-    thumbnailPath: String) -> String {
+    thumbnailPath: String) -> HashMap<String, String> {
     use std::process::Command;
 
     println!("Received!, lets start");
@@ -120,6 +121,10 @@ async fn download(
     args.push(format!("{output}"));
     args.push("-S".to_string());
     args.push(format!("res:{},ext:{},filesize~{}M",quality_number,fileExt_default_handle,goalFileSize));
+
+    args.push("--print".to_string());
+    args.push("after_move:filepath".to_string());
+    
     args.push(url);
 
     let output = Command::new("yt-dlp")
@@ -138,7 +143,15 @@ async fn download(
         String::from_utf8(output.as_ref().cloned().unwrap().stderr).unwrap_or("null".to_string())
     );
 
-    return "Done".to_string();
+    let binding = output.as_ref().cloned().unwrap();
+    let stdout = String::from_utf8_lossy(&binding.stdout).to_string();
+    let output_name = stdout.lines().nth(0).unwrap().to_string();
+
+    let mut response: HashMap<String, String> = HashMap::new();
+
+    response.insert("output".to_string(), output_name.to_string());
+
+    return response;
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

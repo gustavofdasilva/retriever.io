@@ -1,0 +1,21 @@
+* {
+    --p-autocomplete-focus-border-color: var(--black-background-600);
+    --p-autocomplete-border-color: var(--black-background-800);
+    --p-autocomplete-background: var(--black-background-900);
+    --p-autocomplete-color: var(--white-text);
+    --p-autocomplete-overlay-background: var(--black-background-900);
+    --p-autocomplete-option-selected-focus-background: var(--black-background-800);
+    --p-autocomplete-option-selected-background: var(--black-background-800);
+
+    --p-inputtext-focus-border-color: var(--black-background-600);
+    --p-inputtext-border-color: var(--black-background-800);
+    --p-inputtext-background: var(--black-background-900);
+    --p-inputtext-color: var(--white-text);
+    --p-inputtext-overlay-background: var(--black-background-900);
+    --p-inputtext-option-selected-focus-background: var(--black-background-800);
+    --p-inputtext-option-selected-background: var(--black-background-800);
+}
+
+.p-inputtext, .p-autocomplete {
+    width: 100%;
+}

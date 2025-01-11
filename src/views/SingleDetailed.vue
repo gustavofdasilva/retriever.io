@@ -21,7 +21,7 @@
                 <template v-if="mediaStore.getTitle != ''" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]" >
                     <ActiveDownloadCardDetailed
                         :style="[loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]"
-                        @download-successful="(val:boolean)=>{checkDownload(val)}"
+                        @download-successful="checkDownload"
                     />
                     <p>{{ downloadResultMsg }}</p>
                 </template>
@@ -122,16 +122,18 @@ import { useLoadingStore } from '../stores/loading';
                     this.downloadLog = downloadArr
                 }
             },
-            async checkDownload(val: boolean){
+            async checkDownload(val: boolean,output:string){
                 this.downloadResultMsg = val ? 'Download successful!' : 'Could not download'
                 setTimeout(()=>{
                     this.downloadResultMsg = ''
                 },2000)
 
+                console.log(output);
+                
                 if(val) {
                     const activeDownloadLog:DownloadLog = {
                         thumbnailUrl: this.mediaStore.getThumbnail,
-                        title: this.mediaStore.getTitle,
+                        title: output == '' ? this.mediaStore.getTitle : output,
                         channel: this.mediaStore.getChannel,
                         format: this.mediaStore.getFormat ? this.mediaStore.getFormat : "Video",
                         quality: this.mediaStore.getQuality,
@@ -207,7 +209,7 @@ import { useLoadingStore } from '../stores/loading';
     main {
         min-height: 87.7%;
         margin: auto;
-        width: 55%;
+        width: 50%;
         display: flex;
         align-items: center;
         justify-content: center;

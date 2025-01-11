@@ -8,9 +8,18 @@
             </div>
             <p style="font-size: 1em; color:var(--black-background-600); margin: .2em 0 .6em 0;">{{mediaStore.getChannel}}</p>
             <div class="options-container media-info">
-                <p ><span>Views:</span> {{ mediaStore.getViews }}</p>
-                <p ><span>Likes:</span> {{ mediaStore.getLikes }} </p>
-                <p ><span>Dislikes:</span> {{ mediaStore.getDislikes }} </p>
+                <div>
+                    <VueFeather type="eye" size="16" />
+                    <p > {{ formatNumber(mediaStore.getViews) }}</p>
+                </div>
+                <div>
+                    <VueFeather type="thumbs-up" size="16" />
+                    <p > {{ formatNumber(mediaStore.getLikes) }} </p>
+                </div>
+                <div>
+                    <VueFeather type="thumbs-down" size="16" />
+                    <p >{{ formatNumber(mediaStore.getDislikes) }} </p>
+                </div>
             </div>
             <h2>Output file</h2>
             <div class="options-container">
@@ -75,11 +84,29 @@
 
             <h2>File name</h2>
             <div class="fileName">
-                <aside >.{{ fileExt }}</aside>
-                <input v-model="fileName" type="text" name="filename" id="filename" style="width: 100%;">
-            </div>
-            <div style="width: 100%; padding: 0 1em;">
-                <BaseVariableNameHelper/>
+                <aside style="z-index: 100; margin-right: 1em;">.{{ fileExt }}</aside>
+                <AutoComplete class="suggestions-input" v-model="fileName" :showEmptyMessage="false" :suggestions="filteredVariables" @complete="search" 
+                    :pt="{
+                        root(root) {
+                            root.instance.onOptionSelect = (event, option) => {
+                                let optionArray = Array.from(option)
+                                const varValue = variables.find(el=>el.label==option)
+
+                                for (let i = 0; i < optionArray.length; i++) {
+                                    const fragmentedString = optionArray.slice(0,i+1).join('').toLowerCase()
+                                    if(fileName.toLowerCase().endsWith(fragmentedString)) {
+                                        fileName = fileName.slice(0,-(i+1))
+                                        fileName += varValue?.value ?? option;
+                                        return
+                                    }
+                                }
+
+                                fileName+=varValue?.value??option;
+                                
+                            }
+                        },
+                    }"
+                />
             </div>
 
             <!--Div Var connected to some input-->
@@ -129,7 +156,6 @@
                     <h2 style="margin-top: .5em;">File name</h2>
                     <div style="width: 100%; padding: 0 1em;">
                         <input v-model="thumbnail.fileName" type="text" name="thumbfilename" id="thumbfilename" style="width: 100%;">
-                        <BaseVariableNameHelper/>
                     </div>
                 </template>
             </div>
@@ -146,7 +172,10 @@ import BaseIconButton from './BaseIconButton.vue';
 import { useFSStore } from '../stores/fileSystem';
 import { useOruga } from '@oruga-ui/oruga-next';
 import BaseFileInput from './BaseFileInput.vue';
-import BaseVariableNameHelper from './BaseVariableNameHelper.vue';
+import AutoComplete from 'primevue/autocomplete';
+import ytdlpVariables from '../constants/ytdlpVariables';
+import VueFeather from 'vue-feather'
+import Toast from 'primevue/toast';
 
 const oruga = useOruga();
 
@@ -155,7 +184,8 @@ const oruga = useOruga();
             BaseIconButton,
             BaseButton,
             BaseFileInput,
-            BaseVariableNameHelper
+            AutoComplete,
+            VueFeather
         },
         props: {
             style: Object
@@ -189,6 +219,8 @@ const oruga = useOruga();
                 fileExt:'mp4',
                 goalSize: 10,
                 fileName:'',
+                variables: ytdlpVariables,
+                filteredVariables: [],
                 outputPath: '',
                 thumbnail: {
                     download: false,
@@ -211,6 +243,30 @@ const oruga = useOruga();
             this.range.end = this.mediaStore.getDuration
         },
         methods: {
+            formatNumber(num) {
+                if (num >= 1000000000) {
+                    return (num / 1000000000).toFixed(1) + 'b';  // Para números acima de 1 bilhão
+                } else if (num >= 1000000) {
+                    return (num / 1000000).toFixed(1) + 'm';    // Para números acima de 1 milhão
+                } else if (num >= 1000) {
+                    return (num / 1000).toFixed(1) + 'k';      // Para números acima de 1 mil
+                } else {
+                    return num.toString();                     // Para números abaixo de 1 mil
+                }
+            },
+            search(event) {
+                setTimeout(() => {
+                    const querySplit = event.query.split(/[-._ ]/g)
+                    const queryValue = querySplit[querySplit.length-1]
+                    if (!event.query.trim().length) {
+                        this.filteredVariables = [];
+                    } else {
+                        this.filteredVariables = this.variables.filter((variable) => {
+                            return variable.label.toLowerCase().startsWith(queryValue.toLowerCase()) || variable.value == queryValue;
+                        }).map(val=>val.label);
+                    }
+                }, 250);
+            },
             setOutputPath(path) {
                 this.outputPath = path;
             },
@@ -240,12 +296,18 @@ const oruga = useOruga();
                     endSection: this.trim ? this.range.end : '',
                     goalFileSize: this.goalSize.toString(),
                     thumbnailPath: thumbnailPath
-                }).then(()=>{
+                }).then((response)=>{
+
+                    const outputFullPath = response.output.split('\\')
+                    const outputName = outputFullPath[outputFullPath.length-1].replace(/\.(\w+)$/g,'');
+
+                    console.log(outputName);
+
                     this.mediaStore.setFormat(this.format)
                     this.mediaStore.setQuality(this.quality);
                     
                     this.newNotification("Download successful!");
-                    this.$emit('download-successful',true)
+                    this.$emit('download-successful',true,outputName);
                 }).catch((err)=>{
                     this.newNotification("Something went wrong :(");
                     console.log(err)
@@ -258,14 +320,17 @@ const oruga = useOruga();
                 this.mediaStore.reset();
             },
             newNotification(message) {
-                oruga.notification.open({
-                    duration: 3000,
-                    closable: true,
-                    message: message,
-                    rootClass: "toast toast-notification",
-                    position: "bottom-right",
-            })
-}
+                this.$toast.add({
+                    severity: 'secondary',
+                    summary: 'Download log',
+                    detail: message,
+                    life: 3000,
+                    closable: true
+                })
+
+                
+
+            }
 
         }
     }
@@ -351,9 +416,17 @@ const oruga = useOruga();
         border-radius: 8px; 
         padding: .5em 1em;
         margin: .7em 0 0 0;
+        display: flex;
+        align-items: center;
     }
         .media-info p {
             font-size: 1em;
+            margin-left: .5em;
+        }
+
+        .media-info div {
+            display: flex;
+            align-items: center;
         }
 
     .double-input {

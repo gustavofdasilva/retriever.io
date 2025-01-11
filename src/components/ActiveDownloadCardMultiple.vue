@@ -155,7 +155,7 @@ const oruga = useOruga();
                         console.log(`VIDEO ${this.mediaStore.getMultiUrls.indexOf(url)+1} DOWNLOADED`)
                         const activeDownloadLog = {
                             thumbnailUrl: videoData.thumbnail,
-                            title: videoData.title,
+                            title: output,
                             channel: videoData.channel,
                             format: this.format,
                             quality: this.quality,
