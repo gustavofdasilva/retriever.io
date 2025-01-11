@@ -1,13 +1,6 @@
 <template>
     <div class="container" >
         <main>
-
-            <div v-if="false" style="width: 100px;">
-                <button @click="createFile" >Create file</button>
-                <button @click="readFile; loadDownloadHistory()" >Read file</button>
-                <button @click="addDownload(mockDownloadLog)" >Add download</button>
-                <button @click="clearInfo()" >Clear history</button>
-            </div>
             <div class="main-sub-container">
                 <div class="loader" :style="[ loadingSearch ? {opacity: '1'} : {opacity:'0'}]" ></div>
                 <div class="search-sub-container" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]">
@@ -32,15 +25,9 @@
             <div style="width: 100%; margin-top: 4em;">
                 <h2 class="sub-title" >Recent Downloads</h2>
                 
-                <RecentDownloadCard v-for="download in downloadLog"
-                    :thumbnail-url="download.thumbnailUrl"
-                    :title="download.title" 
-                    :channel="download.channel" 
-                    :quality="download.quality" 
-                    :format="download.format" 
-                    :length="download.length"/>
-                
-                <p v-if="downloadLog.length==0" style="text-align: center; margin-top: 2em;">No recent downloads found. Start retrieving!</p>
+                <RecentDownloadContainer
+                    :download-log="downloadLog"
+                />
             </div>
         </main>
     </div>
@@ -56,14 +43,16 @@ import { useFSStore } from '../stores/fileSystem';
 import { useMediaStore } from '../stores/media';
 import { useLoadingStore } from '../stores/loading';
 import { invoke } from '@tauri-apps/api/core';
+import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
 
     export default {
         components: {
             TheHeader,
             BaseSearchBar,
             RecentDownloadCard,
+            RecentDownloadContainer,
             ActiveDownloadCard,
-            RouterLink
+            RouterLink,
         },
         setup() {
             const mediaStore = useMediaStore();
@@ -89,14 +78,6 @@ import { invoke } from '@tauri-apps/api/core';
                 loadingSearch: false,
                 downloadResultMsg: '',
                 downloadLog: [] as DownloadLog[],
-                mockDownloadLog: {
-                    title: 'Video Title',
-                    channel: 'Channel',
-                    quality: '1080p',
-                    format: 'Video' ,
-                    length: 1600,
-                    path: 'C:/Users/Gusta'
-                } as DownloadLog
             }
         },
         mounted() {
@@ -151,7 +132,7 @@ import { invoke } from '@tauri-apps/api/core';
                         channel: this.mediaStore.getChannel,
                         format: this.mediaStore.getFormat ? this.mediaStore.getFormat : "Video",
                         quality: this.mediaStore.getQuality,
-                        length: 0,
+                        length: '0',
                         path: this.fsStore.getDefaultOutput,
                         dateCreated: new Date()
                     } 

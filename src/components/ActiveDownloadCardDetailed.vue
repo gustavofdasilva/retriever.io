@@ -243,6 +243,24 @@ const oruga = useOruga();
             this.range.end = this.mediaStore.getDuration
         },
         methods: {
+            timeDifference(start, end) {
+                function timeInSeconds(time) {
+                    const [hours, minutes, seconds] = time.split(':').map(Number);
+                    return hours * 3600 + minutes * 60 + seconds;
+                }
+
+                const startTime = timeInSeconds(start);
+                const endTime = timeInSeconds(end);
+
+                let difference = Math.abs(endTime - startTime);
+
+                const hours = Math.floor(difference / 3600);
+                difference %= 3600;
+                const minutes = Math.floor(difference / 60);
+                const seconds = difference % 60;
+
+                return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            },
             formatNumber(num) {
                 if (num >= 1000000000) {
                     return (num / 1000000000).toFixed(1) + 'b';  // Para números acima de 1 bilhão
@@ -301,13 +319,32 @@ const oruga = useOruga();
                     const outputFullPath = response.output.split('\\')
                     const outputName = outputFullPath[outputFullPath.length-1].replace(/\.(\w+)$/g,'');
 
-                    console.log(outputName);
+                    let startTime, endTime;
+                    if(this.range.start.split(":").length == 2) {
+                        startTime = `00:${this.range.start}`
+                    } else if (this.range.start.split(":").length == 1) {
+                        startTime = `00:00:${this.range.start}`
+                    }
+
+                    if(this.range.end.split(":").length == 2) {
+                        endTime = `00:${this.range.end}`
+                    } else if (this.range.end.split(":").length == 1) {
+                        endTime = `00:00:${this.range.end}`
+                    }
+
+                    let length = this.timeDifference(startTime,endTime);
+                    let lengthSplitted = length.split(":");
+
+                    if(lengthSplitted[0]=="00") {
+                        lengthSplitted.shift();
+                        length = lengthSplitted.join(':');
+                    }
 
                     this.mediaStore.setFormat(this.format)
                     this.mediaStore.setQuality(this.quality);
                     
                     this.newNotification("Download successful!");
-                    this.$emit('download-successful',true,outputName);
+                    this.$emit('download-successful',true,outputName,length);
                 }).catch((err)=>{
                     this.newNotification("Something went wrong :(");
                     console.log(err)

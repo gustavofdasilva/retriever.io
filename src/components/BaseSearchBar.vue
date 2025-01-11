@@ -67,5 +67,6 @@ export default {
         padding: 0.9em 1em;
         color: var(--white-text);
         outline: none;
+        resize: none;
     }
 </style>

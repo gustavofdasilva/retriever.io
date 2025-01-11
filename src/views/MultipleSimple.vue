@@ -1,13 +1,6 @@
 <template>
     <div class="container" >
         <main>
-
-            <div v-if="false" style="width: 100px;">
-                <button @click="createFile" >Create file</button>
-                <button @click="readFile; loadDownloadHistory()" >Read file</button>
-                <button @click="addDownload(mockDownloadLog)" >Add download</button>
-                <button @click="clearInfo()" >Clear history</button>
-            </div>
             <div class="main-sub-container">
                 <div class="loader" :style="[ loadingSearch ? {opacity: '1'} : {opacity:'0'}]" ></div>
                 <div class="search-sub-container" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]">
@@ -85,14 +78,6 @@ import ActiveDownloadCardMultiple from '../components/ActiveDownloadCardMultiple
                 loadingSearch: false,
                 downloadResultMsg: '',
                 downloadLog: [] as DownloadLog[],
-                mockDownloadLog: {
-                    title: 'Video Title',
-                    channel: 'Channel',
-                    quality: '1080p',
-                    format: 'Video' ,
-                    length: 1600,
-                    path: 'C:/Users/Gusta'
-                } as DownloadLog
             }
         },
         mounted() {

@@ -134,7 +134,6 @@ const oruga = useOruga();
                 
                 for (const url of this.mediaStore.getMultiUrls) {
                     
-                    console.log(`VIDEO ${this.mediaStore.getMultiUrls.indexOf(url)+1} STARTED`)
 
                     const videoData = await this.getMetadata(url)
 
@@ -151,15 +150,14 @@ const oruga = useOruga();
                         goalFileSize: "100",
                         thumbnailPath:"",
                     }).then(async()=>{
-                        
-                        console.log(`VIDEO ${this.mediaStore.getMultiUrls.indexOf(url)+1} DOWNLOADED`)
+                    
                         const activeDownloadLog = {
                             thumbnailUrl: videoData.thumbnail,
-                            title: output,
+                            title: videoData.title,
                             channel: videoData.channel,
                             format: this.format,
                             quality: this.quality,
-                            length: 0,
+                            length: videoData.duration,
                             path: this.fsStore.getDefaultOutput,
                             dateCreated: new Date()
                         } 
@@ -173,7 +171,10 @@ const oruga = useOruga();
                         const index = this.mediaStore.getMultiUrls.indexOf(url);
                         const length = this.mediaStore.getMultiUrls.length;
 
-                        if (index+1 == length) this.loading = false;
+                        if (index+1 == length) {
+                            this.loading = false;
+                            this.mediaStore.reset()
+                        }
                     })
                 }
                 
@@ -196,6 +197,7 @@ const oruga = useOruga();
                         title: basicMetadata[0],
                         channel: basicMetadata[1],
                         thumbnail: basicMetadata[2],
+                        duration: basicMetadata[6],
                     }
                 }
             },

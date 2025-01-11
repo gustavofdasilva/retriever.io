@@ -1,12 +1,6 @@
 <template>
     <div class="container" >
         <main>
-            <div v-if="false" style="width: 100px;">
-                <button @click="createFile" >Create file</button>
-                <button @click="readFile; loadDownloadHistory()" >Read file</button>
-                <button @click="addDownload(mockDownloadLog)" >Add download</button>
-                <button @click="clearInfo()" >Clear history</button>
-            </div>
             <div class="main-sub-container">
                 <div class="loader" :style="[ loadingSearch ? {opacity: '1'} : {opacity:'0'}]" ></div>
                 <div class="search-sub-container" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]">
@@ -73,14 +67,6 @@ import { useLoadingStore } from '../stores/loading';
                 loadingSearch: false,
                 downloadResultMsg: '',
                 downloadLog: [] as DownloadLog[],
-                mockDownloadLog: {
-                    title: 'Video Title',
-                    channel: 'Channel',
-                    quality: '1080p',
-                    format: 'Video' ,
-                    length: 1600,
-                    path: 'C:/Users/Gusta'
-                } as DownloadLog
             }
         },
         mounted() {
@@ -122,7 +108,7 @@ import { useLoadingStore } from '../stores/loading';
                     this.downloadLog = downloadArr
                 }
             },
-            async checkDownload(val: boolean,output:string){
+            async checkDownload(val: boolean,output:string,length:string){
                 this.downloadResultMsg = val ? 'Download successful!' : 'Could not download'
                 setTimeout(()=>{
                     this.downloadResultMsg = ''
@@ -137,7 +123,7 @@ import { useLoadingStore } from '../stores/loading';
                         channel: this.mediaStore.getChannel,
                         format: this.mediaStore.getFormat ? this.mediaStore.getFormat : "Video",
                         quality: this.mediaStore.getQuality,
-                        length: 0,
+                        length: length,
                         path: this.fsStore.getDefaultOutput,
                         dateCreated: new Date()
                     } 

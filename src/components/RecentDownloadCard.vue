@@ -1,48 +1,60 @@
 <template>
     <div class="recent-card-container">
         <div :style="{'background-image': 'url('+thumbnailUrl+')'}" class="thumbnail"></div>
-        <p style="font-weight: bold;">
-            {{ title }}
-        </p>
-        <p>
-            {{ channel }}
-        </p>
-        <p>
-            <span style="color: var(--black-background-600);">Quality</span> {{ quality }}
-        </p>
-        <p>
-            <span style="color: var(--black-background-600);">Format</span> {{format}}
-        </p>
-        <p>
-            {{ length }}
-        </p>
-        <o-dropdown class="dropdown-menu" >
-            <template #trigger="{}">
-                <o-button
-                    class="base-container dropdown-button"
-                    variant="primary"
-                    :icon-right="'menu'"/>
-            </template>
-
-            <o-dropdown-item
-                class="dropdown-item"
-                label="Open in explorer"
-
-                />
-
-            <o-dropdown-item
-                class="dropdown-item"
-                label="Restart download"
-                
-                />
-
-            <o-dropdown-item
-                class="dropdown-item alert"
-                label="Delete file"
-                
-                />
-
-        </o-dropdown>
+        <div>
+            <p style="font-weight: bold;">
+                {{ title }}
+            </p>
+        </div>
+        <div>
+            <p>
+                {{ channel }}
+            </p>
+        </div>
+        <div>
+            <p >
+               {{ quality }}
+            </p>
+        </div>
+        <div>
+            <p>
+                {{format}}
+            </p>
+        </div>
+        <div>
+            <p>
+                {{ length }}
+            </p>
+        </div>
+        <div >
+            <o-dropdown class="dropdown-menu" >
+                <template #trigger="{}">
+                    <o-button
+                        class="base-container dropdown-button"
+                        variant="primary"
+                        :icon-right="'menu'"/>
+                </template>
+    
+                <o-dropdown-item
+                    class="dropdown-item"
+                    label="Open in explorer"
+    
+                    />
+    
+                <o-dropdown-item
+                    class="dropdown-item"
+                    label="Restart download"
+                    
+                    />
+    
+                <o-dropdown-item
+                    class="dropdown-item alert"
+                    label="Delete file"
+                    
+                    />
+    
+            </o-dropdown>
+        </div>
     </div>
 </template>
 <script lang="ts">
@@ -59,7 +71,7 @@ import BaseIconButton from './BaseIconButton.vue';
             channel: String,
             quality: String,
             format: String,
-            length: Number,
+            length: String,
         },
         methods: {
             formatLength() {
@@ -77,22 +89,31 @@ import BaseIconButton from './BaseIconButton.vue';
         height: 4.5em;
         background-color: var(--black-background-900);
         border: 1px solid var(--black-background-800);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-direction: row;
         border-radius: 8px;
-        padding: 0.5em 1em;
+        padding: 0.5em .8em;
         margin: 0.5em 0.5em;
+
+        display: grid;
+        grid-template-columns: 1.2fr repeat(2, 2fr) repeat(4, 1fr);
+        grid-template-rows: 1fr;
+        grid-column-gap: 15px;
     }
+        .recent-card-container div {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: start;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            
+        }
 
     .thumbnail {
         background-image: url(https://placehold.co/600x400);
         background-repeat: no-repeat;
         background-position: center;
         background-size: cover;
-        height: 85%;
-        width: 5em;
         border-radius: 8px;
     }
 
