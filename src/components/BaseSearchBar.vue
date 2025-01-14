@@ -68,5 +68,11 @@ export default {
         color: var(--white-text);
         outline: none;
         resize: none;
+        transition: all ease .2s;
     }
+        input:hover, textarea:hover, input:focus, textarea:focus {
+            border: 1px solid var(--black-background-700);
+            transition: all ease .2s;
+        }
+
 </style>

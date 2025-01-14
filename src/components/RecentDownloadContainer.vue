@@ -41,14 +41,14 @@
                     :channel="download.channel" 
                     :quality="download.quality" 
                     :format="download.format" 
-                    :length="download.length"/>
+                    :length="String(download.length)"/>
 
 
         <p v-if="downloadLog.length==0" style="text-align: center; margin-top: 2em;">No recent downloads found. Start retrieving!</p>
     </div>
 </template>
 
-<script lang="ts">
+<script>
 import RecentDownloadCard from './RecentDownloadCard.vue';
 
     export default {
@@ -89,7 +89,6 @@ import RecentDownloadCard from './RecentDownloadCard.vue';
             
             .recent-download-container .label div p {
                 color: var(--black-background-600);
-                font-weight: bold;
             }
 
     p {

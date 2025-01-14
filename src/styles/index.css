@@ -4,16 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes toast-animation{
-  from {
-    transform: translate(100%,0);
-  }
-
-  to {
-    transform: translate(0,0);
-  }
-}
-  
   :root {
     font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
     font-size: 16px;
@@ -31,6 +21,7 @@
     --black-background-900: #1B1B1B;
   
     --red-stroke: #D7003D;
+    --red-stroke-hover: #ec1e59;
     --red-fill: #371720;
   
     --white-text: #e9e9e9;
@@ -41,7 +32,12 @@
   a {
     color: var(--red-stroke) ;
     text-decoration: underline;
+    transition: all ease .2s;
   }
+    a:hover {
+      color: var(--red-stroke-hover);
+      transition: all ease .2s;
+    }
   
   .icon-white {
     color: var(--white-text);
@@ -92,4 +88,8 @@
 
 .disabled {
   cursor: unset !important; 
+}
+
+input:-internal-autofill-selected {
+  background-color: red !important;
 }

@@ -1,5 +1,5 @@
 <template>
-    <div class="container">
+    <div class="fileInputContainer">
         <input ref="fileInput" type="file" name="file" id="file" style="display: none;">
         <button v-on:click="openInput">
             <VueFeather type="folder" size="16" class="icon-grey"/>
@@ -59,15 +59,15 @@ export default {
 
     p {
         margin-left: 10px;
+        font-size: 1.1em;
     }
 
-    .container {
+    .fileInputContainer {
         border-radius: 10px;
         border: 1px solid var(--black-background-800);
         font-size: 1em;
         padding: 0.5em 1em;
-        font-weight: 500;
-        font-family: inherit;
+    font-family: inherit;
         color: var(--white-text);
         background-color: var(--black-background-900);
         transition: border-color 0.25s;
@@ -76,6 +76,9 @@ export default {
         align-items: center;
         justify-content: space-between;
     }
+        .fileInputContainer:hover {
+            border-color: var(--black-background-700);
+        }
 
     .red {
         background-color: var(--red-fill);

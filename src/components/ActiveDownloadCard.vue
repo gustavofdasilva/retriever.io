@@ -235,11 +235,15 @@ const oruga = useOruga();
 
     .dropdown-button {
         width: 100%;
+        border: 1px solid var(--black-background-800);
+        transition: all ease .2s;
     }
         
-    .dropdown-button:focus {
-        box-shadow: none;
-    }
+        .dropdown-button:focus, .dropdown-button:hover {
+            box-shadow: none;
+            border-color: var(--black-background-700);
+            transition: all ease .2s;
+        }
 
     .button-w-title-container {
         display: flex;

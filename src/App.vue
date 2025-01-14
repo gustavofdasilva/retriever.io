@@ -8,6 +8,7 @@ import { RouterView } from 'vue-router';
 import Home from './views/Home.vue';
 import TheHeader from './components/TheHeader.vue';
 import Toast from 'primevue/toast';
+import {listen} from '@tauri-apps/api/event';
 
   export default {
     components: {
@@ -15,9 +16,15 @@ import Toast from 'primevue/toast';
       TheHeader,
       RouterView,
       Toast
+    },
+    setup() {
+      listen('download-progress',(event)=>{
+        console.log(event);
+      })
     }
   }
 </script>
+
 <style>
 
 </style>

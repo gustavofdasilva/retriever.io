@@ -37,7 +37,13 @@ export default {
         background-color: var(--red-fill);
         color: var(--red-stroke);
         border-color: var(--red-stroke);
+        transition: all ease .2s;
     }
+        .red:hover {
+            color: var(--red-stroke-hover);
+            border-color: var(--red-stroke-hover);
+            transition: all ease .2s;
+        }
 
     .disable {
         background-color: var(--black-background-900);

@@ -437,7 +437,13 @@ const oruga = useOruga();
         border-radius: 8px;
         padding: .4em .9em;
         outline: none;
+        transition: all ease .2s;
     }
+        
+        input:focus, input:hover {
+            border-color: var(--black-background-700);
+            transition: all ease .2s;
+        }
 
     .options-container {
         width: 100%;
@@ -525,13 +531,17 @@ const oruga = useOruga();
             transition: all .2s ease;
         }
 
-    .dropdown-button {
-        width: 100%;
-    }
+        .dropdown-button {
+            width: 100%;
+            border: 1px solid var(--black-background-800);
+            transition: all ease .2s;
+        }
         
-    .dropdown-button:focus {
-        box-shadow: none;
-    }
+        .dropdown-button:focus, .dropdown-button:hover {
+            box-shadow: none;
+            border-color: var(--black-background-700);
+            transition: all ease .2s;
+        }
 
     .button-w-title-container {
         display: flex;
