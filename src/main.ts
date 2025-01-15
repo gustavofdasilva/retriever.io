@@ -6,7 +6,8 @@ import './styles/index.css';
 import './styles/dropdown.css';
 import './styles/tooltip.css';
 import './styles/switch.css';
-import './styles/auto_complete.css'
+import './styles/auto_complete.css';
+import './styles/progress_bar.css';
 import { Oruga } from "@oruga-ui/oruga-next";
 import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura';

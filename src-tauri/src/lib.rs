@@ -1,19 +1,12 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
-use std::{collections::HashMap, fmt::Debug, fs::File, hash::Hash, vec};
 
-const defaultDownloadPath: &str = "/downloads";
+use std::{collections::HashMap, io::{self, BufRead, BufReader, Error, ErrorKind, Read, Write}, process::{Command, Stdio}, thread, time::Duration, vec};
 
-#[tauri::command]
-fn login(user: String, password: String) -> Result<String, String> {
-    if user == "tauri" && password == "tauri" {
-        // resolve
-        Ok("logged_in".to_string())
-    } else {
-        // reject
-        Err("invalid credentials".to_string())
-    }
-}
+use tauri::AppHandle;
+
+
+static mut DOWNLOAD_STATUS: String = String::new();
 
 #[tauri::command]
 async fn get_metadata(url: String) -> Vec<String> {
@@ -38,20 +31,21 @@ async fn get_metadata(url: String) -> Vec<String> {
         .arg("duration_string")
         .arg("--skip-download")
         .arg(url)
-        .output();
+        .stdout(Stdio::piped())
+        .output().unwrap();
 
     println!(
         "STDOUT {}",
-        String::from_utf8_lossy(&output.as_ref().cloned().unwrap().stdout).to_string()
+        String::from_utf8_lossy(&output.stdout).to_string()
     );
     println!(
     "STDERR {}",
-        String::from_utf8(output.as_ref().cloned().unwrap().stderr).unwrap_or("null".to_string())
+        String::from_utf8(output.stderr).unwrap_or("null".to_string())
     );
+    
 
     let mut data = Vec::new();
-    let binding = output.as_ref().cloned().unwrap();
-    let stdout = String::from_utf8_lossy(&binding.stdout).to_string();
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
     let title = stdout.lines().nth(0).unwrap().to_string();
     let channel = stdout.lines().nth(1).unwrap().to_string();
     let thumbnail = stdout.lines().nth(2).unwrap().to_string();
@@ -71,6 +65,7 @@ async fn get_metadata(url: String) -> Vec<String> {
 
 #[tauri::command]
 async fn download(
+    app: AppHandle,
     url: String, 
     output: String, 
     format: String, 
@@ -82,7 +77,7 @@ async fn download(
     thumbnailPath: String) -> HashMap<String, String> {
     use std::process::Command;
 
-    println!("Received!, lets start");
+    
 
     let mut args: Vec<String> = vec![];
 
@@ -124,34 +119,77 @@ async fn download(
 
     args.push("--print".to_string());
     args.push("after_move:filepath".to_string());
+    args.push("-q".to_string());
+
+    args.push("--progress".to_string());
     
-    args.push(url);
+    args.push(url.clone());
 
-    let output = Command::new("yt-dlp")
+    let mut command = Command::new("yt-dlp");
+
+    let mut child = command
         .args(args.clone())
-        .output();
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn().unwrap();
 
-        println!("ARGS:");
-        println!("{}",args.clone().join("\n"));
+    
+    let stdout = child.stdout.take().expect("Falha ao obter stdout");
 
+    std::thread::spawn(move || {
+        let mut reader = BufReader::new(stdout);
+        let mut buffer = vec![];
+        loop {
+            let bytes_read = reader.read_until(b'\r', &mut buffer); 
+
+            if bytes_read.unwrap() == 0 {
+                break;
+            }
+
+            let download_info = String::from_utf8_lossy(&buffer).to_string();
+            unsafe{
+                DOWNLOAD_STATUS = download_info;
+            }
+
+            buffer.clear();
+        }
+    });
+
+    let status = child.wait().unwrap();
+    if status.success() {
+        println!("Download concluído com sucesso!");
+    } else {
+        eprintln!("Erro ao executar o yt-dlp.");
+    }
+
+
+    let output = command.output().unwrap();
+    
+    println!("ARGS:");
+    println!("{}",args.clone().join("\n"));
+    
     println!(
         "STDOUT {}",
-        String::from_utf8_lossy(&output.as_ref().cloned().unwrap().stdout).to_string()
+        String::from_utf8_lossy(&output.stdout).to_string()
     );
     println!(
         "STDERR {}",
-        String::from_utf8(output.as_ref().cloned().unwrap().stderr).unwrap_or("null".to_string())
+        String::from_utf8(output.stderr).unwrap_or("null".to_string())
     );
 
-    let binding = output.as_ref().cloned().unwrap();
-    let stdout = String::from_utf8_lossy(&binding.stdout).to_string();
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
     let output_name = stdout.lines().nth(0).unwrap().to_string();
-
+    
     let mut response: HashMap<String, String> = HashMap::new();
 
     response.insert("output".to_string(), output_name.to_string());
 
     return response;
+}
+
+#[tauri::command]
+fn get_progress_info() -> String {
+    unsafe { DOWNLOAD_STATUS.clone() }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -161,7 +199,7 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         // .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![login, get_metadata, download])
+        .invoke_handler(tauri::generate_handler![get_metadata, download, get_progress_info])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

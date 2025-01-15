@@ -1,0 +1,8 @@
+* { 
+    --p-progressbar-value-background: var(--red-stroke);
+    --p-progressbar-label-color: var(--white-text);
+}
+
+.p-progressbar-value {
+    overflow: hidden;
+}

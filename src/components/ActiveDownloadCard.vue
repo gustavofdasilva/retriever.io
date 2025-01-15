@@ -1,6 +1,15 @@
 <template>
     <div class="active-card-container" :style="style">
-        
+        <div>
+        <Toast position="bottom-right" group="headless" @close="closeDownloadProgressToast">
+            <template #container="{ message, closeCallback }">
+                <div class="download-toast" >
+                    <p style="font-weight: 500; margin-bottom: .5em;">Download progress</p>
+                    <ProgressBar :mode="loadingStore.getDownloadProgress == '' ? 'inderteminate' : 'determinate'" :value="loadingStore.getDownloadProgress" />
+                </div>
+            </template>
+        </Toast>
+        </div>
         <div class="thumbnail" :style="{backgroundImage: 'url('+mediaStore.getThumbnail+')'}"></div>
         <div class="metadata">
             <div class="button-w-title-container">
@@ -61,6 +70,7 @@
                 
             </div>
             <BaseButton :btnClass="loading ? 'disable' : 'red'" text="Download" style="width: 100%; margin-top: 1em;" :onClickFunc="()=>{if(!loading){download()}}" />
+                <!-- <BaseButton :btnClass="loading ? 'disable' : 'red'" text="Download" style="width: 100%; margin-top: 1em;" :onClickFunc="()=>{downloadProgressToast()}" /> -->
         </div>
     </div>
 </template>
@@ -71,13 +81,18 @@ import BaseButton from './BaseButton.vue';
 import BaseIconButton from './BaseIconButton.vue';
 import { useFSStore } from '../stores/fileSystem';
 import { useOruga } from '@oruga-ui/oruga-next';
+import { useLoadingStore } from '../stores/loading';
+import Toast from 'primevue/toast';
+import ProgressBar from 'primevue/progressbar';
 
 const oruga = useOruga();
 
     export default {
         components: {
             BaseIconButton,
-            BaseButton
+            BaseButton,
+            Toast,
+            ProgressBar
         },
         props: {
             style: Object
@@ -108,10 +123,12 @@ const oruga = useOruga();
         setup() {
             const mediaStore = useMediaStore()
             const fsStore = useFSStore()
+            const loadingStore = useLoadingStore()
 
             return { 
                 mediaStore,
-                fsStore
+                fsStore,
+                loadingStore
             }
         },
         methods: {
@@ -119,6 +136,8 @@ const oruga = useOruga();
                 this.loading=true
                 const fileType = this.format == "Audio" ? 'mp3' : 'mp4';
                 const output = `${this.fsStore.getDefaultOutput}/${this.mediaStore.getTitle}`
+                
+                this.getProgressInfo();
                 invoke('download',{
                     url: this.mediaStore.getUrl, 
                     output: output, 
@@ -141,20 +160,50 @@ const oruga = useOruga();
                     this.$emit('download-successful',false)
                 }).finally(()=>{
                     this.loading = false
+                    this.loadingStore.setDownloadProgress('');
+                    closeDownloadProgressToast();
                 })
+            },
+            getProgressInfo() {
+                this.downloadProgressToast();
+                const loadProgress = setInterval(()=>{
+                    if (this.loading) {
+                        invoke('get_progress_info').then((res)=>{
+                            if(res == "") return
+                            try {
+                                let progressValue = res.match(/(\d+\.\d+)%/g)[0].replace("%",'');
+                                this.loadingStore.setDownloadProgress(progressValue);
+                            } catch (error) {
+                                
+                            }
+                        })
+                    } else {
+                        clearInterval(loadProgress);
+                    }
+                },1000)
+                
             },
             exit() {
                 this.mediaStore.reset();
             },
+            closeDownloadProgressToast() {
+
+            },
+            downloadProgressToast() {
+                if (!this.visible) {
+                    this.$toast.add({ severity: 'secondary', summary: 'Uploading your files.', group: 'headless'});
+                    this.visible = true;
+                }
+            },
             newNotification(message) {
-                oruga.notification.open({
-                    duration: 3000,
-                    closable: true,
-                    message: message,
-                    rootClass: "toast toast-notification",
-                    position: "bottom-right",
-            })
-}
+                this.$toast.add({
+                    severity: 'secondary',
+                    summary: 'Download log',
+                    detail: message,
+                    life: 3000,
+                    closable: true
+                })
+            }
 
         }
     }
@@ -162,6 +211,10 @@ const oruga = useOruga();
 </script>
 
 <style scoped>
+    .download-toast {
+        margin: 1.5em 1.2em;
+    }
+
     .active-card-container {
         width: 100%;
         background-color: var(--black-background-900);
