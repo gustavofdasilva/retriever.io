@@ -1,7 +1,22 @@
-<template>
+<template>    
+  <div data-tauri-drag-region class="titlebar"> <!--TITLE BAR-->
+    <div>
+      <button class="titlebar-button" id="titlebar-minimize" @click="minimize">
+        <i class="pi pi-minus" alt="minimize" ></i>
+      </button>
+      <button class="titlebar-button" id="titlebar-maximize" @click="maximize">
+        <i class="pi pi-expand" alt="maximize"></i>
+      </button>
+      <button class="titlebar-button" id="titlebar-close" @click="close">
+        <i class="pi pi-times" alt="close"></i>
+      </button>
+    </div>
+  </div>
   <Toast position="bottom-right" />
-  <TheHeader style="height: 12vh;"/>
-  <RouterView/>
+  <div id="main-app">
+    <TheHeader style="height: 12vh"/>
+    <RouterView/>
+  </div>
 </template>
 <script>
 import { RouterView } from 'vue-router';
@@ -9,6 +24,7 @@ import Home from './views/Home.vue';
 import TheHeader from './components/TheHeader.vue';
 import Toast from 'primevue/toast';
 import {listen} from '@tauri-apps/api/event';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 
   export default {
     components: {
@@ -21,7 +37,36 @@ import {listen} from '@tauri-apps/api/event';
       listen('download-progress',(event)=>{
         console.log(event);
       })
+
+
+      const appWindow = getCurrentWindow();
+
+      document
+        .getElementById('titlebar-minimize')
+        ?.addEventListener('click', () => appWindow.minimize());
+      document
+        .getElementById('titlebar-maximize')
+        ?.addEventListener('click', () => appWindow.toggleMaximize());
+      document
+        .getElementById('titlebar-close')
+        ?.addEventListener('click', () => appWindow.close());
+
+      return {
+        appWindow
+      }
+    },
+    methods: {
+      minimize() {
+        this.appWindow.minimize();
+      },
+      maximize() {
+        this.appWindow.toggleMaximize();
+      },
+      close() {
+        this.appWindow.close();
+      }
     }
+          
   }
 </script>
 

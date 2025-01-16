@@ -1,4 +1,4 @@
-{
+{  
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "retriever-plus-plus",
   "version": "0.1.0",
@@ -13,9 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "retriever-plus-plus",
-        "width": 800,
-        "height": 600
+        "decorations": false
       }
     ],
     "security": {
@@ -23,7 +21,6 @@
     }
   },
   "bundle": {
-
     "active": true,
     "targets": "all",
     "icon": [
@@ -35,3 +32,4 @@
     ]
   }
 }
+

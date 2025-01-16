@@ -25,6 +25,7 @@
     "@tauri-apps/plugin-log": "^2.2.0",
     "@tauri-apps/plugin-shell": "^2",
     "pinia": "^2.3.0",
+    "primeicons": "^7.0.0",
     "primevue": "^4.2.5",
     "vue": "^3.3.4",
     "vue-feather": "^2.0.0",
