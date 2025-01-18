@@ -8,7 +8,7 @@
 
   #main-app {
     overflow-y: scroll;
-
+    margin-top: var(--titlebar-height);
     height: calc(100vh - var(--titlebar-height)) ;
   }
 
@@ -43,6 +43,39 @@
     --sb-size: 12px;
 
     --titlebar-height: 42px;
+
+    --primary-50: #feeaf0;
+    --primary-100: #feeaf0;
+    --primary-200: #fdcbd6;
+    --primary-300: #ef95a1;
+    --primary-400: #e56a7c;
+    --primary-500: #f2425d;
+    --primary-600: #f92246;
+    --primary-700: #e91444;
+    --primary-800: #d7003d;
+    --primary-900: #ca0035;
+    --primary-950: #bc0029;
+
+    --primary-dark-900: #371720;
+
+    --surface-0: #f9f9f9;
+    --surface-50: #f9f9f9;
+    --surface-100: #f4f4f4;
+    --surface-200: #ececec;
+    --surface-300: #dddddd;
+    --surface-400: #b9b9b9;
+    --surface-500: #9a9a9a;
+    --surface-600: #717171;
+    --surface-700: #5d5d5d;
+    --surface-800: #3f3f3f;
+    --surface-900: #1e1e1e;
+    --surface-950: #1B1B1B;
+
+  }
+
+  * {
+    
+    --p-form-field-hover-border-color: #F0D;
   }
   
   a {
@@ -106,10 +139,9 @@
   cursor: unset !important; 
 }
 
-input:-internal-autofill-selected {
-  background-color: red !important;
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px var(--surface-900) inset;
 }
-
 .container {
   min-height: 88vh;
   background-color: var(--black-background-850);
@@ -122,10 +154,12 @@ input:-internal-autofill-selected {
 .titlebar {
   height: var(--titlebar-height);
   background: var(--black-background-850);
+  border-bottom: 1px solid var(--black-background-800);
   user-select: none;
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;

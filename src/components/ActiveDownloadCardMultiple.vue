@@ -229,7 +229,7 @@ const oruga = useOruga();
         align-items: center;
         justify-content: space-between;
         flex-direction: row;
-        border-radius: 8px;
+        border-radius: var(--p-form-field-border-radius);
         padding: 1.5em 1em;
         margin: 0.5em 0.5em;
         position: relative;
@@ -246,7 +246,7 @@ const oruga = useOruga();
         height: 100%;
         width: 50%;
         margin-right: 1em;
-        border-radius: 8px;
+        border-radius: var(--p-form-field-border-radius);
     }
     
     .metadata {

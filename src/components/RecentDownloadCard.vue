@@ -89,7 +89,7 @@ import BaseIconButton from './BaseIconButton.vue';
         height: 4.5em;
         background-color: var(--black-background-900);
         border: 1px solid var(--black-background-800);
-        border-radius: 8px;
+        border-radius: var(--p-form-field-border-radius);
         padding: 0.5em .8em;
         margin: 0.5em 0.5em;
 

@@ -1,0 +1,13 @@
+* {
+    --p-select-border-color: var(--surface-800);
+    /* --p-select-hover-border-color: var(--surface-700); */
+    --p-select-focus-border-color: var(--surface-700);
+
+    --p-select-option-focus-background: var(--surface-800);
+}
+
+.p-select.p-disabled {
+    --p-select-disabled-background: var(--surface-950);
+    --p-select-disabled-color: var(--surface-700);
+    --p-select-border-color: var(--surface-800);
+}

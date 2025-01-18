@@ -3,20 +3,24 @@
         <div class="options">
             <img src="../assets/vue.svg" alt="logo"/>
             <div style="margin-left: 2em;">
-                <BaseButton text="Simple" :btnClass="(checkView('/') ? 'red' : '') + ' header-button'" :onClickFunc="()=>{changeView('/')}"/>
+                <!-- <BaseButton text="Simple" :btnClass="(checkView('/') ? 'red' : '') + ' header-button'" :onClickFunc="()=>{changeView('/')}"/>
                 <BaseButton text="Detailed" :btnClass="(checkView('/singleDetailed') ? 'red' : '') + ' header-button'"  :onClickFunc="()=>{changeView('/singleDetailed')}"/>
-                <BaseButton text="Multiple" :btnClass="(checkView('/multiple') ? 'red' : '') + ' header-button'"  :onClickFunc="()=>{changeView('/multiple')}"/>
+                <BaseButton text="Multiple" :btnClass="(checkView('/multiple') ? 'red' : '') + ' header-button'"  :onClickFunc="()=>{changeView('/multiple')}"/> -->
+                <Button label="Simple" :severity="checkView('/') ? 'primary' : 'secondary'" @click="()=>{changeView('/')}" />
+                <Button label="Detailed"  :severity="checkView('/singleDetailed') ? 'primary' : 'secondary'" @click="()=>{changeView('/singleDetailed')}" />
+                <Button label="Multiple" :severity="checkView('/multiple') ? 'primary' : 'secondary'" @click="()=>{changeView('/multiple')}"  />
             </div>
         </div>
         <div class="path-and-settings">
             <BaseFileInput 
                 style="margin: 0 1em 0 0; font-size: 0.93em;"
                 @folder-selected="setDefaultFolder"/>
-            <BaseIconButton btnIcon="settings" btnWidth="20" btnHeight="20" />
+                <Button icon="pi pi-cog" @click="()=>console.log('CONFIG')" variant="text" size="large" severity="secondary" />
         </div>
     </nav>
 </template>
 <script lang="ts">
+import Button from 'primevue/button';
 import { useFSStore } from '../stores/fileSystem';
 import BaseButton from './BaseButton.vue';
 import BaseFileInput from './BaseFileInput.vue';
@@ -27,7 +31,8 @@ import BaseIconButton from './BaseIconButton.vue';
         components: {
             BaseButton,
             BaseFileInput,
-            BaseIconButton
+            BaseIconButton,
+            Button
         },
         data() {
             return {
@@ -61,7 +66,6 @@ import BaseIconButton from './BaseIconButton.vue';
     nav {
         background-color: var(--black-background-850);
         border-bottom: 1px solid var(--black-background-800);
-        border-top: 1px solid var(--black-background-800);
         height: 100%;
 
         display: flex;
@@ -75,6 +79,9 @@ import BaseIconButton from './BaseIconButton.vue';
         align-items: center;
         justify-content: space-between;
     }
+        .options button {
+            margin-right: 1em;
+        }
 
     .path-and-settings {
         display: flex;

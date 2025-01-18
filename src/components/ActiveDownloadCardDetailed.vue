@@ -25,49 +25,23 @@
             <div class="options-container">
                 <div class="options-subcontainer">
                     <p>Quality</p>
-                    <o-dropdown v-model="quality" class="dropdown-menu" >
-                        <template #trigger="{ active }">
-                            <o-button
-                                class="base-container dropdown-button"
-                                variant="primary"
-                                :label="quality == '' ? 'Quality':quality"
-                                :icon-right="active ? 'chevron-up':'chevron-down'"/>
-                        </template>
-
-                        <o-dropdown-item 
-                            v-for="q in qualities"
-                            :class="'dropdown-item'" 
-                            :label="q.label"  
-                            :value="q.value"/>
-    
-                    </o-dropdown>
+                    <div >
+                        <Select style="height: 100%;" v-model="quality" :options="qualities" optionLabel="name" placeholder="Quality" />
+                    </div>
                 </div>
 
                 <div class="options-subcontainer">
                     <p >File type</p>
-                    <o-dropdown v-model="fileExt" class="dropdown-menu">
-                        <template #trigger="{ active }">
-                            <o-button
-                                class="base-container dropdown-button"
-                                variant="primary"
-                                :label="fileExt == '' ? 'File type':fileExt"
-                                :icon-right="active ? 'chevron-up':'chevron-down'"/>
-                        </template>
-
-                        <o-dropdown-item 
-                            v-for="ft in fileExts"
-                            :key="ft"
-                            class="dropdown-item" 
-                            :label="ft.label" 
-                            :value="ft.value"/>
-                    </o-dropdown>
+                    <div >
+                        <Select style="height: 100%;" v-model="fileExt" :options="fileExts" optionLabel="name" placeholder="File type" />
+                    </div>
                 </div>
 
                 <div class="options-subcontainer">
                     <p>Goal size</p>
                     <div class="fileName" style="padding: 0;">
                         <aside style="right: 10%;">mb</aside>
-                        <input v-model="goalSize" style="width: 100%;" type="number" name="goalSize" id="goalSize" >
+                        <InputText style="height: 100%;" type="text" v-model="goalFileSize" />
                     </div>
                 </div>
                 
@@ -84,7 +58,7 @@
 
             <h2>File name</h2>
             <div class="fileName">
-                <aside style="z-index: 100; margin-right: 1em;">.{{ fileExt }}</aside>
+                <aside style="z-index: 100; margin-right: 1em;">{{ fileExt.name }}</aside>
                 <AutoComplete class="suggestions-input" v-model="fileName" :showEmptyMessage="false" :suggestions="filteredVariables" @complete="search" 
                     :pt="{
                         root(root) {
@@ -155,7 +129,7 @@
                 <template v-if="thumbnail.download" >
                     <h2 style="margin-top: .5em;">File name</h2>
                     <div style="width: 100%; padding: 0 1em;">
-                        <input v-model="thumbnail.fileName" type="text" name="thumbfilename" id="thumbfilename" style="width: 100%;">
+                        <InputText v-model="thumbnail.fileName" type="text" name="thumbfilename" id="thumbfilename" style="width: 100%;"/>
                     </div>
                 </template>
             </div>
@@ -176,6 +150,8 @@ import AutoComplete from 'primevue/autocomplete';
 import ytdlpVariables from '../constants/ytdlpVariables';
 import VueFeather from 'vue-feather'
 import Toast from 'primevue/toast';
+import Select from 'primevue/select';
+import InputText from 'primevue/inputtext';
 
 const oruga = useOruga();
 
@@ -185,7 +161,9 @@ const oruga = useOruga();
             BaseButton,
             BaseFileInput,
             AutoComplete,
-            VueFeather
+            VueFeather,
+            Select,
+            InputText
         },
         props: {
             style: Object
@@ -199,17 +177,17 @@ const oruga = useOruga();
                 //     {label:"Video (mp4)",value:"Video"},
                 // ],
                 qualities: [
-                    {label:'144p',value:"144p"},
-                    {label:'240p',value:"240p"},
-                    {label:'360p',value:"360p"},
-                    {label:'720p',value:"720p"},
-                    {label:'1080p',value:"1080p"},
+                    {name:'144p',code:"144p"},
+                    {name:'240p',code:"240p"},
+                    {name:'360p',code:"360p"},
+                    {name:'720p',code:"720p"},
+                    {name:'1080p',code:"1080p"},
                 ],
                 fileExts: [
-                    {label:'.mp4',value:"mp4"},
-                    {label:'.m4a',value:"m4a"},
-                    {label:'.mp3',value:"mp3"},
-                    {label:'.wav',value:"wav"},
+                    {name:'.mp4',code:"mp4"},
+                    {name:'.m4a',code:"m4a"},
+                    {name:'.mp3',code:"mp3"},
+                    {name:'.wav',code:"wav"},
                 ],
                 range: {
                     start: '00:00',
@@ -293,13 +271,13 @@ const oruga = useOruga();
                 
                 let fileType;
 
-                if (this.fileExt == "mp4" || this.fileExt == "m4a") {
+                if (this.fileExt.code == "mp4" || this.fileExt.code == "m4a") {
                     fileType = "Video"
                 } else {
                     fileType = "Audio"
                 }
 
-                const fileExt = this.fileExt
+                const fileExt = this.fileExt.code
                 const outputPath = this.outputPath == '' ? this.fsStore.getDefaultOutput : this.outputPath 
                 const output = `${outputPath}/${this.fileName == '' ? this.mediaStore.getTitle : this.fileName}`
                 const thumbnailPath = this.thumbnail.download ? `${outputPath}/${this.thumbnail.fileName}` : ""
@@ -309,7 +287,7 @@ const oruga = useOruga();
                     output: output, 
                     format: fileType, 
                     fileExt: fileExt,
-                    quality: this.quality,
+                    quality: this.quality.code,
                     startSection: this.trim ? this.range.start : '',
                     endSection: this.trim ? this.range.end : '',
                     goalFileSize: this.goalSize.toString(),
@@ -340,8 +318,8 @@ const oruga = useOruga();
                         length = lengthSplitted.join(':');
                     }
 
-                    this.mediaStore.setFormat(this.format)
-                    this.mediaStore.setQuality(this.quality);
+                    this.mediaStore.setFormat(this.format.code)
+                    this.mediaStore.setQuality(this.quality.code);
                     
                     this.newNotification("Download successful!");
                     this.$emit('download-successful',true,outputName,length);
@@ -395,7 +373,7 @@ const oruga = useOruga();
         align-items: center;
         justify-content: space-between;
         flex-direction: column;
-        border-radius: 8px;
+        border-radius: var(--p-form-field-border-radius);
         padding: 1.5em 1em;
         margin: 0.5em 0.5em;
         position: relative;
@@ -408,7 +386,7 @@ const oruga = useOruga();
         height: 20vh;
         width: 100%;
         margin-bottom: 1.5em;
-        border-radius: 8px;
+        border-radius: var(--p-form-field-border-radius);
     }
     
     .metadata {
@@ -434,7 +412,7 @@ const oruga = useOruga();
     input {
         background: var(--black-background-900);
         border: 1px solid var(--black-background-800);
-        border-radius: 8px;
+        border-radius: var(--p-form-field-border-radius);
         padding: .4em .9em;
         outline: none;
         transition: all ease .2s;
@@ -456,7 +434,7 @@ const oruga = useOruga();
 
     .media-info {
         border: 1px solid var(--black-background-800); 
-        border-radius: 8px; 
+        border-radius: var(--p-form-field-border-radius);
         padding: .5em 1em;
         margin: .7em 0 0 0;
         display: flex;
@@ -486,6 +464,7 @@ const oruga = useOruga();
     .fileName {
         width: 100%; 
         padding: 0 1em; 
+        height: 100%;
         position: relative;
     }
         .fileName aside {
@@ -511,38 +490,7 @@ const oruga = useOruga();
             white-space: nowrap;
             margin-right: 1em;
         }
-
-    .dropdown-menu {
-        --oruga-dropdown-menu-background: var(--black-background-900);
-        --oruga-dropdown-item-active-background-color: var(--black-background-800);
-        --oruga-dropdown-item-hover-background-color: var(--black-background-850);
         
-        width: 100%;
-    }
-
-    .dropdown-item {
-        color: var(--white-text);
-        transition: all .2s ease;
-        margin: .5em;
-        border-radius: 8px;
-    }
-        .dropdown-item:hover {
-            color: var(--white-text) !important;
-            transition: all .2s ease;
-        }
-
-        .dropdown-button {
-            width: 100%;
-            border: 1px solid var(--black-background-800);
-            transition: all ease .2s;
-        }
-        
-        .dropdown-button:focus, .dropdown-button:hover {
-            box-shadow: none;
-            border-color: var(--black-background-700);
-            transition: all ease .2s;
-        }
-
     .button-w-title-container {
         display: flex;
         align-items: flex-start;

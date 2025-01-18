@@ -63,11 +63,12 @@ export default {
     }
 
     .fileInputContainer {
-        border-radius: 10px;
+        min-height: 42px;
+        border-radius: var(--p-form-field-border-radius);
         border: 1px solid var(--black-background-800);
         font-size: 1em;
         padding: 0.5em 1em;
-    font-family: inherit;
+        font-family: inherit;
         color: var(--white-text);
         background-color: var(--black-background-900);
         transition: border-color 0.25s;
@@ -77,7 +78,7 @@ export default {
         justify-content: space-between;
     }
         .fileInputContainer:hover {
-            border-color: var(--black-background-700);
+            border-color: var(--surface-700);
         }
 
     .red {

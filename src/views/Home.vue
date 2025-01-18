@@ -105,8 +105,6 @@ import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
                 })
             },
             async loadDownloadHistory() {
-                const teste = new Date()
-                console.log(Number(teste.getTime()))
                 const downloadArr = await this.readFile()
 
                 if(downloadArr != null) {

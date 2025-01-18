@@ -6,17 +6,20 @@
         <template v-else>
             <input v-model="inputText" type="text" name="text" id="text" placeholder="Paste your url...">
         </template>
-        <BaseIconButton :disabled="disabled" btnIcon="search" :btnBorder="true" style="position: absolute; right: 10px;" :onClickFunc="()=>{emitOnClick()}" />
+        <!-- <BaseIconButton :disabled="disabled" btnIcon="search" :btnBorder="true" style="position: absolute; right: 10px;" :onClickFunc="()=>{emitOnClick()}" /> -->
+        <Button icon="pi pi-search" severity="primary" variant="text" style="position: absolute; right: 10px; " @click="emitOnClick" />
     </div>
 </template>
 <script>
 import BaseIconButton from './BaseIconButton.vue';
 import { useMediaStore } from '../stores/media';
 import { useLoadingStore } from '../stores/loading';
+import Button from 'primevue/button';
 
 export default {
     components: {
-        BaseIconButton
+        BaseIconButton,
+        Button
     },
     props: {
         disabled: {
@@ -63,7 +66,7 @@ export default {
         width: 100%;
         background-color: var(--black-background-900);
         border: 1px solid var(--black-background-800);
-        border-radius: 10px;
+        border-radius: var(--p-form-field-border-radius);
         padding: 0.9em 1em;
         color: var(--white-text);
         outline: none;
@@ -71,7 +74,7 @@ export default {
         transition: all ease .2s;
     }
         input:hover, textarea:hover, input:focus, textarea:focus {
-            border: 1px solid var(--black-background-700);
+            border: 1px solid var(--surface-700);
             transition: all ease .2s;
         }
 
