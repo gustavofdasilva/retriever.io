@@ -119,8 +119,8 @@ const oruga = useOruga();
                     goalFileSize: "100",
                     thumbnailPath: "",
                 }).then(()=>{
-                    this.mediaStore.setFormat(this.format)
-                    this.mediaStore.setQuality(this.quality);
+                    this.mediaStore.setFormat(this.format.code)
+                    this.mediaStore.setQuality(this.quality.code);
                     
                     this.newNotification("Download successful!");
                     this.$emit('download-successful',true)

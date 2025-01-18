@@ -40,7 +40,7 @@ async fn get_metadata(url: String) -> Vec<String> {
     );
     println!(
     "STDERR {}",
-        String::from_utf8(output.stderr).unwrap_or("null".to_string())
+        String::from_utf8_lossy(&output.stderr).to_string()
     );
     
 
@@ -174,11 +174,11 @@ async fn download(
     );
     println!(
         "STDERR {}",
-        String::from_utf8(output.stderr).unwrap_or("null".to_string())
+        String::from_utf8_lossy(&output.stderr).to_string()
     );
 
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-    let output_name = stdout.lines().nth(0).unwrap().to_string();
+    let output_name = stdout.lines().nth(0).unwrap_or("video");
     
     let mut response: HashMap<String, String> = HashMap::new();
 
