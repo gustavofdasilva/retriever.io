@@ -1,0 +1,6 @@
+.p-menu-item.alert span {
+    color: var(--alert);
+}
+.p-menu-item.alert:hover  .p-menu-item-icon{
+    color: var(--alert) !important;
+}

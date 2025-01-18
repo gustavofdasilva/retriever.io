@@ -27,43 +27,23 @@
             </p>
         </div>
         <div >
-            <o-dropdown class="dropdown-menu" >
-                <template #trigger="{}">
-                    <o-button
-                        class="base-container dropdown-button"
-                        variant="primary"
-                        :icon-right="'menu'"/>
-                </template>
-    
-                <o-dropdown-item
-                    class="dropdown-item"
-                    label="Open in explorer"
-    
-                    />
-    
-                <o-dropdown-item
-                    class="dropdown-item"
-                    label="Restart download"
-                    
-                    />
-    
-                <o-dropdown-item
-                    class="dropdown-item alert"
-                    label="Delete file"
-                    
-                    />
-    
-            </o-dropdown>
+            <Button severity="secondary" variant="text" type="button" icon="pi pi-ellipsis-v" @click="toggle" aria-haspopup="true" aria-controls="overlay_menu" />
+            <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" />
         </div>
     </div>
 </template>
-<script lang="ts">
+<script>
+import Button from 'primevue/button';
 import BaseIconButton from './BaseIconButton.vue';
+import Menu from 'primevue/menu';
+import { ref } from 'vue';
 
 
     export default {
         components: {
-            BaseIconButton
+            BaseIconButton,
+            Button,
+            Menu
         },
         props: {
             thumbnailUrl: String,
@@ -73,9 +53,40 @@ import BaseIconButton from './BaseIconButton.vue';
             format: String,
             length: String,
         },
+        data() {
+            return {
+                items: [
+                    {
+                        label: 'Open in explorer',
+                        icon: 'pi pi-folder-open',
+                        command: () => {
+                            console.log("Open in explorer")
+                        }
+                    },
+                    {
+                        label: 'Restart download',
+                        icon: 'pi pi-replay',
+                        command: () => {
+                            console.log("Restart download")
+                        }
+                    },
+                    {
+                        label: 'Delete file',
+                        icon: 'pi pi-trash',
+                        command: () => {
+                            console.log("Delete file")
+                        },
+                        class: 'alert'
+                    }
+                ]
+            }
+        },
         methods: {
             formatLength() {
 
+            },
+            toggle(event) {
+                this.$refs.menu.toggle(event);
             }
         }
     }
@@ -117,6 +128,10 @@ import BaseIconButton from './BaseIconButton.vue';
         border-radius: 8px;
     }
 
+    a:hover {
+        color: unset;
+    }
+
     p {
         font-size: 0.8em;
         text-overflow: ellipsis;
@@ -125,39 +140,5 @@ import BaseIconButton from './BaseIconButton.vue';
         max-width: 150px;
         text-align: start;
     }
-
-    .dropdown-menu {
-        --oruga-dropdown-menu-background: var(--black-background-900);
-        --oruga-dropdown-item-active-background-color: var(--black-background-900);
-        --oruga-dropdown-item-hover-background-color: var(--black-background-850);
-    }
-
-    .dropdown-item {
-        color: var(--white-text);
-        transition: all .2s ease;
-        margin: .5em;
-        border-radius: 8px;
-    }
-        .dropdown-item:hover {
-            color: var(--white-text);
-            transition: all .2s ease;
-        }
-        .dropdown-item.alert {
-            color: var(--red-stroke);
-        }
-            .dropdown-item.alert:hover {
-                color: var(--red-stroke) !important;
-            }
-
-    .dropdown-button {
-        border: none;
-        width: 35px;
-        padding: 0em .5em;
-    }
-        
-    .dropdown-button:focus {
-        box-shadow: none;
-    }
-    
     
 </style>

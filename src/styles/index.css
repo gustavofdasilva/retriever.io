@@ -71,11 +71,7 @@
     --surface-900: #1e1e1e;
     --surface-950: #1B1B1B;
 
-  }
-
-  * {
-    
-    --p-form-field-hover-border-color: #F0D;
+    --alert: #ec3b3b;
   }
   
   a {
@@ -83,7 +79,7 @@
     text-decoration: underline;
     transition: all ease .2s;
   }
-    a:hover {
+    a:not(.p-menu-item-link):hover {
       color: var(--red-stroke-hover);
       transition: all ease .2s;
     }

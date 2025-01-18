@@ -11,6 +11,7 @@ import './styles/progress_bar.css';
 import './styles/select.css';
 import './styles/button.css';
 import './styles/toast.css';
+import './styles/popup.css';
 import { Oruga } from "@oruga-ui/oruga-next";
 import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura';
