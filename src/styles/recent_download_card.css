@@ -1,0 +1,6 @@
+.recent-download-card-size {
+    display: grid;
+    grid-template-columns: 1.2fr repeat(2, 2fr) repeat(4, 1fr);
+    grid-template-rows: 1fr;
+    grid-column-gap: 15px;
+}

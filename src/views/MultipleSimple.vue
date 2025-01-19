@@ -24,16 +24,7 @@
             <div style="width: 100%; margin-top: 4em;">
                 <h2 class="sub-title" >Recent Downloads</h2>
                 
-                <RecentDownloadCard v-for="download in downloadLog"
-                    :key="download.title"
-                    :thumbnail-url="download.thumbnailUrl"
-                    :title="download.title" 
-                    :channel="download.channel" 
-                    :quality="download.quality" 
-                    :format="download.format" 
-                    :length="download.length"/>
-                
-                <p v-if="downloadLog.length==0" style="text-align: center; margin-top: 2em;">No recent downloads found. Start retrieving!</p>
+                <RecentDownloadContainer/>
             </div>
         </main>
     </div>
@@ -47,6 +38,8 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
 import { useFSStore } from '../stores/fileSystem';
 import { useMediaStore } from '../stores/media';
 import ActiveDownloadCardMultiple from '../components/ActiveDownloadCardMultiple.vue';
+import { useDownloadLogStore } from '../stores/downloadLog';
+import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
 
     export default {
         components: {
@@ -54,11 +47,13 @@ import ActiveDownloadCardMultiple from '../components/ActiveDownloadCardMultiple
             BaseSearchBar,
             RecentDownloadCard,
             ActiveDownloadCardMultiple,
-            RouterLink
+            RouterLink,
+            RecentDownloadContainer
         },
         setup() {
             const mediaStore = useMediaStore();
             const fsStore = useFSStore();
+            const downloadLogStore = useDownloadLogStore();
             const readFile = () => readHistFile();
             const createFile = () => createHistFile();
             const addDownload = (newLog: DownloadLog) => addToHist(newLog);
@@ -67,6 +62,7 @@ import ActiveDownloadCardMultiple from '../components/ActiveDownloadCardMultiple
             return {
                 mediaStore,
                 fsStore,
+                downloadLogStore,
                 readFile,
                 createFile,
                 addDownload,
@@ -81,7 +77,7 @@ import ActiveDownloadCardMultiple from '../components/ActiveDownloadCardMultiple
             }
         },
         mounted() {
-            this.loadDownloadHistory();
+            this.downloadLogStore.loadDownloadHistory();
         },
         methods: {
 
@@ -91,21 +87,6 @@ import ActiveDownloadCardMultiple from '../components/ActiveDownloadCardMultiple
                 this.mediaStore.setMultiUrls(urlsArray)
             },
 
-            async loadDownloadHistory() {
-                const teste = new Date()
-                console.log(Number(teste.getTime()))
-                const downloadArr = await this.readFile()
-
-                if(downloadArr != null) {
-                    if(downloadArr.length == 0) {
-                        await this.createFile();
-                        this.loadDownloadHistory();
-                        return
-                    }
-
-                    this.downloadLog = downloadArr
-                }
-            },
             async checkDownload(val: boolean){
                 this.downloadResultMsg = val ? 'Download successful!' : 'Could not download'
                 setTimeout(()=>{
@@ -115,7 +96,7 @@ import ActiveDownloadCardMultiple from '../components/ActiveDownloadCardMultiple
                 console.log(this.downloadResultMsg)
 
                 if(val) {
-                    await this.loadDownloadHistory();
+                    await this.downloadLogStore.loadDownloadHistory();
                 }
             },
             

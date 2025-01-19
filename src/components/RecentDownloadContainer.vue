@@ -1,6 +1,6 @@
 <template>
     <div class="recent-download-container">
-        <div class="label">
+        <div class="label recent-download-card-size">
         <div class="thumbnail">
             <p>
                 Thumbnail
@@ -35,32 +35,60 @@
             <p>Actions</p>
         </div>
         </div>
-        <RecentDownloadCard v-for="download in downloadLog"
+        <RecentDownloadCard v-for="download in filteredLogs"
                     :thumbnail-url="download.thumbnailUrl"
                     :title="download.title" 
                     :channel="download.channel" 
                     :quality="download.quality" 
                     :format="download.format" 
-                    :length="String(download.length)"/>
+                    :length="String(download.length)"
+                    :path="download.path"/>
 
+        <Paginator style="margin-bottom: 1em;" v-if="downloadLogStore.getDownloadLog.length!=0" :rows="10" :totalRecords="downloadLogStore.getDownloadLog.length" @page="filterLogs" ></Paginator>
 
-        <p v-if="downloadLog.length==0" style="text-align: center; margin-top: 2em;">No recent downloads found. Start retrieving!</p>
+        <p v-if="downloadLogStore.getDownloadLog.length==0" style="text-align: center; margin-top: 2em;">No recent downloads found. Start retrieving!</p>
     </div>
 </template>
 
 <script>
+import Paginator from 'primevue/paginator';
 import RecentDownloadCard from './RecentDownloadCard.vue';
+import { toRefs, watch } from 'vue';
+import { useDownloadLogStore } from '../stores/downloadLog';
 
     export default {
         name: "RecentDownloadContainer",
         components: {
-            RecentDownloadCard
+            RecentDownloadCard,
+            Paginator
         },
-        props: {
-            downloadLog: {
-                type: Array,
-                default: []
+        data() {
+            return {
+                filteredLogs: [],
             }
+        },
+        setup() {
+            const downloadLogStore = useDownloadLogStore();
+
+            return {
+                downloadLogStore,
+            }
+        },
+        async mounted() {
+            this.downloadLogStore.$subscribe((mutation, state) => {
+                this.filteredLogs = state.downloadLog.slice(0,10);
+            })
+
+            await this.downloadLogStore.loadDownloadHistory();
+            this.filteredLogs = this.downloadLogStore.getDownloadLog.slice(0,10);
+        },
+        methods: {
+            filterLogs(event) {
+                console.log(event)
+                const start = event.first
+                const end = event.first + event.rows;
+                this.filteredLogs = this.downloadLogStore.getDownloadLog.slice(start,end);
+            },
         }
     }
 </script>
@@ -68,11 +96,7 @@ import RecentDownloadCard from './RecentDownloadCard.vue';
 <style scoped>
 
         .recent-download-container .label {
-            
-            display: grid;
-            grid-template-columns: 1.2fr repeat(2, 2fr) repeat(4, 1fr);
-            grid-template-rows: 1fr;
-            grid-column-gap: 15px;
+
             padding: 0.8em;
             margin-bottom: 1em;
             border-bottom: 1px solid var(--black-background-600);

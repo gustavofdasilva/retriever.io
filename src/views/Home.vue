@@ -25,9 +25,7 @@
             <div style="width: 100%; margin-top: 4em;">
                 <h2 class="sub-title" >Recent Downloads</h2>
                 
-                <RecentDownloadContainer
-                    :download-log="downloadLog"
-                />
+                <RecentDownloadContainer/>
             </div>
         </main>
     </div>
@@ -44,6 +42,7 @@ import { useMediaStore } from '../stores/media';
 import { useLoadingStore } from '../stores/loading';
 import { invoke } from '@tauri-apps/api/core';
 import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
+import { useDownloadLogStore } from '../stores/downloadLog';
 
     export default {
         components: {
@@ -58,6 +57,7 @@ import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
             const mediaStore = useMediaStore();
             const fsStore = useFSStore();
             const loadingStore = useLoadingStore();
+            const downloadLogStore = useDownloadLogStore();
             const readFile = () => readHistFile();
             const createFile = () => createHistFile();
             const addDownload = (newLog: DownloadLog) => addToHist(newLog);
@@ -67,6 +67,7 @@ import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
                 mediaStore,
                 fsStore,
                 loadingStore,
+                downloadLogStore,
                 readFile,
                 createFile,
                 addDownload,
@@ -81,7 +82,7 @@ import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
             }
         },
         mounted() {
-            this.loadDownloadHistory();
+            this.downloadLogStore.loadDownloadHistory();
         },
         methods: {
 
@@ -104,19 +105,6 @@ import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
                     }
                 })
             },
-            async loadDownloadHistory() {
-                const downloadArr = await this.readFile()
-
-                if(downloadArr != null) {
-                    if(downloadArr.length == 0) {
-                        await this.createFile();
-                        this.loadDownloadHistory();
-                        return
-                    }
-
-                    this.downloadLog = downloadArr
-                }
-            },
             async checkDownload(val: boolean){
                 this.downloadResultMsg = val ? 'Download successful!' : 'Could not download'
                 setTimeout(()=>{
@@ -136,7 +124,7 @@ import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
                     } 
 
                     await this.addDownload(activeDownloadLog);
-                    await this.loadDownloadHistory();
+                    await this.downloadLogStore.loadDownloadHistory();
                     this.mediaStore.reset();
                 }
             },

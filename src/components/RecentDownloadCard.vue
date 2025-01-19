@@ -1,5 +1,5 @@
 <template>
-    <div class="recent-card-container">
+    <div class="recent-card-container recent-download-card-size">
         <div :style="{'background-image': 'url('+thumbnailUrl+')'}" class="thumbnail"></div>
         <div>
             <p style="font-weight: bold;">
@@ -37,6 +37,7 @@ import Button from 'primevue/button';
 import BaseIconButton from './BaseIconButton.vue';
 import Menu from 'primevue/menu';
 import { ref } from 'vue';
+import { invoke } from '@tauri-apps/api/core';
 
 
     export default {
@@ -52,6 +53,7 @@ import { ref } from 'vue';
             quality: String,
             format: String,
             length: String,
+            path: String,
         },
         data() {
             return {
@@ -60,21 +62,36 @@ import { ref } from 'vue';
                         label: 'Open in explorer',
                         icon: 'pi pi-folder-open',
                         command: () => {
-                            console.log("Open in explorer")
+                            console.log(this.path)
+                            invoke('show_in_folder',{
+                                path: `${this.path}`,
+                            })
                         }
                     },
-                    {
-                        label: 'Restart download',
-                        icon: 'pi pi-replay',
-                        command: () => {
-                            console.log("Restart download")
-                        }
-                    },
+                    // { 
+                    //     label: 'Restart download',
+                    //     icon: 'pi pi-replay',
+                    //     command: () => {
+                    //         console.log("Restart download")
+                    //     }
+                    // },
                     {
                         label: 'Delete file',
                         icon: 'pi pi-trash',
                         command: () => {
-                            console.log("Delete file")
+                            
+                            const pathToFile = `${this.path.replace(/\\/g,'/')}/${this.title}`
+                            invoke('delete_file',{
+                                path: pathToFile,
+                            }).then(()=>{
+                                this.$toast.add({
+                                    severity: 'secondary',
+                                    summary: 'Delete file',
+                                    detail: 'File deleted!',
+                                    life: 3000,
+                                    closable: true
+                                })
+                            })
                         },
                         class: 'alert'
                     }
@@ -103,11 +120,6 @@ import { ref } from 'vue';
         border-radius: var(--p-form-field-border-radius);
         padding: 0.5em .8em;
         margin: 0.5em 0.5em;
-
-        display: grid;
-        grid-template-columns: 1.2fr repeat(2, 2fr) repeat(4, 1fr);
-        grid-template-rows: 1fr;
-        grid-column-gap: 15px;
     }
         .recent-card-container div {
             display: flex;

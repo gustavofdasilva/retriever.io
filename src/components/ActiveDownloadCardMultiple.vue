@@ -46,10 +46,7 @@
 <script>
 import { invoke } from '@tauri-apps/api/core';
 import { useMediaStore } from '../stores/media';
-import BaseButton from './BaseButton.vue';
-import BaseIconButton from './BaseIconButton.vue';
 import { useFSStore } from '../stores/fileSystem';
-import { info } from '@tauri-apps/plugin-log';
 import { addToHist, createHistFile, readHistFile } from '../helpers/history';
 import Button from 'primevue/button';
 import Select from 'primevue/select';

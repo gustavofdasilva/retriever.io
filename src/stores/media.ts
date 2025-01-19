@@ -13,8 +13,7 @@ export const useMediaStore = defineStore("media", {
             likes:null as number | null | "NA",
             dislikes:null as number | null | "NA",
             duration:"",
-            multipleDownloadUrls: [] as string[]
-
+            multipleDownloadUrls: [] as string[],
         }),
     getters: {
         getTitle: (state)=>state.title,
