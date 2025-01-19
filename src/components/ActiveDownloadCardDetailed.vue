@@ -3,12 +3,12 @@
         <div>
         <Toast position="bottom-right" group="downloadProgress" @close="closeDownloadProgressToast">
             <template #container="{ message, closeCallback }">
-                <div class="download-toast" >
+                <div class="download-toast" style="margin: 1.5em 1.2em;" >
                     <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" />
                     <Button style="position: absolute; right: 1em; top: 1em;" icon="pi pi-times" @click="toggle" variant="text" size="medium" severity="secondary" />
                     <p style="font-weight: 600; font-size: 1.1em;">Download progress</p>
-                    <p style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; margin-bottom: .9em; width: 80%;">Info: {{ loadingStore.getDownloadInfo }}</p>
-                    <ProgressBar :mode="loadingStore.getDownloadProgress == '' ? 'inderteminate' : 'determinate'" :value="loadingStore.getDownloadProgress" />
+                    <p v-if="loadingStore.getDownloadInfo != ''" style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; width: 80%;">Info: {{ loadingStore.getDownloadInfo }}</p>
+                    <ProgressBar style=" margin-top: .9em; " :mode="loadingStore.getDownloadProgress == '' ? 'inderteminate' : 'determinate'" :value="Number(loadingStore.getDownloadProgress)" />
                 </div>
             </template>
         </Toast>
@@ -150,6 +150,7 @@ import ToggleSwitch from 'primevue/toggleswitch';
 import Button from 'primevue/button';
 import { useLoadingStore } from '../stores/loading';
 import ProgressBar from 'primevue/progressbar';
+import Menu from 'primevue/menu';
 
 
     export default {
@@ -162,7 +163,8 @@ import ProgressBar from 'primevue/progressbar';
             ToggleSwitch,
             Button,
             ProgressBar,
-            Toast
+            Toast,
+            Menu
         },
         props: {
             style: Object
@@ -204,7 +206,16 @@ import ProgressBar from 'primevue/progressbar';
                     fileName: 'thumbnail',
                 },
                 trim: false,
-
+                items: [
+                    {
+                        label: 'Cancel download',
+                        icon: 'pi pi-undo',
+                        command: () => {
+                            console.log("Delete file")
+                        },
+                        class: 'alert'
+                    }
+                ]
             }
         },
         setup() {
@@ -267,6 +278,9 @@ import ProgressBar from 'primevue/progressbar';
             setOutputPath(path) {
                 this.outputPath = path;
             },
+            closeDownloadProgressToast() {
+                this.$toast.removeGroup("downloadProgress");
+            },
             download() {
                 this.loading=true
                 
@@ -320,7 +334,7 @@ import ProgressBar from 'primevue/progressbar';
                         length = lengthSplitted.join(':');
                     }
 
-                    this.mediaStore.setFormat(this.format.code)
+                    this.mediaStore.setFormat(fileType)
                     this.mediaStore.setQuality(this.quality.code);
                     
                     this.newNotification("Download successful!");
@@ -333,7 +347,7 @@ import ProgressBar from 'primevue/progressbar';
                     this.loading = false
                     this.loadingStore.setDownloadProgress('');
                     this.loadingStore.setDownloadInfo('');
-                    closeDownloadProgressToast();
+                    this.closeDownloadProgressToast();
                 })
             },
             getProgressInfo() {
@@ -361,10 +375,7 @@ import ProgressBar from 'primevue/progressbar';
                 this.mediaStore.reset();
             },
             downloadProgressToast() {
-                if (!this.visible) {
-                    this.$toast.add({ severity: 'secondary', summary: 'Uploading your files.', group: 'downloadProgress'});
-                    this.visible = true;
-                }
+                this.$toast.add({ severity: 'secondary', summary: 'Uploading your files.', group: 'downloadProgress'});
             },
             newNotification(message) {
                 this.$toast.add({
@@ -385,7 +396,6 @@ import ProgressBar from 'primevue/progressbar';
 </script>
 
 <style scoped>
-
         
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {

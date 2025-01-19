@@ -7,8 +7,8 @@
                     <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" />
                     <Button style="position: absolute; right: 1em; top: 1em;" icon="pi pi-times" @click="toggle" variant="text" size="medium" severity="secondary" />
                     <p style="font-weight: 600; font-size: 1.1em;">Download progress</p>
-                    <p style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; margin-bottom: .9em; width: 80%;">Info: {{ loadingStore.getDownloadInfo }}</p>
-                    <ProgressBar :mode="loadingStore.getDownloadProgress == '' ? 'inderteminate' : 'determinate'" :value="loadingStore.getDownloadProgress" />
+                    <p v-if="loadingStore.getDownloadInfo != ''" style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; margin-bottom: .9em; width: 80%;">Info: {{ loadingStore.getDownloadInfo }}</p>
+                    <ProgressBar :mode="loadingStore.getDownloadProgress == '' ? 'inderteminate' : 'determinate'" :value="Number(loadingStore.getDownloadProgress)" />
                 </div>
             </template>
         </Toast>
@@ -48,8 +48,6 @@
 <script>
 import { invoke } from '@tauri-apps/api/core';
 import { useMediaStore } from '../stores/media';
-import BaseButton from './BaseButton.vue';
-import BaseIconButton from './BaseIconButton.vue';
 import { useFSStore } from '../stores/fileSystem';
 import { useLoadingStore } from '../stores/loading';
 import Toast from 'primevue/toast';
@@ -130,31 +128,7 @@ import Menu from 'primevue/menu';
                     endSection: "",
                     goalFileSize: "100",
                     thumbnailPath: "",
-                }).then((response)=>{
-
-                    const outputFullPath = response.output.split('\\')
-                    const outputName = outputFullPath[outputFullPath.length-1].replace(/\.(\w+)$/g,'');
-
-                    let startTime, endTime;
-                    if(this.range.start.split(":").length == 2) {
-                        startTime = `00:${this.range.start}`
-                    } else if (this.range.start.split(":").length == 1) {
-                        startTime = `00:00:${this.range.start}`
-                    }
-
-                    if(this.range.end.split(":").length == 2) {
-                        endTime = `00:${this.range.end}`
-                    } else if (this.range.end.split(":").length == 1) {
-                        endTime = `00:00:${this.range.end}`
-                    }
-
-                    let length = this.timeDifference(startTime,endTime);
-                    let lengthSplitted = length.split(":");
-
-                    if(lengthSplitted[0]=="00") {
-                        lengthSplitted.shift();
-                        length = lengthSplitted.join(':');
-                    }
+                }).then(()=>{
 
                     this.mediaStore.setFormat(this.format.code)
                     this.mediaStore.setQuality(this.quality.code);
@@ -169,7 +143,7 @@ import Menu from 'primevue/menu';
                     this.loading = false
                     this.loadingStore.setDownloadProgress('');
                     this.loadingStore.setDownloadInfo('');
-                    closeDownloadProgressToast();
+                    this.closeDownloadProgressToast();
                 })
             },
             getProgressInfo() {
@@ -197,13 +171,10 @@ import Menu from 'primevue/menu';
                 this.mediaStore.reset();
             },
             closeDownloadProgressToast() {
-
+                this.$toast.removeGroup("downloadProgress");
             },
             downloadProgressToast() {
-                if (!this.visible) {
-                    this.$toast.add({ severity: 'secondary', summary: 'Uploading your files.', group: 'downloadProgress'});
-                    this.visible = true;
-                }
+                this.$toast.add({ severity: 'secondary', summary: 'Uploading your files.', group: 'downloadProgress'});
             },
             newNotification(message) {
                 this.$toast.add({

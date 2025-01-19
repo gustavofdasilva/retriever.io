@@ -1,6 +1,19 @@
 <template>
     <div class="active-card-container" :style="style">
-        
+        <div>
+        <Toast position="bottom-right" group="downloadProgress" @close="closeDownloadProgressToast">
+            <template #container="{ message, closeCallback }">
+                <div class="download-toast" style="margin: 1.5em 1.2em;" >
+                    <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" />
+                    <Button style="position: absolute; right: 1em; top: 1em;" icon="pi pi-times" @click="toggle" variant="text" size="medium" severity="secondary" />
+                    <p style="font-weight: 600; font-size: 1.1em;">Download progress</p>
+                    <p v-if="loadingStore.getDownloadInfo != ''" style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; width: 80%;">Video: {{ videoIndex+1 }} / {{ mediaStore.getMultiUrls.length }}</p>
+                    <p v-if="loadingStore.getDownloadInfo != ''" style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; width: 80%;">Info: {{ loadingStore.getDownloadInfo }}</p>
+                    <ProgressBar style="margin-top: .9em; " :mode="loadingStore.getDownloadProgress == '' ? 'inderteminate' : 'determinate'" :value="Number(loadingStore.getDownloadProgress)" />
+                </div>
+            </template>
+        </Toast>
+        </div>
         <div class="thumbnail">
             <p style="font-size: 2em; font-weight: 500;" >{{ mediaStore.getMultiUrls.length }}</p>
         </div>
@@ -40,11 +53,18 @@ import { info } from '@tauri-apps/plugin-log';
 import { addToHist, createHistFile, readHistFile } from '../helpers/history';
 import Button from 'primevue/button';
 import Select from 'primevue/select';
+import Toast from 'primevue/toast';
+import ProgressBar from 'primevue/progressbar';
+import Menu from 'primevue/menu';
+import { useLoadingStore } from '../stores/loading';
 
     export default {
         components: {
             Button,
-            Select
+            Select,
+            Toast,
+            ProgressBar,
+            Menu,
         },
         props: {
             style: Object
@@ -70,11 +90,24 @@ import Select from 'primevue/select';
                 ],
                 qualities:[],
                 quality: '',
+                videoIndex: 0,
+                toastVisible: false,
+                items: [
+                    {
+                        label: 'Cancel download',
+                        icon: 'pi pi-undo',
+                        command: () => {
+                            console.log("Delete file")
+                        },
+                        class: 'alert'
+                    }
+                ]
             }
         },
         setup() {
             const mediaStore = useMediaStore();
             const fsStore = useFSStore();
+            const loadingStore = useLoadingStore();
             const readFile = () => readHistFile();
             const createFile = () => createHistFile();
             const addDownload = (newLog) => addToHist(newLog);
@@ -83,6 +116,7 @@ import Select from 'primevue/select';
             return {
                 mediaStore,
                 fsStore,
+                loadingStore,
                 readFile,
                 createFile,
                 addDownload,
@@ -97,17 +131,18 @@ import Select from 'primevue/select';
                 
                 for (const url of this.mediaStore.getMultiUrls) {
                     
-
                     const videoData = await this.getMetadata(url)
 
                     const output = `${this.fsStore.getDefaultOutput}/${videoData.title}`
 
-                    invoke('download',{
+                    this.getProgressInfo();
+                    this.videoIndex = this.mediaStore.getMultiUrls.indexOf(url);
+                    await invoke('download',{
                         url: url, 
                         output: output, 
-                        format: this.format, 
+                        format: this.format.code, 
                         fileExt: fileType,
-                        quality: this.quality,
+                        quality: this.quality.code,
                         startSection: "",
                         endSection: "",
                         goalFileSize: "100",
@@ -118,8 +153,8 @@ import Select from 'primevue/select';
                             thumbnailUrl: videoData.thumbnail,
                             title: videoData.title,
                             channel: videoData.channel,
-                            format: this.format,
-                            quality: this.quality,
+                            format: this.format.code,
+                            quality: this.quality.code,
                             length: videoData.duration,
                             path: this.fsStore.getDefaultOutput,
                             dateCreated: new Date()
@@ -134,13 +169,16 @@ import Select from 'primevue/select';
                         const index = this.mediaStore.getMultiUrls.indexOf(url);
                         const length = this.mediaStore.getMultiUrls.length;
 
+                        this.loadingStore.setDownloadProgress('');
+                        this.loadingStore.setDownloadInfo('');
+
                         if (index+1 == length) {
                             this.loading = false;
+                            this.closeDownloadProgressToast();
                             this.mediaStore.reset()
                         }
                     })
                 }
-                
             },
 
             async getMetadata(url) {
@@ -165,13 +203,52 @@ import Select from 'primevue/select';
                 }
             },
 
+            getProgressInfo() {
+                this.downloadProgressToast();
+                const loadProgress = setInterval(()=>{
+                    if (this.loading) {
+                        invoke('get_progress_info').then((res)=>{
+                            if(res == "") return
+
+                            this.loadingStore.setDownloadInfo(res);
+                            try {
+                                let progressValue = res.match(/(\d+\.\d+)%/g)[0].replace("%",'');
+                                this.loadingStore.setDownloadProgress(progressValue);
+                            } catch (error) {
+                                
+                            }
+                        })
+                    } else {
+                        clearInterval(loadProgress);
+                    }
+                },1000)
+                
+            },
+            downloadProgressToast() {
+                if(!this.toastVisible) {
+                    this.$toast.add({ severity: 'secondary', summary: 'Uploading your files.', group: 'downloadProgress'});
+                    this.toastVisible = true;
+                } 
+            },
+            closeDownloadProgressToast() {
+                this.$toast.removeGroup("downloadProgress");
+                this.toastVisible=false;
+            },
             exit() {
                 this.mediaStore.reset();
             },
             newNotification(message) {
-                
+                this.$toast.add({
+                    severity: 'secondary',
+                    summary: 'Download log',
+                    detail: message,
+                    life: 3000,
+                    closable: true
+                })
+            },
+            toggle(event) {
+                this.$refs.menu.toggle(event);
             }
-
         }
     }
 

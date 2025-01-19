@@ -130,7 +130,7 @@ import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
                         channel: this.mediaStore.getChannel,
                         format: this.mediaStore.getFormat ? this.mediaStore.getFormat : "Video",
                         quality: this.mediaStore.getQuality,
-                        length: '0',
+                        length: this.mediaStore.getDuration,
                         path: this.fsStore.getDefaultOutput,
                         dateCreated: new Date()
                     } 
