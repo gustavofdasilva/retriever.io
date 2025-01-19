@@ -3,8 +3,6 @@ import App from "./App.vue";
 import {router} from '../src/router/router'
 import { createPinia } from "pinia";
 import './styles/index.css';
-import './styles/dropdown.css';
-import './styles/tooltip.css';
 import './styles/switch.css';
 import './styles/auto_complete.css';
 import './styles/progress_bar.css';
@@ -12,11 +10,12 @@ import './styles/select.css';
 import './styles/button.css';
 import './styles/toast.css';
 import './styles/popup.css';
-import { Oruga } from "@oruga-ui/oruga-next";
 import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura';
 import { definePreset } from '@primevue/themes';
 import ToastService from 'primevue/toastservice';
+import Tooltip from "primevue/tooltip";
+
 
 
 const app = createApp(App)
@@ -79,12 +78,12 @@ const themePreset = definePreset(Aura, {
 
 app.use(router)
 app.use(pinia)
-app.use(Oruga)
 app.use(PrimeVue, {
     theme: {
         preset: themePreset
     }
 });
+app.directive('tooltip',Tooltip);
 app.use(ToastService);
 app.mount("#app");
 

@@ -1,8 +1,20 @@
-.o-switch {
-    --oruga-switch-active-background-color: var(--red-stroke);
-    --oruga-switch-background: var(--black-background-800);
-}
+.p-toggleswitch {
+    --p-toggleswitch-background: var(--p-surface-700);
+    --p-toggleswitch-disabled-background: var(--p-surface-600);
+    --p-toggleswitch-hover-background: var(--p-surface-600);
 
-.o-switch *:focus {
-    box-shadow: none !important;
+    --p-toggleswitch-checked-background: var(--primary-500);
+    --p-toggleswitch-checked-hover-background: var(--primary-600);
+
+    --p-toggleswitch-handle-background: var(--p-surface-400);
+    --p-toggleswitch-handle-disabled-background: var(--p-surface-900);
+    --p-toggleswitch-handle-hover-background: var(--p-surface-300);
+
+    --p-toggleswitch-handle-checked-background: var(--surface-100);
+    --p-toggleswitch-handle-checked-hover-background: var(--surface-200);
+    --p-toggleswitch-handle-color: var(--p-surface-900);
+
+    --p-toggleswitch-handle-hover-color: var(--p-surface-800);
+    --p-toggleswitch-handle-checked-color: var(--p-primary-color);
+    --p-toggleswitch-handle-checked-hover-color: var(--p-primary-hover-color);
 }

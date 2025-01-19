@@ -13,56 +13,20 @@
             <div class="options-container">
                 <div class="options-subcontainer" style="margin-right: 2em;">
                     <p style="margin-right: 1em;" >Format</p>
-                    <o-dropdown v-model="format" class="dropdown-menu" >
-                        <template #trigger="{ active }">
-                            <o-button
-                                class="base-container dropdown-button"
-                                variant="primary"
-                                :label="format == '' ? 'Format':format"
-                                :icon-right="active ? 'chevron-up':'chevron-down'"/>
-                        </template>
-
-                        <o-dropdown-item 
-                            v-for="f in formats"
-                            :class="'dropdown-item'" 
-                            :label="f.label"  
-                            :value="f.value"
-                            @click="()=>{
-                                
-                                if(f.value=='Audio') {
-                                    if(qualities != audioQualities) quality=''
-                                    qualities = audioQualities
-                                } else {
-                                    if(qualities != videoQualities) quality=''
-                                    qualities = videoQualities
-                                }
-                            }"/>
-    
-                    </o-dropdown>
+                    <Select v-model="format" :options="formats" optionLabel="name" placeholder="Format" class="w-full md:w-56" 
+                            @change="(event)=>{
+                                qualities = event.value.name == 'Audio' ? audioQualities : videoQualities;
+                                console.log(qualities);
+                            }" />
                 </div>
 
                 <div class="options-subcontainer">
                     <p style="margin-right: 1em;" >Quality</p>
-                    <o-dropdown v-model="quality" class="dropdown-menu" :disabled="format==''" >
-                        <template #trigger="{ active }">
-                            <o-button
-                                class="base-container dropdown-button"
-                                variant="primary"
-                                :label="quality == '' ? 'Quality':quality"
-                                :icon-right="active ? 'chevron-up':'chevron-down'"/>
-                        </template>
-
-                        <o-dropdown-item 
-                            v-for="q in qualities"
-                            :key="q"
-                            class="dropdown-item" 
-                            :label="q.label" 
-                            :value="q.value"/>
-                    </o-dropdown>
+                    <Select v-model="quality" :options="qualities" optionLabel="name" placeholder="Quality" class="w-full md:w-56" :disabled="format==''" />
                 </div>
                 
             </div>
-            <BaseButton :btnClass="loading ? 'disable' : 'red'" text="Download" style="width: 100%; margin-top: 1em;" :onClickFunc="()=>{if(!loading){download()}}" />
+            <Button style="width: 100%; margin-top: .8em;" :disabled="loading" label="Download" severity="primary" @click="()=>{if(!loading){download()}}" />
         </div>
     </div>
 </template>
@@ -72,16 +36,15 @@ import { useMediaStore } from '../stores/media';
 import BaseButton from './BaseButton.vue';
 import BaseIconButton from './BaseIconButton.vue';
 import { useFSStore } from '../stores/fileSystem';
-import { useOruga } from '@oruga-ui/oruga-next';
 import { info } from '@tauri-apps/plugin-log';
 import { addToHist, createHistFile, readHistFile } from '../helpers/history';
-
-const oruga = useOruga();
+import Button from 'primevue/button';
+import Select from 'primevue/select';
 
     export default {
         components: {
-            BaseIconButton,
-            BaseButton
+            Button,
+            Select
         },
         props: {
             style: Object
@@ -91,19 +54,19 @@ const oruga = useOruga();
                 loading: false,
                 format: '',
                 formats:[
-                    {label:"Audio (mp3)",value:"Audio"},
-                    {label:"Video (mp4)",value:"Video"},
+                    {name:"Audio",code:"Audio"},
+                    {name:"Video",code:"Video"},
                 ],
                 videoQualities: [
-                    {label:'144p',value:"144p"},
-                    {label:'240p',value:"240p"},
-                    {label:'360p',value:"360p"},
-                    {label:'720p',value:"720p"},
-                    {label:'1080p',value:"1080p"},
+                    {name:'144p',code:"144p"},
+                    {name:'240p',code:"240p"},
+                    {name:'360p',code:"360p"},
+                    {name:'720p',code:"720p"},
+                    {name:'1080p',code:"1080p"},
                 ],
                 audioQualities: [
-                    {label:'128kbps',value:"128kbps"},
-                    {label:'320kbps',value:"320kbps"},
+                    {name:'128kbps',code:"128kbps"},
+                    {name:'320kbps',code:"320kbps"},
                 ],
                 qualities:[],
                 quality: '',
@@ -206,14 +169,8 @@ const oruga = useOruga();
                 this.mediaStore.reset();
             },
             newNotification(message) {
-                oruga.notification.open({
-                    duration: 3000,
-                    closable: true,
-                    message: message,
-                    rootClass: "toast toast-notification",
-                    position: "bottom-right",
-            })
-}
+                
+            }
 
         }
     }
@@ -255,7 +212,6 @@ const oruga = useOruga();
         justify-content: center;
         flex-direction: column;
         width: 70%;
-        height: 80%;
     }
 
     p {
@@ -267,7 +223,7 @@ const oruga = useOruga();
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-        margin: .5em 0;
+        margin: .5em 0 1em 0;
     }
 
     .options-subcontainer {
@@ -276,34 +232,7 @@ const oruga = useOruga();
         align-items: center; 
         justify-content: space-between; 
     }
-
-    .dropdown-menu {
-        --oruga-dropdown-menu-background: var(--black-background-900);
-        --oruga-dropdown-item-active-background-color: var(--black-background-800);
-        --oruga-dropdown-item-hover-background-color: var(--black-background-850);
-        
-        width: 100%;
-    }
-
-    .dropdown-item {
-        color: var(--white-text);
-        transition: all .2s ease;
-        margin: .5em;
-        border-radius: 8px;
-    }
-        .dropdown-item:hover {
-            color: var(--white-text) !important;
-            transition: all .2s ease;
-        }
-
-    .dropdown-button {
-        width: 100%;
-    }
-        
-    .dropdown-button:focus {
-        box-shadow: none;
-    }
-
+    
     .button-w-title-container {
         display: flex;
         align-items: flex-start;

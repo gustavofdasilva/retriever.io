@@ -4,7 +4,10 @@
         <Toast position="bottom-right" group="downloadProgress" @close="closeDownloadProgressToast">
             <template #container="{ message, closeCallback }">
                 <div class="download-toast" >
-                    <p style="font-weight: 500; margin-bottom: .5em;">Download progress</p>
+                    <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" />
+                    <Button style="position: absolute; right: 1em; top: 1em;" icon="pi pi-times" @click="toggle" variant="text" size="medium" severity="secondary" />
+                    <p style="font-weight: 600; font-size: 1.1em;">Download progress</p>
+                    <p style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; margin-bottom: .9em; width: 80%;">Info: {{ loadingStore.getDownloadInfo }}</p>
                     <ProgressBar :mode="loadingStore.getDownloadProgress == '' ? 'inderteminate' : 'determinate'" :value="loadingStore.getDownloadProgress" />
                 </div>
             </template>
@@ -14,7 +17,7 @@
         <div class="metadata">
             <div class="button-w-title-container">
                 <h1 style="font-size: 1.5em;">{{mediaStore.getTitle}}</h1>
-                <BaseIconButton :onClickFunc="()=>{exit()}" btnIcon="x" />
+                <Button icon="pi pi-times" @click="()=>{exit()}" variant="text" size="large" severity="secondary" />
             </div>
             <p style="font-size: 1em; color:var(--black-background-600); margin: .2em 0 .6em 0;">{{mediaStore.getChannel}}</p>
             <div class="options-container">
@@ -37,8 +40,8 @@
                 </div>
                 
             </div>
-            <BaseButton :btnClass="loading ? 'disable' : 'red'" text="Download" style="width: 100%; margin-top: 1em;" :onClickFunc="()=>{if(!loading){download()}}" />
-                <!-- <BaseButton :btnClass="loading ? 'disable' : 'red'" text="Download" style="width: 100%; margin-top: 1em;" :onClickFunc="()=>{downloadProgressToast()}" /> -->
+            <Button style="width: 100%; margin-top: .8em;" :disabled="loading" label="Download" severity="primary" @click="()=>{if(!loading){download()}}" />
+            
         </div>
     </div>
 </template>
@@ -48,21 +51,20 @@ import { useMediaStore } from '../stores/media';
 import BaseButton from './BaseButton.vue';
 import BaseIconButton from './BaseIconButton.vue';
 import { useFSStore } from '../stores/fileSystem';
-import { useOruga } from '@oruga-ui/oruga-next';
 import { useLoadingStore } from '../stores/loading';
 import Toast from 'primevue/toast';
 import ProgressBar from 'primevue/progressbar';
 import Select from 'primevue/select';
-
-const oruga = useOruga();
+import Button from 'primevue/button';
+import Menu from 'primevue/menu';
 
     export default {
         components: {
-            BaseIconButton,
-            BaseButton,
             Toast,
             ProgressBar,
-            Select
+            Select,
+            Button,
+            Menu
         },
         props: {
             style: Object
@@ -88,6 +90,16 @@ const oruga = useOruga();
                 ],
                 qualities:[],
                 quality: '',
+                items: [
+                    {
+                        label: 'Cancel download',
+                        icon: 'pi pi-undo',
+                        command: () => {
+                            console.log("Delete file")
+                        },
+                        class: 'alert'
+                    }
+                ]
             }
         },
         setup() {
@@ -118,12 +130,37 @@ const oruga = useOruga();
                     endSection: "",
                     goalFileSize: "100",
                     thumbnailPath: "",
-                }).then(()=>{
+                }).then((response)=>{
+
+                    const outputFullPath = response.output.split('\\')
+                    const outputName = outputFullPath[outputFullPath.length-1].replace(/\.(\w+)$/g,'');
+
+                    let startTime, endTime;
+                    if(this.range.start.split(":").length == 2) {
+                        startTime = `00:${this.range.start}`
+                    } else if (this.range.start.split(":").length == 1) {
+                        startTime = `00:00:${this.range.start}`
+                    }
+
+                    if(this.range.end.split(":").length == 2) {
+                        endTime = `00:${this.range.end}`
+                    } else if (this.range.end.split(":").length == 1) {
+                        endTime = `00:00:${this.range.end}`
+                    }
+
+                    let length = this.timeDifference(startTime,endTime);
+                    let lengthSplitted = length.split(":");
+
+                    if(lengthSplitted[0]=="00") {
+                        lengthSplitted.shift();
+                        length = lengthSplitted.join(':');
+                    }
+
                     this.mediaStore.setFormat(this.format.code)
                     this.mediaStore.setQuality(this.quality.code);
                     
                     this.newNotification("Download successful!");
-                    this.$emit('download-successful',true)
+                    this.$emit('download-successful',true,length);
                 }).catch((err)=>{
                     this.newNotification("Something went wrong :(");
                     console.log(err)
@@ -131,6 +168,7 @@ const oruga = useOruga();
                 }).finally(()=>{
                     this.loading = false
                     this.loadingStore.setDownloadProgress('');
+                    this.loadingStore.setDownloadInfo('');
                     closeDownloadProgressToast();
                 })
             },
@@ -140,6 +178,8 @@ const oruga = useOruga();
                     if (this.loading) {
                         invoke('get_progress_info').then((res)=>{
                             if(res == "") return
+
+                            this.loadingStore.setDownloadInfo(res);
                             try {
                                 let progressValue = res.match(/(\d+\.\d+)%/g)[0].replace("%",'');
                                 this.loadingStore.setDownloadProgress(progressValue);
@@ -173,8 +213,10 @@ const oruga = useOruga();
                     life: 3000,
                     closable: true
                 })
+            },
+            toggle(event) {
+                this.$refs.menu.toggle(event);
             }
-
         }
     }
 
@@ -215,7 +257,6 @@ const oruga = useOruga();
         justify-content: center;
         flex-direction: column;
         width: 70%;
-        height: 80%;
     }
 
     p {
@@ -236,37 +277,6 @@ const oruga = useOruga();
         align-items: center; 
         justify-content: space-between; 
     }
-
-    .dropdown-menu {
-        --oruga-dropdown-menu-background: var(--black-background-900);
-        --oruga-dropdown-item-active-background-color: var(--black-background-800);
-        --oruga-dropdown-item-hover-background-color: var(--black-background-850);
-        
-        width: 100%;
-    }
-
-    .dropdown-item {
-        color: var(--white-text);
-        transition: all .2s ease;
-        margin: .5em;
-        border-radius: 8px;
-    }
-        .dropdown-item:hover {
-            color: var(--white-text) !important;
-            transition: all .2s ease;
-        }
-
-    .dropdown-button {
-        width: 100%;
-        border: 1px solid var(--black-background-800);
-        transition: all ease .2s;
-    }
-        
-        .dropdown-button:focus, .dropdown-button:hover {
-            box-shadow: none;
-            border-color: var(--black-background-700);
-            transition: all ease .2s;
-        }
 
     .button-w-title-container {
         display: flex;

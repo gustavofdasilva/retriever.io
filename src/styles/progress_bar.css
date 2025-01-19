@@ -1,5 +1,5 @@
 * { 
-    --p-progressbar-value-background: var(--red-stroke);
+    --p-progressbar-value-background: var(--primary-600);
     --p-progressbar-label-color: var(--white-text);
 }
 

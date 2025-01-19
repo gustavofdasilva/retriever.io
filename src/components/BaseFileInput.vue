@@ -17,7 +17,7 @@ import { useFSStore } from '../stores/fileSystem';
 
 export default {
     components: {
-        VueFeather
+        VueFeather,
     },
     data() {
         return {

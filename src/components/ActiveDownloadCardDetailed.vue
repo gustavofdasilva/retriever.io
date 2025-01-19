@@ -1,10 +1,23 @@
 <template>
     <div class="active-card-container" :style="style">
+        <div>
+        <Toast position="bottom-right" group="downloadProgress" @close="closeDownloadProgressToast">
+            <template #container="{ message, closeCallback }">
+                <div class="download-toast" >
+                    <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" />
+                    <Button style="position: absolute; right: 1em; top: 1em;" icon="pi pi-times" @click="toggle" variant="text" size="medium" severity="secondary" />
+                    <p style="font-weight: 600; font-size: 1.1em;">Download progress</p>
+                    <p style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; margin-bottom: .9em; width: 80%;">Info: {{ loadingStore.getDownloadInfo }}</p>
+                    <ProgressBar :mode="loadingStore.getDownloadProgress == '' ? 'inderteminate' : 'determinate'" :value="loadingStore.getDownloadProgress" />
+                </div>
+            </template>
+        </Toast>
+        </div>
         <div class="thumbnail" :style="{backgroundImage: 'url('+mediaStore.getThumbnail+')'}"></div>
         <div class="metadata">
             <div class="button-w-title-container">
                 <h1 style="font-size: 1.5em;">{{mediaStore.getTitle}}</h1>
-                <BaseIconButton :onClickFunc="()=>{exit()}" btnIcon="x" />
+                <Button icon="pi pi-times" @click="()=>{exit()}" variant="text" size="large" severity="secondary" />
             </div>
             <p style="font-size: 1em; color:var(--black-background-600); margin: .2em 0 .6em 0;">{{mediaStore.getChannel}}</p>
             <div class="options-container media-info">
@@ -87,18 +100,10 @@
 
             
 
-            <div style="margin-top: 2em; width: 100%;">
+            <div style="margin-top: 2em; width: 100%; ">
                 <div style="display: flex; align-items: center; ">
                     <h2 style="margin-top:.7em;">Trim</h2> <!--Tool tip too-->
-                    <o-tooltip label="Select video range" position="right" :delay="100">
-                    <o-field style="margin: .6em 0 0 1em">
-                        
-                            <o-switch
-                                size="small"
-                                v-model="trim">
-                            </o-switch>
-                    </o-field>
-                    </o-tooltip>
+                    <ToggleSwitch style="margin-left: .8em;" v-tooltip="'Select video range'" v-model="trim" />
                 </div>
                 <template v-if="trim" >
                     <div style="width: 100%;">
@@ -116,15 +121,7 @@
             <div class="thumbnail-container">
                 <div style="display: flex; align-items: center; ">
                     <h2 style="margin-top:.7em;">Thumbnail</h2> <!--Tool tip too-->
-                    <o-tooltip label="Download thumbnail image?" position="right" :delay="100">
-                    <o-field style="margin: .6em 0 0 1em">
-                        
-                            <o-switch
-                                size="small"
-                                v-model="thumbnail.download">
-                            </o-switch>
-                    </o-field>
-                    </o-tooltip>
+                    <ToggleSwitch style="margin-left: .8em;" v-tooltip="'Download thumbnail?'" v-model="thumbnail.download" />
                 </div>
                 <template v-if="thumbnail.download" >
                     <h2 style="margin-top: .5em;">File name</h2>
@@ -134,17 +131,14 @@
                 </template>
             </div>
 
-            <BaseButton :btnClass="loading ? 'disable' : 'red'" text="Download" style="width: 100%; margin-top: 1em;" :onClickFunc="()=>{if(!loading){download()}}" />
+            <Button style="width: 100%;" :disabled="loading" label="Download" severity="primary" @click="()=>{if(!loading){download()}}" />
         </div>
     </div>
 </template>
 <script>
 import { invoke } from '@tauri-apps/api/core';
 import { useMediaStore } from '../stores/media';
-import BaseButton from './BaseButton.vue';
-import BaseIconButton from './BaseIconButton.vue';
 import { useFSStore } from '../stores/fileSystem';
-import { useOruga } from '@oruga-ui/oruga-next';
 import BaseFileInput from './BaseFileInput.vue';
 import AutoComplete from 'primevue/autocomplete';
 import ytdlpVariables from '../constants/ytdlpVariables';
@@ -152,18 +146,23 @@ import VueFeather from 'vue-feather'
 import Toast from 'primevue/toast';
 import Select from 'primevue/select';
 import InputText from 'primevue/inputtext';
+import ToggleSwitch from 'primevue/toggleswitch';
+import Button from 'primevue/button';
+import { useLoadingStore } from '../stores/loading';
+import ProgressBar from 'primevue/progressbar';
 
-const oruga = useOruga();
 
     export default {
         components: {
-            BaseIconButton,
-            BaseButton,
             BaseFileInput,
             AutoComplete,
             VueFeather,
             Select,
-            InputText
+            InputText,
+            ToggleSwitch,
+            Button,
+            ProgressBar,
+            Toast
         },
         props: {
             style: Object
@@ -211,10 +210,12 @@ const oruga = useOruga();
         setup() {
             const mediaStore = useMediaStore()
             const fsStore = useFSStore()
+            const loadingStore = useLoadingStore()
 
             return { 
                 mediaStore,
-                fsStore
+                fsStore,
+                loadingStore
             }
         },
         mounted() {
@@ -282,6 +283,7 @@ const oruga = useOruga();
                 const output = `${outputPath}/${this.fileName == '' ? this.mediaStore.getTitle : this.fileName}`
                 const thumbnailPath = this.thumbnail.download ? `${outputPath}/${this.thumbnail.fileName}` : ""
   
+                this.getProgressInfo();
                 invoke('download',{
                     url: this.mediaStore.getUrl, 
                     output: output, 
@@ -329,10 +331,40 @@ const oruga = useOruga();
                     this.$emit('download-successful',false)
                 }).finally(()=>{
                     this.loading = false
+                    this.loadingStore.setDownloadProgress('');
+                    this.loadingStore.setDownloadInfo('');
+                    closeDownloadProgressToast();
                 })
+            },
+            getProgressInfo() {
+                this.downloadProgressToast();
+                const loadProgress = setInterval(()=>{
+                    if (this.loading) {
+                        invoke('get_progress_info').then((res)=>{
+                            if(res == "") return
+
+                            this.loadingStore.setDownloadInfo(res);
+                            try {
+                                let progressValue = res.match(/(\d+\.\d+)%/g)[0].replace("%",'');
+                                this.loadingStore.setDownloadProgress(progressValue);
+                            } catch (error) {
+                                
+                            }
+                        })
+                    } else {
+                        clearInterval(loadProgress);
+                    }
+                },1000)
+                
             },
             exit() {
                 this.mediaStore.reset();
+            },
+            downloadProgressToast() {
+                if (!this.visible) {
+                    this.$toast.add({ severity: 'secondary', summary: 'Uploading your files.', group: 'downloadProgress'});
+                    this.visible = true;
+                }
             },
             newNotification(message) {
                 this.$toast.add({
@@ -342,9 +374,9 @@ const oruga = useOruga();
                     life: 3000,
                     closable: true
                 })
-
-                
-
+            },
+            toggle(event) {
+                this.$refs.menu.toggle(event);
             }
 
         }
@@ -504,7 +536,7 @@ const oruga = useOruga();
         }
 
     .thumbnail-container {
-        margin-top: 2em;
+        margin: 2em 0;
         width: 100%;
     }
     
