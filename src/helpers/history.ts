@@ -42,19 +42,15 @@ export async function clearHist() {
 }
 
 export async function createHistFile() {
-    info('Starting create hist file')
     const data = '[]'
     await writeTextFile('download-history.json',data,{baseDir: BaseDirectory.AppLocalData}).then(()=>{
         info('Done')
     }).catch((err)=>{
         info('ERROR'+err)
-    }).finally(()=>{
-        info('Ending create hist file')
-    });
+    })
 }
 
 export async function readHistFile(): Promise<DownloadLog[] | null> {
-    info('Starting read hist file')
     return readTextFile('download-history.json',{baseDir: BaseDirectory.AppLocalData}).then((content)=>{
         let data:DownloadLog[] = JSON.parse(content);
 
@@ -67,7 +63,5 @@ export async function readHistFile(): Promise<DownloadLog[] | null> {
         return data
     }).catch(()=>{
         return null
-    }).finally(()=>{
-        info('Ending read hist file')
     })
 }

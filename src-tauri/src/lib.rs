@@ -115,7 +115,29 @@ async fn download(
     args.push("-o".to_string());
     args.push(format!("{output}"));
     args.push("-S".to_string());
-    args.push(format!("res:{},ext:{},filesize~{}M",quality_number,fileExt_default_handle,goalFileSize));
+
+    let mut format_sort_arg: Vec<String> = vec![];
+
+    let format_string = format!("ext:{}",fileExt_default_handle);
+    let filesize_string = format!("filesize~{}M",goalFileSize);
+    
+    if quality_number != "Any" && is_audio == false {
+        let resolution_string = format!("res:{}",quality_number);
+        format_sort_arg.push(resolution_string);
+    }
+    
+    if quality_number != "Any" && is_audio == true {
+        let audio_bitrate_string = format!("abr:{}",quality_number);
+        format_sort_arg.push(audio_bitrate_string);
+    }
+
+    format_sort_arg.push(format_string);
+    format_sort_arg.push(filesize_string);
+    
+    args.push(
+        // format!("res:{},ext:{},filesize~{}M",quality_number,fileExt_default_handle,goalFileSize)
+        format_sort_arg.join(",")
+    );
 
     args.push("--print".to_string());
     args.push("after_move:filepath".to_string());

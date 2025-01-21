@@ -36,17 +36,25 @@
             </div>
             <h2>Output file</h2>
             <div class="options-container">
-                <div class="options-subcontainer">
-                    <p>Quality</p>
-                    <div >
-                        <Select style="height: 100%;" v-model="quality" :options="qualities" optionLabel="name" placeholder="Quality" />
-                    </div>
-                </div>
 
                 <div class="options-subcontainer">
                     <p >File type</p>
                     <div >
-                        <Select style="height: 100%;" v-model="fileExt" :options="fileExts" optionLabel="name" placeholder="File type" />
+                        <Select style="height: 100%;" v-model="fileExt" :options="fileExts" optionLabel="name" placeholder="File type" @change="(event)=>{
+                                qualities = event.value.name == 'Audio' ? audioQualities : videoQualities;
+                                if(event.value.code == 'mp4' || event.value.code == 'm4a') {
+                                    qualities = videoQualities;
+                                } else {
+                                    qualities = audioQualities;
+                                }
+                            }" />
+                    </div>
+                </div>
+
+                <div class="options-subcontainer">
+                    <p>Quality</p>
+                    <div >
+                        <Select style="height: 100%;" v-model="quality" :options="qualities" optionLabel="name" placeholder="Quality" :disabled="fileExt==''" />
                     </div>
                 </div>
 
@@ -64,6 +72,8 @@
             <div style="width: 100%; padding: 0 1em;">
 
                 <BaseFileInput
+                    :key="outputPath"
+                    :path="outputPath == '' ? fsStore.getDefaultOutput : outputPath"
                     @folder-selected="setOutputPath"
                     style="width: 100%; justify-content: flex-start; font-size: .9em;"
                 />
@@ -151,6 +161,8 @@ import Button from 'primevue/button';
 import { useLoadingStore } from '../stores/loading';
 import ProgressBar from 'primevue/progressbar';
 import Menu from 'primevue/menu';
+import { audioQualities, videoQualities } from '../constants/qualities';
+import { fileExtensions } from '../constants/fileExtensions';
 
 
     export default {
@@ -177,25 +189,16 @@ import Menu from 'primevue/menu';
                 //     {label:"Audio (mp3)",value:"Audio"},
                 //     {label:"Video (mp4)",value:"Video"},
                 // ],
-                qualities: [
-                    {name:'144p',code:"144p"},
-                    {name:'240p',code:"240p"},
-                    {name:'360p',code:"360p"},
-                    {name:'720p',code:"720p"},
-                    {name:'1080p',code:"1080p"},
-                ],
-                fileExts: [
-                    {name:'.mp4',code:"mp4"},
-                    {name:'.m4a',code:"m4a"},
-                    {name:'.mp3',code:"mp3"},
-                    {name:'.wav',code:"wav"},
-                ],
+                qualities: [],
+                audioQualities: audioQualities,
+                videoQualities: videoQualities,
+                fileExts: fileExtensions,
                 range: {
                     start: '00:00',
                     finish: '0',
                 },
                 quality: '1080p',
-                fileExt:'mp4',
+                fileExt:'',
                 goalSize: 10,
                 fileName:'',
                 variables: ytdlpVariables,
@@ -335,7 +338,7 @@ import Menu from 'primevue/menu';
                     }
 
                     this.mediaStore.setFormat(fileType)
-                    this.mediaStore.setQuality(this.quality.code);
+                    this.mediaStore.setQuality(this.quality.name);
                     
                     this.newNotification("Download successful!");
                     this.$emit('download-successful',true,outputName,length);

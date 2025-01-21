@@ -19,10 +19,8 @@ export default {
     components: {
         VueFeather,
     },
-    data() {
-        return {
-            path: ''
-        }
+    props: {
+        path: String,
     },
     setup() {
         const fsStore = useFSStore();
@@ -31,18 +29,12 @@ export default {
             fsStore
         }
     },
-    mounted() {
-        if(this.fsStore.getDefaultOutput != '') {
-            this.path = this.fsStore.getDefaultOutput;
-        }
-    },
     methods: {
         async openInput() {
             const dir = await open({
                 directory: true,
                 title:'Select default output'
             })
-            this.path = dir
             this.$emit('folder-selected',dir)
         },
     }

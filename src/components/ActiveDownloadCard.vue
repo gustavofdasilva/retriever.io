@@ -55,6 +55,8 @@ import ProgressBar from 'primevue/progressbar';
 import Select from 'primevue/select';
 import Button from 'primevue/button';
 import Menu from 'primevue/menu';
+import { audioQualities, videoQualities } from '../constants/qualities';
+import { formats } from '../constants/fileExtensions';
 
     export default {
         components: {
@@ -71,21 +73,9 @@ import Menu from 'primevue/menu';
             return {
                 loading: false,
                 format: '',
-                formats:[
-                    {name:"Audio",code:"Audio"},
-                    {name:"Video",code:"Video"},
-                ],
-                videoQualities: [
-                    {name:'144p',code:"144p"},
-                    {name:'240p',code:"240p"},
-                    {name:'360p',code:"360p"},
-                    {name:'720p',code:"720p"},
-                    {name:'1080p',code:"1080p"},
-                ],
-                audioQualities: [
-                    {name:'128kbps',code:"128kbps"},
-                    {name:'320kbps',code:"320kbps"},
-                ],
+                formats:formats,
+                videoQualities: videoQualities,
+                audioQualities: audioQualities,
                 qualities:[],
                 quality: '',
                 items: [
@@ -114,7 +104,7 @@ import Menu from 'primevue/menu';
         methods: {
             download() {
                 this.loading=true
-                const fileType = this.format == "Audio" ? 'mp3' : 'mp4';
+                const fileType = this.format.code == "Audio" ? 'mp3' : 'mp4';
                 const output = `${this.fsStore.getDefaultOutput}/${this.mediaStore.getTitle}`
                 
                 this.getProgressInfo();
@@ -131,7 +121,7 @@ import Menu from 'primevue/menu';
                 }).then(()=>{
 
                     this.mediaStore.setFormat(this.format.code)
-                    this.mediaStore.setQuality(this.quality.code);
+                    this.mediaStore.setQuality(this.quality.name);
                     
                     this.newNotification("Download successful!");
                     this.$emit('download-successful',true,length);

@@ -14,6 +14,7 @@
         <div class="path-and-settings">
             <BaseFileInput 
                 style="margin: 0 1em 0 0; font-size: 0.93em;"
+                :path="fsStore.getDefaultOutput"
                 @folder-selected="setDefaultFolder"/>
                 <Button icon="pi pi-cog" @click="()=>console.log('CONFIG')" variant="text" size="large" severity="secondary" />
         </div>
@@ -25,6 +26,7 @@ import { useFSStore } from '../stores/fileSystem';
 import BaseButton from './BaseButton.vue';
 import BaseFileInput from './BaseFileInput.vue';
 import BaseIconButton from './BaseIconButton.vue';
+import { changeConfig } from '../helpers/userConfig';
 
     export default {
         name: "TheHeader",
@@ -42,8 +44,10 @@ import BaseIconButton from './BaseIconButton.vue';
         },
         setup() {
             const fsStore = useFSStore()
+            const changeUserConfig = (config: string, value: string) => changeConfig(config,value);
 
             return {
+                changeUserConfig,
                 fsStore
             }
         },
@@ -56,6 +60,7 @@ import BaseIconButton from './BaseIconButton.vue';
                 this.$router.push(newViewPath);
             },
             setDefaultFolder(path: string) {
+                this.changeUserConfig('defaultOutput', path);
                 this.fsStore.setDefaultOutput(path);
                 console.log(this.fsStore.getDefaultOutput);
             },

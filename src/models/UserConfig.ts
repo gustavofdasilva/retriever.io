@@ -1,0 +1,3 @@
+type UserConfig = {
+    defaultOutput: string,
+}

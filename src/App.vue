@@ -25,6 +25,8 @@ import TheHeader from './components/TheHeader.vue';
 import Toast from 'primevue/toast';
 import {listen} from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { readConfigFile } from './helpers/userConfig';
+import { useFSStore } from './stores/fileSystem';
 
   export default {
     components: {
@@ -34,10 +36,8 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
       Toast
     },
     setup() {
-      listen('download-progress',(event)=>{
-        console.log(event);
-      })
 
+      const fileSystem = useFSStore();
 
       const appWindow = getCurrentWindow();
 
@@ -52,8 +52,15 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
         ?.addEventListener('click', () => appWindow.close());
 
       return {
-        appWindow
+        appWindow,
+        fileSystem
       }
+    },
+    async mounted() {
+      await readConfigFile().then((userConfig)=>{
+        console.log(userConfig);
+        this.fileSystem.setDefaultOutput(userConfig.defaultOutput??'');
+      });
     },
     methods: {
       minimize() {
