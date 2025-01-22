@@ -234,6 +234,7 @@ import { useUserConfig } from '../stores/userConfig';
         display: flex;
         align-items: center;
         justify-content: space-between;
+        z-index: 0;
     }
         .options button {
             margin-right: 1em;

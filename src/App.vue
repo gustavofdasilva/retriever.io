@@ -1,5 +1,8 @@
 <template>    
   <div data-tauri-drag-region class="titlebar"> <!--TITLE BAR-->
+    <div style="width: 50%; font-size: .8rem; z-index: 10000;">
+      <Menubar :model="items" />
+    </div>
     <div>
       <button class="titlebar-button" id="titlebar-minimize" @click="minimize">
         <i class="pi pi-minus" alt="minimize" ></i>
@@ -28,6 +31,8 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { initConfigFile, readConfigFile } from './helpers/userConfig';
 import { useFSStore } from './stores/fileSystem';
 import { useUserConfig } from './stores/userConfig';
+import Menubar from 'primevue/menubar';
+import titlebarMenuOptions from './constants/titlebarMenuOptions';
 
   export default {
     components: {
@@ -35,6 +40,12 @@ import { useUserConfig } from './stores/userConfig';
       TheHeader,
       RouterView,
       Toast,
+      Menubar
+    },
+    data() {
+      return {
+        items: titlebarMenuOptions
+      }
     },
     setup() {
 

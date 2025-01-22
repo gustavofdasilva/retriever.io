@@ -20,6 +20,7 @@
 
     --p-button-secondary-border-color: var(--surface-800);
     --p-button-secondary-hover-border-color: var(--surface-700);
+
 }
 
 .p-button.p-component.p-button-icon-only.p-button-primary.p-button-text {

@@ -78,7 +78,7 @@
     text-decoration: underline;
     transition: all ease .2s;
   }
-    a:not(.p-menu-item-link):hover {
+    a:not([class^="p-"]):hover {
       color: var(--red-stroke-hover);
       transition: all ease .2s;
     }
@@ -152,12 +152,13 @@ input:-webkit-autofill {
   border-bottom: 1px solid var(--black-background-800);
   user-select: none;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
+  z-index: 999;
 }
 .titlebar-button {
   display: inline-flex;
