@@ -11,6 +11,7 @@ import './styles/button.css';
 import './styles/toast.css';
 import './styles/popup.css';
 import './styles/recent_download_card.css';
+import './styles/dialog.css';
 import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura';
 import { definePreset } from '@primevue/themes';

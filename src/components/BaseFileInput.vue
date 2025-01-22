@@ -52,6 +52,8 @@ export default {
     p {
         margin-left: 10px;
         font-size: 1.1em;
+        white-space: nowrap;
+        text-overflow: ellipsis;
     }
 
     .fileInputContainer {
@@ -68,6 +70,8 @@ export default {
         display: flex;
         align-items: center;
         justify-content: space-between;
+        white-space: nowrap;
+        text-overflow: ellipsis;
     }
         .fileInputContainer:hover {
             border-color: var(--surface-700);

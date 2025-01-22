@@ -1,6 +1,20 @@
 import { BaseDirectory, open, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { info } from "@tauri-apps/plugin-log";
 
+export async function initConfigFile() {
+    const userConfig = await readConfigFile();
+
+    if(userConfig == null) {
+        console.log("Criando arquivo")
+        await createConfigFile({
+            defaultOutput: '',
+            defaultFileName: '%(title)s',
+            defaultAudioFormat: '.mp3',
+            defaultVideoFormat: '.mp4'
+        });
+    }
+}
+
 export async function changeConfig(config: string, value: string) {
     const userConfig = await readConfigFile();
     let newUserConfig;
@@ -44,8 +58,10 @@ export async function clearConfig() {
     await file.close();
 }
 
-export async function createConfigFile() {
-    const data = <UserConfig>{}
+export async function createConfigFile(predefinedData?: UserConfig) {
+    const data = predefinedData ?? <UserConfig>{}
+
+    console.log("Arquivo criado")
 
     await writeTextFile('user-config.json',JSON.stringify(data),{baseDir: BaseDirectory.AppLocalData}).then(()=>{
         info('Done')

@@ -57,6 +57,7 @@ import Button from 'primevue/button';
 import Menu from 'primevue/menu';
 import { audioQualities, videoQualities } from '../constants/qualities';
 import { formats } from '../constants/fileExtensions';
+import { useUserConfig } from '../stores/userConfig';
 
     export default {
         components: {
@@ -94,18 +95,22 @@ import { formats } from '../constants/fileExtensions';
             const mediaStore = useMediaStore()
             const fsStore = useFSStore()
             const loadingStore = useLoadingStore()
+            const userConfig = useUserConfig();
 
             return { 
                 mediaStore,
                 fsStore,
-                loadingStore
+                loadingStore,
+                userConfig
             }
         },
         methods: {
             download() {
                 this.loading=true
+                const defaultFileName = this.userConfig.getDefaultFileName;
+                console.log(defaultFileName);
                 const fileType = this.format.code == "Audio" ? 'mp3' : 'mp4';
-                const output = `${this.fsStore.getDefaultOutput}/${this.mediaStore.getTitle}`
+                const output = `${this.fsStore.getDefaultOutput}/${defaultFileName}`
                 
                 this.getProgressInfo();
                 invoke('download',{
@@ -118,10 +123,13 @@ import { formats } from '../constants/fileExtensions';
                     endSection: "",
                     goalFileSize: "100",
                     thumbnailPath: "",
-                }).then(()=>{
+                }).then((response)=>{
+                    const outputFullPath = response.output.split('\\')
+                    const outputName = outputFullPath[outputFullPath.length-1].replace(/\.(\w+)$/g,'');
 
                     this.mediaStore.setFormat(this.format.code)
                     this.mediaStore.setQuality(this.quality.name);
+                    this.mediaStore.setTitle(outputName);
                     
                     this.newNotification("Download successful!");
                     this.$emit('download-successful',true,length);

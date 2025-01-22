@@ -1,0 +1,11 @@
+.config-modal {
+    width: 80%;
+    height: 80%;
+    display: flex;
+}
+
+
+.p-dialog-content {
+    display: flex;
+    height: 100%;
+}

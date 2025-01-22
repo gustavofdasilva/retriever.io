@@ -25,19 +25,21 @@ import TheHeader from './components/TheHeader.vue';
 import Toast from 'primevue/toast';
 import {listen} from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { readConfigFile } from './helpers/userConfig';
+import { initConfigFile, readConfigFile } from './helpers/userConfig';
 import { useFSStore } from './stores/fileSystem';
+import { useUserConfig } from './stores/userConfig';
 
   export default {
     components: {
       Home,
       TheHeader,
       RouterView,
-      Toast
+      Toast,
     },
     setup() {
 
       const fileSystem = useFSStore();
+      const userConfig = useUserConfig();
 
       const appWindow = getCurrentWindow();
 
@@ -53,13 +55,16 @@ import { useFSStore } from './stores/fileSystem';
 
       return {
         appWindow,
-        fileSystem
+        fileSystem,
+        userConfig
       }
     },
     async mounted() {
+      await initConfigFile();
       await readConfigFile().then((userConfig)=>{
         console.log(userConfig);
-        this.fileSystem.setDefaultOutput(userConfig.defaultOutput??'');
+          this.fileSystem.setDefaultOutput(userConfig.defaultOutput??'');
+          this.userConfig.setUserConfig(userConfig);
       });
     },
     methods: {
