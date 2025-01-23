@@ -38,24 +38,20 @@
             <div class="options-container">
 
                 <div class="options-subcontainer">
-                    <p >File type</p>
-                    <div >
-                        <Select style="height: 100%;" v-model="fileExt" :options="fileExts" optionLabel="name" placeholder="File type" @change="(event)=>{
-                                qualities = event.value.name == 'Audio' ? audioQualities : videoQualities;
-                                if(event.value.code == 'mp4' || event.value.code == 'm4a') {
-                                    qualities = videoQualities;
-                                } else {
-                                    qualities = audioQualities;
-                                }
+                    <FloatLabel style="width: 100%;" fluid variant="on">
+                    <label style="z-index: 1;" for="file_ext_dropdown">File type</label>    
+                    <Select fluid inputId="file_ext_dropdown" style="width: 100%;" v-model="fileExt" :options="fileExts" optionLabel="name"
+                            @change="(event)=>{
+                                quality = '';
                             }" />
-                    </div>
+                    </FloatLabel>
                 </div>
 
                 <div class="options-subcontainer">
-                    <p>Quality</p>
-                    <div >
-                        <Select style="height: 100%;" v-model="quality" :options="qualities" optionLabel="name" placeholder="Quality" :disabled="fileExt==''" />
-                    </div>
+                    <FloatLabel variant="on">
+                        <label style="z-index: 1;" for="quality_dropdown">Quality</label>
+                        <AutoComplete :key="format" fluid inputId="quality_dropdown" v-model="quality" dropdown :suggestions="qualities" @complete="searchQuality" />
+                    </FloatLabel>
                 </div>
 
                 <div class="options-subcontainer">
@@ -163,6 +159,7 @@ import ProgressBar from 'primevue/progressbar';
 import Menu from 'primevue/menu';
 import { audioQualities, videoQualities } from '../constants/qualities';
 import { fileExtensions } from '../constants/fileExtensions';
+import FloatLabel from 'primevue/floatlabel';
 
 
     export default {
@@ -176,7 +173,8 @@ import { fileExtensions } from '../constants/fileExtensions';
             Button,
             ProgressBar,
             Toast,
-            Menu
+            Menu,
+            FloatLabel
         },
         props: {
             style: Object
@@ -236,6 +234,18 @@ import { fileExtensions } from '../constants/fileExtensions';
             this.range.end = this.mediaStore.getDuration
         },
         methods: {
+            searchQuality(event) {
+                if(this.fileExt.code == 'mp4' || this.fileExt.code == 'm4a' || this.fileExt.code == 'anyvideo') {
+                    this.qualities = event.query ? this.videoQualities.filter((quality) => {
+                        return quality.name.toLowerCase().includes(event.query.toLowerCase());
+                    }).map((item)=>item.name): this.videoQualities.map((item)=>item.name);
+                } else {
+                    this.qualities = event.query ? this.audioQualities.filter((quality) => {
+                        return quality.name.toLowerCase().includes(event.query.toLowerCase());
+                    }).map((item)=>item.name): this.audioQualities.map((item)=>item.name);
+                }
+                console.log(this.qualities)
+            },
             timeDifference(start, end) {
                 function timeInSeconds(time) {
                     const [hours, minutes, seconds] = time.split(':').map(Number);
@@ -306,7 +316,7 @@ import { fileExtensions } from '../constants/fileExtensions';
                     output: output, 
                     format: fileType, 
                     fileExt: fileExt,
-                    quality: this.quality.code,
+                    quality: this.quality.replace(/\D/g,''),
                     startSection: this.trim ? this.range.start : '',
                     endSection: this.trim ? this.range.end : '',
                     goalFileSize: this.goalSize.toString(),
@@ -338,7 +348,7 @@ import { fileExtensions } from '../constants/fileExtensions';
                     }
 
                     this.mediaStore.setFormat(fileType)
-                    this.mediaStore.setQuality(this.quality.name);
+                    this.mediaStore.setQuality(this.quality.replace(/\D/g,''));
                     
                     this.newNotification("Download successful!");
                     this.$emit('download-successful',true,outputName,length);
@@ -520,15 +530,17 @@ import { fileExtensions } from '../constants/fileExtensions';
             color: var(--white-text);
         }
 
+
     .options-container .options-subcontainer:not(:last-child) {
         margin-right: 1.5em;
+        width: 100%;
     }
 
     .options-subcontainer {
-        width: 100%;
         display: flex; 
         align-items: center; 
         justify-content: space-between; 
+        flex: 1;
     }
 
         .options-subcontainer p {

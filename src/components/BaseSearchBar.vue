@@ -1,7 +1,7 @@
 <template>
     <div class="search-bar-container">
         <template v-if="multiline" >
-            <textarea v-model="inputText" type="text" name="text" id="text" placeholder="Paste your urls (Separated by enter)..." rows="5"></textarea>
+            <textarea v-model="inputText" type="text" name="text" id="text" placeholder="Paste your urls (Separated by enter)..." :rows="rows"></textarea>
         </template>
         <template v-else>
             <input v-model="inputText" type="text" name="text" id="text" placeholder="Paste your url...">
@@ -22,6 +22,10 @@ export default {
         Button
     },
     props: {
+        rows: {
+            type: Number,
+            default: 5
+        },
         disabled: {
             type: Boolean,
             default: false

@@ -21,21 +21,24 @@
             </div>
             <p style="font-size: 1em; color:var(--black-background-600); margin: .2em 0 .6em 0;">{{mediaStore.getChannel}}</p>
             <div class="options-container">
-                <div class="options-subcontainer" style="margin-right: 2em;">
-                    <p style="margin-right: 1em;" >Format</p>
-                    <div >
-                        <Select v-model="format" :options="formats" optionLabel="name" placeholder="Format" class="w-full md:w-56" 
+                <div class="options-subcontainer" style="margin-right: 2em;">    
+                    <FloatLabel style="width: 100%;" fluid variant="on">
+                        <label style="z-index: 1;" for="format_dropdown">Format</label>    
+                        <Select fluid inputId="format_dropdown" style="width: 100%;" v-model="format" :options="formats" optionLabel="name"
                             @change="(event)=>{
                                 qualities = event.value.name == 'Audio' ? audioQualities : videoQualities;
-                                console.log(qualities);
+                                quality = '';
                             }" />
-                    </div>
+                    </FloatLabel>
                 </div>
 
                 <div class="options-subcontainer">
-                    <p style="margin-right: 1em;" >Quality</p>
                     <div >
-                        <Select v-model="quality" :options="qualities" optionLabel="name" placeholder="Quality" class="w-full md:w-56" :disabled="format==''" />
+                        <FloatLabel variant="on">
+                            <label style="z-index: 1;" for="quality_dropdown">Quality</label>
+                            <AutoComplete :key="format" fluid inputId="quality_dropdown" v-model="quality" dropdown :suggestions="qualities" @complete="search" />
+                        </FloatLabel>
+                        <!-- <Select v-model="quality" :options="qualities" optionLabel="name" placeholder="Quality" class="w-full md:w-56" :disabled="format==''" /> -->
                     </div>
                 </div>
                 
@@ -58,6 +61,8 @@ import Menu from 'primevue/menu';
 import { audioQualities, videoQualities } from '../constants/qualities';
 import { formats } from '../constants/fileExtensions';
 import { useUserConfig } from '../stores/userConfig';
+import AutoComplete from 'primevue/autocomplete';
+import FloatLabel from 'primevue/floatlabel';
 
     export default {
         components: {
@@ -65,7 +70,9 @@ import { useUserConfig } from '../stores/userConfig';
             ProgressBar,
             Select,
             Button,
-            Menu
+            Menu,
+            AutoComplete,
+            FloatLabel
         },
         props: {
             style: Object
@@ -77,6 +84,7 @@ import { useUserConfig } from '../stores/userConfig';
                 formats:formats,
                 videoQualities: videoQualities,
                 audioQualities: audioQualities,
+                filteredQualities:[],
                 qualities:[],
                 quality: '',
                 items: [
@@ -105,6 +113,21 @@ import { useUserConfig } from '../stores/userConfig';
             }
         },
         methods: {
+            search(event) {
+                if(this.format.name == 'Audio') {
+                    console.log("Audio")
+                    this.qualities = event.query ? this.audioQualities.filter((quality) => {
+                        return quality.name.toLowerCase().includes(event.query.toLowerCase());
+                    }).map((item)=>item.name): this.audioQualities.map((item)=>item.name);
+                } else {
+                    console.log("Video")
+                    this.qualities = event.query ? this.videoQualities.filter((quality) => {
+                        return quality.name.toLowerCase().includes(event.query.toLowerCase());
+                    }).map((item)=>item.name): this.videoQualities.map((item)=>item.name);
+                }
+
+                console.log(this.qualities)
+            },
             download() {
                 this.loading=true
                 const defaultFileName = this.userConfig.getDefaultFileName;
@@ -118,7 +141,7 @@ import { useUserConfig } from '../stores/userConfig';
                     output: output, 
                     format: this.format.code, 
                     fileExt: fileType,
-                    quality: this.quality.code,
+                    quality: this.quality.replace(/\D/g,''),
                     startSection: "",
                     endSection: "",
                     goalFileSize: "100",
@@ -126,9 +149,10 @@ import { useUserConfig } from '../stores/userConfig';
                 }).then((response)=>{
                     const outputFullPath = response.output.split('\\')
                     const outputName = outputFullPath[outputFullPath.length-1].replace(/\.(\w+)$/g,'');
+                    const qualityOutput = `${this.quality.replace(/\D/g,'')}${this.format.code == "Audio" ? `kbps` : `p`}` 
 
                     this.mediaStore.setFormat(this.format.code)
-                    this.mediaStore.setQuality(this.quality.name);
+                    this.mediaStore.setQuality(qualityOutput);
                     this.mediaStore.setTitle(outputName);
                     
                     this.newNotification("Download successful!");
@@ -215,7 +239,7 @@ import { useUserConfig } from '../stores/userConfig';
         background-position: center;
         background-size: cover;
         height: 100%;
-        width: 50%;
+        width: 45%;
         margin-right: 1em;
         border-radius: 8px;
     }
@@ -249,7 +273,7 @@ import { useUserConfig } from '../stores/userConfig';
 
     .button-w-title-container {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         align-self: center;
         justify-content: space-between;
         width: 100%;

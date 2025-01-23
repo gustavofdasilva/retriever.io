@@ -10,8 +10,8 @@ export const audioExtensions = [
 ]
 
 export const fileExtensions = [
-    {name:'Any (Only audio)',code:"AnyAudio"},
-    {name:'Any (Only video)',code:"AnyVideo"},
+    {name:'Any (Only audio)',code:"anyaudio"},
+    {name:'Any (Only video)',code:"anyvideo"},
     ...audioExtensions,
     ...videoExtensions
 ]

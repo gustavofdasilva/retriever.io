@@ -4,11 +4,12 @@
             <div class="main-sub-container">
                 <div class="loader" :style="[ loadingSearch ? {opacity: '1'} : {opacity:'0'}]" ></div>
                 <div class="search-sub-container" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]">
+                    <BaseSearchBar
+                        :rows="mediaStore.getMultiUrls.length == 0 ? 5 : 3"
+                        :disabled="loadingSearch"
+                        :multiline="true"
+                        @on-click-func="prepareDownload"/>
                     <template v-if="mediaStore.getMultiUrls.length == 0">
-                        <BaseSearchBar
-                            :disabled="loadingSearch"
-                            :multiline="true"
-                            @on-click-func="prepareDownload"/>
                         <p style="padding-top: 1em;"><RouterLink to="/">Home</RouterLink> if you need it simple</p>
                         <p><RouterLink to="/singleDetailed" >Detailed download</RouterLink> if you need more options</p>
                     </template>
@@ -126,7 +127,7 @@ import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
         justify-content: center;
         flex-direction: column;
         margin-top: 15vh;
-        height: 30vh;
+        height: 40vh;
         width: 100%;
     }
 

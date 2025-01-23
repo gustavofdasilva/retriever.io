@@ -20,22 +20,26 @@
         <div class="metadata">
             <div class="button-w-title-container">
                 <h1 style="font-size: 1.5em;">{{mediaStore.getMultiUrls.length}} Videos selected</h1>
-                <BaseIconButton :onClickFunc="()=>{exit()}" btnIcon="x" />
+                <Button icon="pi pi-times" @click="()=>{exit()}" variant="text" size="large" severity="secondary" />
             </div>
             <p style="font-size: 1em; color:var(--black-background-600); margin: .2em 0 .6em 0;">{{mediaStore.getChannel}}</p>
             <div class="options-container">
                 <div class="options-subcontainer" style="margin-right: 2em;">
-                    <p style="margin-right: 1em;" >Format</p>
-                    <Select v-model="format" :options="formats" optionLabel="name" placeholder="Format" class="w-full md:w-56" 
+                    <FloatLabel style="width: 100%;" fluid variant="on">
+                        <label style="z-index: 1;" for="format_dropdown">Format</label>    
+                        <Select fluid inputId="format_dropdown" style="width: 100%;" v-model="format" :options="formats" optionLabel="name"
                             @change="(event)=>{
                                 qualities = event.value.name == 'Audio' ? audioQualities : videoQualities;
-                                console.log(qualities);
+                                quality = '';
                             }" />
+                    </FloatLabel>
                 </div>
 
                 <div class="options-subcontainer">
-                    <p style="margin-right: 1em;" >Quality</p>
-                    <Select v-model="quality" :options="qualities" optionLabel="name" placeholder="Quality" class="w-full md:w-56" :disabled="format==''" />
+                    <FloatLabel variant="on">
+                        <label style="z-index: 1;" for="quality_dropdown">Quality</label>
+                        <AutoComplete :key="format" fluid inputId="quality_dropdown" v-model="quality" dropdown :suggestions="qualities" @complete="search" />
+                    </FloatLabel>
                 </div>
                 
             </div>
@@ -54,6 +58,11 @@ import Toast from 'primevue/toast';
 import ProgressBar from 'primevue/progressbar';
 import Menu from 'primevue/menu';
 import { useLoadingStore } from '../stores/loading';
+import { useUserConfig } from '../stores/userConfig';
+import { audioQualities, videoQualities } from '../constants/qualities';
+import { formats } from '../constants/fileExtensions';
+import AutoComplete from 'primevue/autocomplete';
+import FloatLabel from 'primevue/floatlabel';
 
     export default {
         components: {
@@ -62,6 +71,8 @@ import { useLoadingStore } from '../stores/loading';
             Toast,
             ProgressBar,
             Menu,
+            AutoComplete,
+            FloatLabel
         },
         props: {
             style: Object
@@ -70,21 +81,9 @@ import { useLoadingStore } from '../stores/loading';
             return {
                 loading: false,
                 format: '',
-                formats:[
-                    {name:"Audio",code:"Audio"},
-                    {name:"Video",code:"Video"},
-                ],
-                videoQualities: [
-                    {name:'144p',code:"144p"},
-                    {name:'240p',code:"240p"},
-                    {name:'360p',code:"360p"},
-                    {name:'720p',code:"720p"},
-                    {name:'1080p',code:"1080p"},
-                ],
-                audioQualities: [
-                    {name:'128kbps',code:"128kbps"},
-                    {name:'320kbps',code:"320kbps"},
-                ],
+                formats:formats,
+                videoQualities: videoQualities,
+                audioQualities: audioQualities,
                 qualities:[],
                 quality: '',
                 videoIndex: 0,
@@ -105,6 +104,7 @@ import { useLoadingStore } from '../stores/loading';
             const mediaStore = useMediaStore();
             const fsStore = useFSStore();
             const loadingStore = useLoadingStore();
+            const userConfig = useUserConfig();
             const readFile = () => readHistFile();
             const createFile = () => createHistFile();
             const addDownload = (newLog) => addToHist(newLog);
@@ -114,6 +114,7 @@ import { useLoadingStore } from '../stores/loading';
                 mediaStore,
                 fsStore,
                 loadingStore,
+                userConfig,
                 readFile,
                 createFile,
                 addDownload,
@@ -121,16 +122,34 @@ import { useLoadingStore } from '../stores/loading';
             }
         },
         methods: {
+            search(event) {
+                if(this.format.name == 'Audio') {
+                    console.log("Audio")
+                    this.qualities = event.query ? this.audioQualities.filter((quality) => {
+                        return quality.name.toLowerCase().includes(event.query.toLowerCase());
+                    }).map((item)=>item.name): this.audioQualities.map((item)=>item.name);
+                } else {
+                    console.log("Video")
+                    this.qualities = event.query ? this.videoQualities.filter((quality) => {
+                        return quality.name.toLowerCase().includes(event.query.toLowerCase());
+                    }).map((item)=>item.name): this.videoQualities.map((item)=>item.name);
+                }
+
+                console.log(this.qualities)
+            },
             async download() {
                 this.loading=true
 
-                const fileType = this.format == "Audio" ? 'mp3' : 'mp4';
+                const fileType = this.format.code == "Audio" ? 'mp3' : 'mp4';
                 
                 for (const url of this.mediaStore.getMultiUrls) {
                     
                     const videoData = await this.getMetadata(url)
 
-                    const output = `${this.fsStore.getDefaultOutput}/${videoData.title}`
+                    
+                    const defaultFileName = this.userConfig.getDefaultFileName;
+                    const output = `${this.fsStore.getDefaultOutput}/${defaultFileName}`
+                    const qualityOutput = `${this.quality.replace(/\D/g,'')}${this.format.code == "Audio" ? `kbps` : `p`}` 
 
                     this.getProgressInfo();
                     this.videoIndex = this.mediaStore.getMultiUrls.indexOf(url);
@@ -139,7 +158,7 @@ import { useLoadingStore } from '../stores/loading';
                         output: output, 
                         format: this.format.code, 
                         fileExt: fileType,
-                        quality: this.quality.code,
+                        quality: this.quality.replace(/\D/g,''),
                         startSection: "",
                         endSection: "",
                         goalFileSize: "100",
@@ -151,7 +170,7 @@ import { useLoadingStore } from '../stores/loading';
                             title: videoData.title,
                             channel: videoData.channel,
                             format: this.format.code,
-                            quality: this.quality.code,
+                            quality: qualityOutput,
                             length: videoData.duration,
                             path: this.fsStore.getDefaultOutput,
                             dateCreated: new Date()
@@ -309,7 +328,7 @@ import { useLoadingStore } from '../stores/loading';
     
     .button-w-title-container {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         align-self: center;
         justify-content: space-between;
         width: 100%;
