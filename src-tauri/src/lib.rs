@@ -106,7 +106,7 @@ async fn download(
     let mut audio_args: Vec<String> = vec![
         "-x".to_string(),
         "--audio-format".to_string(),
-        fileExt_default_handle.clone(),
+        if fileExt_default_handle == "any" {"best".to_string()} else {fileExt_default_handle.clone()},
         "--audio-quality".to_string(),
         "0".to_string(),
     ];
@@ -136,20 +136,24 @@ async fn download(
 
     let mut format_sort_arg: Vec<String> = vec![];
 
-    let format_string = format!("ext:{}", fileExt_default_handle);
+    
     let filesize_string = format!("filesize~{}M", goalFileSize);
 
-    if quality_number != "Any" && is_audio == false {
+    if quality_number != "any" && quality_number != "" && is_audio == false {
         let resolution_string = format!("res:{}", quality_number);
         format_sort_arg.push(resolution_string);
     }
 
-    if quality_number != "Any" && is_audio == true {
+    if quality_number != "any" && quality_number != "" && is_audio == true {
         let audio_bitrate_string = format!("abr:{}", quality_number);
         format_sort_arg.push(audio_bitrate_string);
     }
 
-    format_sort_arg.push(format_string);
+    if fileExt_default_handle != "any" {
+        let format_string = format!("ext:{}", fileExt_default_handle);
+        format_sort_arg.push(format_string);
+    }
+
     format_sort_arg.push(filesize_string);
 
     args.push(

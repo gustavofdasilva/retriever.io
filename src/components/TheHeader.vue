@@ -14,46 +14,9 @@
                 </div>
             </div>
             <Tabs v-model:value="configModalView" class="config-content" >
-                <Button :disabled="!changes" :severity="changes ? 'primary' : 'secondary'"  style="position: absolute; bottom: 0; right: 0;" @click="saveConfig"  label="Save changes"  />
                 <TabPanels>
                     <TabPanel value="Downloads">
-                        <div class="config-options">
-                            <span>
-                                Default download folder:
-                            </span>
-                            <BaseFileInput 
-                            style="margin: 0 1em 0 0; font-size: 0.93em;"
-                            :path="newUserConfig.defaultOutput"
-                            @folder-selected="setDefaultFolderUserConfig"/>
-                        </div>
-                        <div class="config-options">
-                            <span style="margin-bottom: .5em;">
-                                Default output file name:
-                            </span>
-                            <AutoComplete style="flex:1" class="suggestions-input" v-model="newUserConfig.defaultFileName" :showEmptyMessage="false" :suggestions="filteredVariables" @complete="search" 
-                                :pt="{
-                                    root(root) {
-                                        root.instance.onOptionSelect = (event: any, option:any) => {
-                                            let optionArray = Array.from(option)
-                                            const varValue = variables.find((el:any)=>el.label==option)
-
-                                            for (let i = 0; i < optionArray.length; i++) {
-                                                console.log(optionArray.slice(0,i+1).join(''))
-                                                const fragmentedString = optionArray.slice(0,i+1).join('').toLowerCase()
-                                                if(newUserConfig.defaultFileName.toLowerCase().endsWith(fragmentedString)) {
-                                                    newUserConfig.defaultFileName = newUserConfig.defaultFileName.slice(0,-(i+1))
-                                                    newUserConfig.defaultFileName += varValue?.value ?? option;
-                                                    return
-                                                }
-                                            }
-
-                                            newUserConfig.defaultFileName+=varValue?.value??option;
-                                            
-                                        }
-                                    },
-                                }"
-                            />
-                        </div>
+                        <DownloadsTab/>
                     </TabPanel>
                     <TabPanel value="Theme">
                         <p>
@@ -104,6 +67,7 @@ import TabPanels from 'primevue/tabpanels';
 import ytdlpVariables from '../constants/ytdlpVariables';
 import AutoComplete from 'primevue/autocomplete';
 import { useUserConfig } from '../stores/userConfig';
+import DownloadsTab from './userConfigModal/DownloadsTab.vue';
 
     export default {
         name: "TheHeader",
@@ -116,7 +80,8 @@ import { useUserConfig } from '../stores/userConfig';
             Tabs,
             TabPanel,
             TabPanels,
-            AutoComplete
+            AutoComplete,
+            DownloadsTab
         },
         data() {
             return {
@@ -149,13 +114,6 @@ import { useUserConfig } from '../stores/userConfig';
                 },
                 deep: true
             }
-        },
-        mounted() {
-            this.userConfigStore.$subscribe((userConfig) => {
-                //@ts-ignore
-                this.userConfig = userConfig.events.target;
-                this.newUserConfig = {...this.userConfig};
-            });
         },
         methods: {
             compareUserConfigs(obj1: UserConfig, obj2:UserConfig) {

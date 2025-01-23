@@ -44,11 +44,11 @@
     --p-icon-size: 10px;
 }
 
-.p-menubar-item-link {
-   
-}
-
 .p-menubar.p-component {
     background-color: transparent;
     border: none;
+}
+
+.p-menubar-submenu-icon {
+    display: none !important;
 }

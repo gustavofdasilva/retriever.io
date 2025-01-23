@@ -1,5 +1,5 @@
 export const videoQualities = [
-    {name:'Any',code:"Any"},
+    {name:'Any',code:"any"},
     {name:'144p',code:"144p"},
     {name:'240p',code:"240p"},
     {name:'360p',code:"360p"},
@@ -8,7 +8,7 @@ export const videoQualities = [
 ];
 
 export const audioQualities = [
-    {name:'Any',code:"Any"},
+    {name:'Any',code:"any"},
     {name:'128kbps',code:"128"},
     {name:'320kbps',code:"320"},
 ];

@@ -299,13 +299,13 @@ import FloatLabel from 'primevue/floatlabel';
                 
                 let fileType;
 
-                if (this.fileExt.code == "mp4" || this.fileExt.code == "m4a") {
+                if (this.fileExt.code == "mp4" || this.fileExt.code == "m4a" || this.fileExt.code == "anyvideo") {
                     fileType = "Video"
                 } else {
                     fileType = "Audio"
                 }
 
-                const fileExt = this.fileExt.code
+                const fileExt = this.fileExt.code.includes('any') ? 'any' : this.fileExt.code
                 const outputPath = this.outputPath == '' ? this.fsStore.getDefaultOutput : this.outputPath 
                 const output = `${outputPath}/${this.fileName == '' ? this.mediaStore.getTitle : this.fileName}`
                 const thumbnailPath = this.thumbnail.download ? `${outputPath}/${this.thumbnail.fileName}` : ""

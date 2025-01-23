@@ -131,8 +131,9 @@ import FloatLabel from 'primevue/floatlabel';
             download() {
                 this.loading=true
                 const defaultFileName = this.userConfig.getDefaultFileName;
-                console.log(defaultFileName);
-                const fileType = this.format.code == "Audio" ? 'mp3' : 'mp4';
+                const defaultAudioFormat = this.userConfig.getDefaultAudioFormat;
+                const defaultVideoFormat = this.userConfig.getDefaultVideoFormat;
+                const fileType = this.format.code == "Audio" ? defaultAudioFormat.replace('.','') : defaultVideoFormat.replace('.','');
                 const output = `${this.fsStore.getDefaultOutput}/${defaultFileName}`
                 
                 this.getProgressInfo();
