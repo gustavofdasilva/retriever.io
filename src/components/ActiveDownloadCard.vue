@@ -63,6 +63,7 @@ import { formats } from '../constants/fileExtensions';
 import { useUserConfig } from '../stores/userConfig';
 import AutoComplete from 'primevue/autocomplete';
 import FloatLabel from 'primevue/floatlabel';
+import { findConfigCode } from '../helpers/download';
 
     export default {
         components: {
@@ -142,8 +143,8 @@ import FloatLabel from 'primevue/floatlabel';
                     output: output, 
                     format: this.format.code, 
                     fileExt: fileType,
-                    resolution: this.format.code == "Video" ? this.quality.replace(/\D/g,'') : "",
-                    bitrate: this.format.code == "Audio" ? this.quality.replace(/\D/g,'') : "",
+                    resolution: this.format.code == "Video" ? findConfigCode(this.quality, videoQualities) : "",
+                    bitrate: this.format.code == "Audio" ? findConfigCode(this.quality, audioQualities) : "",
                     startSection: "",
                     endSection: "",
                     thumbnailPath: "",

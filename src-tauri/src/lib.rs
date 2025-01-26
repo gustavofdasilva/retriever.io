@@ -132,31 +132,32 @@ async fn download(
     // }
 
     args.push("-o".to_string());
-    args.push(format!("{output}.{file_ext_default_handle}"));
+    args.push(format!("{output}.%(ext)s"));
+
+
     args.push("-S".to_string());
+        let mut format_sort_arg: Vec<String> = vec![];
 
-    let mut format_sort_arg: Vec<String> = vec![];
+        if resolution_num != "any" && resolution_num != "" && is_audio == false {
+            let resolution_string = format!("res:{}", resolution_num);
+            format_sort_arg.push(resolution_string);
+        }
 
-    if resolution_num != "any" && resolution_num != "" && is_audio == false {
-        let resolution_string = format!("res:{}", resolution_num);
-        format_sort_arg.push(resolution_string);
-    }
+        if bitrate_num != "any" && bitrate_num != "" {
+            let bitrate_string = format!("tbr:{}", bitrate_num);
+            format_sort_arg.push(bitrate_string);
+        }
 
-    if bitrate_num != "any" && bitrate_num != "" {
-        let bitrate_string = format!("tbr:{}", bitrate_num);
-        format_sort_arg.push(bitrate_string);
-    }
+        if file_ext_default_handle != "any" && file_ext_default_handle != "" {
+            let format_string = format!("ext:{}", file_ext_default_handle);
+            format_sort_arg.push(format_string);
+        }
 
-    if file_ext_default_handle != "any" {
-        let format_string = format!("ext:{}", file_ext_default_handle);
-        format_sort_arg.push(format_string);
-    }
-
-    args.push(
-        // format!("res:{},ext:{},filesize~{}M",resolution_num,file_ext_default_handle,goalFileSize)
-        format_sort_arg.join(","),
-    );
-
+        args.push(
+            // format!("res:{},ext:{},filesize~{}M",resolution_num,file_ext_default_handle,goalFileSize)
+            format_sort_arg.join(","),
+        );
+    
     args.push("--print".to_string());
     args.push("after_move:filepath".to_string());
     args.push("-q".to_string());

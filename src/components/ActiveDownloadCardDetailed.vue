@@ -40,7 +40,8 @@
                 <div class="options-subcontainer">
                     <FloatLabel style="width: 100%;" fluid variant="on">
                     <label style="z-index: 1;" for="file_ext_dropdown">File type</label>    
-                    <Select fluid inputId="file_ext_dropdown" style="width: 100%;" v-model="fileExt" :options="fileExts" optionLabel="name"/>
+                    <!-- <Select fluid inputId="file_ext_dropdown" style="width: 100%;" v-model="fileExt" :options="fileExts" optionLabel="name"/> -->
+                    <AutoComplete  fluid inputId="file_ext_dropdown" v-model="fileExt" dropdown :suggestions="filteredFileExts" @complete="searchFileExt" />
                     </FloatLabel>
                 </div>
 
@@ -73,7 +74,7 @@
 
             <h2>File name</h2>
             <div class="fileName">
-                <aside style="z-index: 100; margin-right: 1em;">{{ fileExt.name }}</aside>
+                <aside style="z-index: 100; margin-right: 1em;">{{ fileExt }}</aside>
                 <AutoComplete class="suggestions-input" v-model="fileName" :showEmptyMessage="false" :suggestions="filteredVariables" @complete="search" 
                     :pt="{
                         root(root) {
@@ -156,6 +157,7 @@ import Menu from 'primevue/menu';
 import { audioQualities, videoQualities } from '../constants/qualities';
 import { fileExtensions } from '../constants/fileExtensions';
 import FloatLabel from 'primevue/floatlabel';
+import { checkFormat, findConfigCode } from '../helpers/download';
 
 
     export default {
@@ -188,6 +190,7 @@ import FloatLabel from 'primevue/floatlabel';
                 videoQualities: videoQualities,
                 filteredVideoQualities: [],
                 fileExts: fileExtensions,
+                filteredFileExts: [],
                 range: {
                     start: '00:00',
                     finish: '0',
@@ -237,9 +240,14 @@ import FloatLabel from 'primevue/floatlabel';
                 }).map((item)=>item.name): this.videoQualities.map((item)=>item.name);
             },
             searchBitrate(event) {
-                this.filteredAudioQualities = event.query ? this.audioQualities.filter((resolution) => {
-                    return resolution.name.toLowerCase().includes(event.query.toLowerCase());
+                this.filteredAudioQualities = event.query ? this.audioQualities.filter((bitrate) => {
+                    return bitrate.name.toLowerCase().includes(event.query.toLowerCase());
                 }).map((item)=>item.name): this.audioQualities.map((item)=>item.name);
+            },
+            searchFileExt(event) {
+                this.filteredFileExts = event.query ? this.fileExts.filter((exts) => {
+                    return exts.name.toLowerCase().includes(event.query.toLowerCase());
+                }).map((item)=>item.name): this.fileExts.map((item)=>item.name);
             },
             timeDifference(start, end) {
                 function timeInSeconds(time) {
@@ -291,16 +299,11 @@ import FloatLabel from 'primevue/floatlabel';
             },
             download() {
                 this.loading=true
+                const fileExtCode = findConfigCode(this.fileExt, fileExtensions)
                 
-                let fileType;
+                let fileType = checkFormat(fileExtCode);
 
-                if (this.fileExt.code == "mp4" || this.fileExt.code == "m4a" || this.fileExt.code == "anyvideo") {
-                    fileType = "Video"
-                } else {
-                    fileType = "Audio"
-                }
-
-                const fileExt = this.fileExt.code.includes('any') ? 'any' : this.fileExt.code
+                const fileExt = fileExtCode.includes('any') ? 'any' : fileExtCode
                 const outputPath = this.outputPath == '' ? this.fsStore.getDefaultOutput : this.outputPath 
                 const output = `${outputPath}/${this.fileName == '' ? this.mediaStore.getTitle : this.fileName}`
                 const thumbnailPath = this.thumbnail.download ? `${outputPath}/${this.thumbnail.fileName}` : ""
@@ -311,8 +314,8 @@ import FloatLabel from 'primevue/floatlabel';
                     output: output, 
                     format: fileType, 
                     fileExt: fileExt,
-                    resolution: this.resolution.replace(/\D/g,''),
-                    bitrate: this.bitrate.replace(/\D/g,''),
+                    resolution: findConfigCode(this.resolution, videoQualities),
+                    bitrate: findConfigCode(this.bitrate, audioQualities),
                     startSection: this.trim ? this.range.start : '',
                     endSection: this.trim ? this.range.end : '',
                     thumbnailPath: thumbnailPath
