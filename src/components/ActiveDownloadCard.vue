@@ -142,18 +142,17 @@ import FloatLabel from 'primevue/floatlabel';
                     output: output, 
                     format: this.format.code, 
                     fileExt: fileType,
-                    quality: this.quality.replace(/\D/g,''),
+                    resolution: this.format.code == "Video" ? this.quality.replace(/\D/g,'') : "",
+                    bitrate: this.format.code == "Audio" ? this.quality.replace(/\D/g,'') : "",
                     startSection: "",
                     endSection: "",
-                    goalFileSize: "100",
                     thumbnailPath: "",
                 }).then((response)=>{
                     const outputFullPath = response.output.split('\\')
                     const outputName = outputFullPath[outputFullPath.length-1].replace(/\.(\w+)$/g,'');
-                    const qualityOutput = `${this.quality.replace(/\D/g,'')}${this.format.code == "Audio" ? `kbps` : `p`}` 
 
                     this.mediaStore.setFormat(this.format.code)
-                    this.mediaStore.setQuality(qualityOutput);
+                    this.mediaStore.setQuality(this.quality);
                     this.mediaStore.setTitle(outputName);
                     
                     this.newNotification("Download successful!");

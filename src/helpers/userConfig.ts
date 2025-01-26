@@ -63,9 +63,7 @@ export async function createConfigFile(predefinedData?: UserConfig) {
 
     console.log("Arquivo criado")
 
-    await writeTextFile('user-config.json',JSON.stringify(data),{baseDir: BaseDirectory.AppLocalData}).then(()=>{
-        info('Done')
-    }).catch((err)=>{
+    await writeTextFile('user-config.json',JSON.stringify(data),{baseDir: BaseDirectory.AppLocalData}).catch((err)=>{
         info('ERROR'+err)
     })
 }

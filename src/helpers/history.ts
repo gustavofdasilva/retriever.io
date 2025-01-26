@@ -43,9 +43,7 @@ export async function clearHist() {
 
 export async function createHistFile() {
     const data = '[]'
-    await writeTextFile('download-history.json',data,{baseDir: BaseDirectory.AppLocalData}).then(()=>{
-        info('Done')
-    }).catch((err)=>{
+    await writeTextFile('download-history.json',data,{baseDir: BaseDirectory.AppLocalData}).catch((err)=>{
         info('ERROR'+err)
     })
 }

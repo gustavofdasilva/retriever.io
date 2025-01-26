@@ -40,26 +40,22 @@
                 <div class="options-subcontainer">
                     <FloatLabel style="width: 100%;" fluid variant="on">
                     <label style="z-index: 1;" for="file_ext_dropdown">File type</label>    
-                    <Select fluid inputId="file_ext_dropdown" style="width: 100%;" v-model="fileExt" :options="fileExts" optionLabel="name"
-                            @change="(event)=>{
-                                quality = '';
-                            }" />
+                    <Select fluid inputId="file_ext_dropdown" style="width: 100%;" v-model="fileExt" :options="fileExts" optionLabel="name"/>
                     </FloatLabel>
                 </div>
 
                 <div class="options-subcontainer">
                     <FloatLabel variant="on">
-                        <label style="z-index: 1;" for="quality_dropdown">Quality</label>
-                        <AutoComplete :key="format" fluid inputId="quality_dropdown" v-model="quality" dropdown :suggestions="qualities" @complete="searchQuality" />
+                        <label style="z-index: 1;" for="resolution_dropdown">Resolution</label>
+                        <AutoComplete fluid inputId="resolution_dropdown" v-model="resolution" dropdown :suggestions="filteredVideoQualities" @complete="searchResolution" />
                     </FloatLabel>
                 </div>
 
                 <div class="options-subcontainer">
-                    <p>Goal size</p>
-                    <div class="fileName" style="padding: 0;">
-                        <aside style="right: 10%;">mb</aside>
-                        <InputText style="height: 100%;" type="text" v-model="goalFileSize" />
-                    </div>
+                    <FloatLabel variant="on">
+                        <label style="z-index: 1;" for="bitrate_dropdown">Bitrate</label>
+                        <AutoComplete  fluid inputId="bitrate_dropdown" v-model="bitrate" dropdown :suggestions="filteredAudioQualities" @complete="searchBitrate" />
+                    </FloatLabel>
                 </div>
                 
             </div>
@@ -187,17 +183,18 @@ import FloatLabel from 'primevue/floatlabel';
                 //     {label:"Audio (mp3)",value:"Audio"},
                 //     {label:"Video (mp4)",value:"Video"},
                 // ],
-                qualities: [],
                 audioQualities: audioQualities,
+                filteredAudioQualities: [],
                 videoQualities: videoQualities,
+                filteredVideoQualities: [],
                 fileExts: fileExtensions,
                 range: {
                     start: '00:00',
                     finish: '0',
                 },
-                quality: '1080p',
+                resolution: '1080p',
+                bitrate: '128kbps',
                 fileExt:'',
-                goalSize: 10,
                 fileName:'',
                 variables: ytdlpVariables,
                 filteredVariables: [],
@@ -234,17 +231,15 @@ import FloatLabel from 'primevue/floatlabel';
             this.range.end = this.mediaStore.getDuration
         },
         methods: {
-            searchQuality(event) {
-                if(this.fileExt.code == 'mp4' || this.fileExt.code == 'm4a' || this.fileExt.code == 'anyvideo') {
-                    this.qualities = event.query ? this.videoQualities.filter((quality) => {
-                        return quality.name.toLowerCase().includes(event.query.toLowerCase());
-                    }).map((item)=>item.name): this.videoQualities.map((item)=>item.name);
-                } else {
-                    this.qualities = event.query ? this.audioQualities.filter((quality) => {
-                        return quality.name.toLowerCase().includes(event.query.toLowerCase());
-                    }).map((item)=>item.name): this.audioQualities.map((item)=>item.name);
-                }
-                console.log(this.qualities)
+            searchResolution(event) {
+                this.filteredVideoQualities = event.query ? this.videoQualities.filter((resolution) => {
+                    return resolution.name.toLowerCase().includes(event.query.toLowerCase());
+                }).map((item)=>item.name): this.videoQualities.map((item)=>item.name);
+            },
+            searchBitrate(event) {
+                this.filteredAudioQualities = event.query ? this.audioQualities.filter((resolution) => {
+                    return resolution.name.toLowerCase().includes(event.query.toLowerCase());
+                }).map((item)=>item.name): this.audioQualities.map((item)=>item.name);
             },
             timeDifference(start, end) {
                 function timeInSeconds(time) {
@@ -316,10 +311,10 @@ import FloatLabel from 'primevue/floatlabel';
                     output: output, 
                     format: fileType, 
                     fileExt: fileExt,
-                    quality: this.quality.replace(/\D/g,''),
+                    resolution: this.resolution.replace(/\D/g,''),
+                    bitrate: this.bitrate.replace(/\D/g,''),
                     startSection: this.trim ? this.range.start : '',
                     endSection: this.trim ? this.range.end : '',
-                    goalFileSize: this.goalSize.toString(),
                     thumbnailPath: thumbnailPath
                 }).then((response)=>{
 
@@ -348,7 +343,7 @@ import FloatLabel from 'primevue/floatlabel';
                     }
 
                     this.mediaStore.setFormat(fileType)
-                    this.mediaStore.setQuality(this.quality.replace(/\D/g,''));
+                    this.mediaStore.setQuality(`${this.resolution}/${this.bitrate}`);
                     
                     this.newNotification("Download successful!");
                     this.$emit('download-successful',true,outputName,length);

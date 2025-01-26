@@ -149,7 +149,6 @@ import FloatLabel from 'primevue/floatlabel';
                     
                     const defaultFileName = this.userConfig.getDefaultFileName;
                     const output = `${this.fsStore.getDefaultOutput}/${defaultFileName}`
-                    const qualityOutput = `${this.quality.replace(/\D/g,'')}${this.format.code == "Audio" ? `kbps` : `p`}` 
 
                     this.getProgressInfo();
                     this.videoIndex = this.mediaStore.getMultiUrls.indexOf(url);
@@ -158,10 +157,10 @@ import FloatLabel from 'primevue/floatlabel';
                         output: output, 
                         format: this.format.code, 
                         fileExt: fileType,
-                        quality: this.quality.replace(/\D/g,''),
+                        resolution: this.format.code == "Video" ? this.quality.replace(/\D/g,'') : "",
+                        bitrate: this.format.code == "Audio" ? this.quality.replace(/\D/g,'') : "",
                         startSection: "",
                         endSection: "",
-                        goalFileSize: "100",
                         thumbnailPath:"",
                     }).then(async()=>{
                     
@@ -170,7 +169,7 @@ import FloatLabel from 'primevue/floatlabel';
                             title: videoData.title,
                             channel: videoData.channel,
                             format: this.format.code,
-                            quality: qualityOutput,
+                            quality: this.quality,
                             length: videoData.duration,
                             path: this.fsStore.getDefaultOutput,
                             dateCreated: new Date()

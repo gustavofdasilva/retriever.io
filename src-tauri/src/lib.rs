@@ -70,33 +70,34 @@ async fn get_metadata(url: String) -> Vec<String> {
 
 #[tauri::command]
 async fn download(
-    app: AppHandle,
     url: String,
     output: String,
     format: String,
-    fileExt: String,
-    quality: String,
-    startSection: String,
-    endSection: String,
-    goalFileSize: String,
-    thumbnailPath: String,
+    file_ext: String,
+    resolution: String,
+    bitrate: String,
+    start_section: String,
+    end_section: String,
+    thumbnail_path: String,
 ) -> HashMap<String, String> {
     use std::process::Command;
 
     let mut args: Vec<String> = vec![];
 
-    let quality_number = quality.trim_end_matches('p');
+    let resolution_num = resolution.trim_end_matches('p');
+
+    let bitrate_num = bitrate.trim_end_matches("kbps");
 
     let is_audio = if format == "Audio" { true } else { false };
 
-    let trim = if startSection == "" || endSection == "" {
+    let trim = if start_section == "" || end_section == "" {
         false
     } else {
         true
     };
 
-    let fileExt_default_handle = if fileExt != "" {
-        fileExt
+    let file_ext_default_handle = if file_ext != "" {
+        file_ext
     } else {
         "mp4".to_string()
     };
@@ -106,24 +107,24 @@ async fn download(
     let mut audio_args: Vec<String> = vec![
         "-x".to_string(),
         "--audio-format".to_string(),
-        if fileExt_default_handle == "any" {"best".to_string()} else {fileExt_default_handle.clone()},
+        if file_ext_default_handle == "any" {"best".to_string()} else {file_ext_default_handle.clone()},
         "--audio-quality".to_string(),
         "0".to_string(),
     ];
 
     if trim {
         args.push("--download-sections".to_string());
-        args.push(format!("*{startSection}-{endSection}"))
+        args.push(format!("*{start_section}-{end_section}"))
     }
 
     if is_audio {
         args.append(&mut audio_args);
     }
 
-    if thumbnailPath != "" {
+    if thumbnail_path != "" {
         args.push("--write-thumbnail".to_string());
         args.push("-P".to_string());
-        args.push(format!("{thumbnailPath}"));
+        args.push(format!("{thumbnail_path}"));
     }
 
     // if goalFileSize != "" {
@@ -131,33 +132,28 @@ async fn download(
     // }
 
     args.push("-o".to_string());
-    args.push(format!("{output}"));
+    args.push(format!("{output}.{file_ext_default_handle}"));
     args.push("-S".to_string());
 
     let mut format_sort_arg: Vec<String> = vec![];
 
-    
-    let filesize_string = format!("filesize~{}M", goalFileSize);
-
-    if quality_number != "any" && quality_number != "" && is_audio == false {
-        let resolution_string = format!("res:{}", quality_number);
+    if resolution_num != "any" && resolution_num != "" && is_audio == false {
+        let resolution_string = format!("res:{}", resolution_num);
         format_sort_arg.push(resolution_string);
     }
 
-    if quality_number != "any" && quality_number != "" && is_audio == true {
-        let audio_bitrate_string = format!("abr:{}", quality_number);
-        format_sort_arg.push(audio_bitrate_string);
+    if bitrate_num != "any" && bitrate_num != "" {
+        let bitrate_string = format!("tbr:{}", bitrate_num);
+        format_sort_arg.push(bitrate_string);
     }
 
-    if fileExt_default_handle != "any" {
-        let format_string = format!("ext:{}", fileExt_default_handle);
+    if file_ext_default_handle != "any" {
+        let format_string = format!("ext:{}", file_ext_default_handle);
         format_sort_arg.push(format_string);
     }
 
-    format_sort_arg.push(filesize_string);
-
     args.push(
-        // format!("res:{},ext:{},filesize~{}M",quality_number,fileExt_default_handle,goalFileSize)
+        // format!("res:{},ext:{},filesize~{}M",resolution_num,file_ext_default_handle,goalFileSize)
         format_sort_arg.join(","),
     );
 
@@ -240,7 +236,7 @@ fn show_in_folder(path: String) {
     #[cfg(target_os = "windows")]
     {
         Command::new("explorer")
-            .args([&path]) // The comma after select is not a typo
+            .args([&path])
             .spawn()
             .unwrap();
     }
@@ -248,7 +244,6 @@ fn show_in_folder(path: String) {
     #[cfg(target_os = "linux")]
     {
         if path.contains(",") {
-            // see https://gitlab.freedesktop.org/dbus/dbus/-/issues/76
             let new_path = match metadata(&path).unwrap().is_dir() {
                 true => path,
                 false => {
@@ -288,7 +283,7 @@ fn delete_file(path: String) {
     {
         println!("{}", format!(r##""del "{path}"""##, path = &path).as_str());
         Command::new("cmd")
-            .args(["/C", format!(r##""del "{path}"""##, path = &path).as_str()]) // The comma after select is not a typo
+            .args(["/C", format!(r##""del "{path}"""##, path = &path).as_str()]) 
             .spawn()
             .unwrap();
     }
