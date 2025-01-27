@@ -190,6 +190,7 @@ import FloatLabel from 'primevue/floatlabel';
                         if (index+1 == length) {
                             this.loading = false;
                             this.closeDownloadProgressToast();
+                            this.$router.push('/downloads')
                             this.mediaStore.reset()
                         }
                     })

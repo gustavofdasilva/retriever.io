@@ -2,51 +2,40 @@
     <div class="container" >
         <main>
             <div class="main-sub-container">
-                <div class="loader" :style="[ loadingSearch ? {opacity: '1'} : {opacity:'0'}]" ></div>
-                <div class="search-sub-container" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]">
-                    <BaseSearchBar
-                        :disabled="loadingSearch"
-                        @on-click-func="getMetadata" />
-                    <template v-if="mediaStore.getTitle == ''">
-                        <p style="padding-top: 1em;"><RouterLink to="/">Simple download</RouterLink> if you need more options</p>
-                        <p><RouterLink to="/">Multiple download</RouterLink> if you need many downloads</p>
-                    </template>
-                </div>
-                <template v-if="mediaStore.getTitle != ''" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]" >
-                    <ActiveDownloadCardDetailed
-                        :style="[loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]"
-                        @download-successful="checkDownload"
-                    />
-                    <p>{{ downloadResultMsg }}</p>
-                </template>
+                <h2 class="sub-title" >Recent Downloads</h2>
+                <RecentDownloadDetailedContainer style="height: 400px;"/>
             </div>
         </main>
     </div>
 </template>
 <script lang="ts">
 import { RouterLink } from 'vue-router';
+import ActiveDownloadCard from '../components/ActiveDownloadCard.vue';
 import BaseSearchBar from '../components/BaseSearchBar.vue';
 import RecentDownloadCard from '../components/RecentDownloadCard.vue';
 import TheHeader from '../components/TheHeader.vue';
 import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/history';
 import { useFSStore } from '../stores/fileSystem';
 import { useMediaStore } from '../stores/media';
-import ActiveDownloadCardDetailed from '../components/ActiveDownloadCardDetailed.vue';
-import { invoke } from '@tauri-apps/api/core';
 import { useLoadingStore } from '../stores/loading';
+import { invoke } from '@tauri-apps/api/core';
+import { useDownloadLogStore } from '../stores/downloadLog';
+import RecentDownloadDetailedContainer from '../components/RecentDownloadDetailedContainer.vue';
 
     export default {
         components: {
             TheHeader,
             BaseSearchBar,
             RecentDownloadCard,
-            ActiveDownloadCardDetailed,
-            RouterLink
+            RecentDownloadDetailedContainer,
+            ActiveDownloadCard,
+            RouterLink,
         },
         setup() {
             const mediaStore = useMediaStore();
             const fsStore = useFSStore();
             const loadingStore = useLoadingStore();
+            const downloadLogStore = useDownloadLogStore();
             const readFile = () => readHistFile();
             const createFile = () => createHistFile();
             const addDownload = (newLog: DownloadLog) => addToHist(newLog);
@@ -56,6 +45,7 @@ import { useLoadingStore } from '../stores/loading';
                 mediaStore,
                 fsStore,
                 loadingStore,
+                downloadLogStore,
                 readFile,
                 createFile,
                 addDownload,
@@ -70,10 +60,10 @@ import { useLoadingStore } from '../stores/loading';
             }
         },
         mounted() {
-            this.loadDownloadHistory();
+            this.downloadLogStore.loadDownloadHistory();
         },
         methods: {
-            
+
             getMetadata(inputText: string) {
                 if(this.loadingStore.loading) return
 
@@ -93,44 +83,26 @@ import { useLoadingStore } from '../stores/loading';
                     }
                 })
             },
-            async loadDownloadHistory() {
-                const teste = new Date()
-                console.log(Number(teste.getTime()))
-                const downloadArr = await this.readFile()
-
-                if(downloadArr != null) {
-                    if(downloadArr.length == 0) {
-                        await this.createFile();
-                        this.loadDownloadHistory();
-                        return
-                    }
-
-                    this.downloadLog = downloadArr
-                }
-            },
-            async checkDownload(val: boolean,output:string,length:string){
+            async checkDownload(val: boolean){
                 this.downloadResultMsg = val ? 'Download successful!' : 'Could not download'
                 setTimeout(()=>{
                     this.downloadResultMsg = ''
                 },2000)
 
-                console.log(output);
-                
                 if(val) {
                     const activeDownloadLog:DownloadLog = {
                         thumbnailUrl: this.mediaStore.getThumbnail,
-                        title: output == '' ? this.mediaStore.getTitle : output,
+                        title: this.mediaStore.getTitle,
                         channel: this.mediaStore.getChannel,
                         format: this.mediaStore.getFormat ? this.mediaStore.getFormat : "Video",
                         quality: this.mediaStore.getQuality,
-                        length: length,
+                        length: this.mediaStore.getDuration,
                         path: this.fsStore.getDefaultOutput,
                         dateCreated: new Date()
                     } 
 
                     await this.addDownload(activeDownloadLog);
-                    await this.loadDownloadHistory();
-                    this.$router.push('/downloads')
+                    await this.downloadLogStore.loadDownloadHistory();
                     this.mediaStore.reset();
                 }
             },
@@ -153,17 +125,16 @@ import { useLoadingStore } from '../stores/loading';
         background-repeat: no-repeat;
         background-position: center;
         background-size: cover;
+        position: relative;
     }
 
     .main-sub-container {
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: start;
         flex-direction: column;
-        margin-top: 10vh;
-        min-height: 78vh;
         width: 100%;
-        padding-bottom: 2em;
+        min-height: 80vh;
     }
 
     .search-sub-container{
@@ -196,7 +167,7 @@ import { useLoadingStore } from '../stores/loading';
     main {
         min-height: 87.7%;
         margin: auto;
-        width: 50%;
+        width: 55%;
         display: flex;
         align-items: center;
         justify-content: center;

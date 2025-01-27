@@ -1,0 +1,137 @@
+<template>
+    <div class="recent-download-container">
+        <div class="label recent-download-card-size">
+        <div class="thumbnail">
+            <p>
+                Thumbnail
+            </p>
+        </div>
+        <div>
+            <p>
+                Title
+            </p>
+        </div>
+        <div>
+            <p>
+                Channel
+            </p>
+        </div>
+        <div>
+            <p >
+                Quality
+            </p>
+        </div>
+        <div>
+            <p>
+                Format
+            </p>
+        </div>
+        <div>
+            <p>
+                Length
+            </p>
+        </div>
+        <div >
+            <p>Actions</p>
+        </div>
+        </div>
+        <RecentDownloadCard style="margin-left: 0;" v-for="download in filteredLogs"
+                    :thumbnail-url="download.thumbnailUrl"
+                    :title="download.title" 
+                    :channel="download.channel" 
+                    :quality="download.quality" 
+                    :format="download.format" 
+                    :length="String(download.length)"
+                    :path="download.path"/>
+
+        <Paginator class="paginator" v-if="downloadLogStore.getDownloadLog.length!=0" :rows="10" :totalRecords="downloadLogStore.getDownloadLog.length" @page="filterLogs" ></Paginator>
+
+        <p v-if="downloadLogStore.getDownloadLog.length==0" style="text-align: center; margin-top: 2em;">No recent downloads found. Start retrieving!</p>
+    </div>
+</template>
+
+<script>
+import Paginator from 'primevue/paginator';
+import RecentDownloadCard from './RecentDownloadCard.vue';
+import { toRefs, watch } from 'vue';
+import { useDownloadLogStore } from '../stores/downloadLog';
+
+    export default {
+        name: "RecentDownloadContainer",
+        components: {
+            RecentDownloadCard,
+            Paginator
+        },
+        data() {
+            return {
+                filteredLogs: [],
+            }
+        },
+        setup() {
+            const downloadLogStore = useDownloadLogStore();
+
+            return {
+                downloadLogStore,
+            }
+        },
+        async mounted() {
+            this.downloadLogStore.$subscribe((mutation, state) => {
+                this.filteredLogs = state.downloadLog.slice(0,10);
+            })
+
+            await this.downloadLogStore.loadDownloadHistory();
+            this.filteredLogs = this.downloadLogStore.getDownloadLog.slice(0,10);
+        },
+        methods: {
+            filterLogs(event) {
+                console.log(event)
+                const start = event.first
+                const end = event.first + event.rows;
+                this.filteredLogs = this.downloadLogStore.getDownloadLog.slice(start,end);
+            },
+        }
+    }
+</script>
+
+<style scoped>
+
+        .recent-download-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .recent-download-container .label {
+            padding: 0.8em;
+            margin-bottom: 1em;
+            border-bottom: 1px solid var(--black-background-600);
+        }
+            .recent-download-container .label div {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: start;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+            }
+            
+            .recent-download-container .label div p {
+                color: var(--black-background-600);
+            }
+    
+    .paginator {
+        position: fixed;
+        bottom: 0;
+        width: 50%;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    p {
+        color: var(--black-background-600);
+        font-size: 0.86em;
+        margin-top: 0.3em;
+    }
+</style>

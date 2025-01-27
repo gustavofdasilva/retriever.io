@@ -34,5 +34,11 @@ export async function readHistFile(): Promise<DownloadLog[] | null> {
 
     const data = await store.get<DownloadLog[]>('download-history');
 
+    data?.sort((a,b)=>{
+        const dateA = new Date(a.dateCreated).getTime();
+        const dateB = new Date(b.dateCreated).getTime();
+        return dateA < dateB ? 1: -1;
+    })
+
     return data ?? null;
 }

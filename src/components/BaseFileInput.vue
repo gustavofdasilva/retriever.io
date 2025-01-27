@@ -35,6 +35,8 @@ export default {
                 directory: true,
                 title:'Select default output'
             })
+            if(dir==null) return
+
             this.$emit('folder-selected',dir)
         },
     }

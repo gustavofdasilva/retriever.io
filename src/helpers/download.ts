@@ -6,14 +6,14 @@ export const findConfigCode = (value: string, arr: YTDLPOptions): string => {
 
 export const checkFormat = (value: string): string => {
     
-    if(value == "m4a" ||
-    value == "aac" ||
+    if (value == "aac" ||
+    value == "alac" ||
+    value == "flac" ||
+    value == "m4a" ||
     value == "mp3" ||
-    value == "ogg" ||
     value == "opus" ||
-    value == "webm" ||
-    value == "wav" || 
-    value == "anyaudio") {
+    value == "vorbis" ||
+    value == "wav") {
         return 'Audio'
     }
 
