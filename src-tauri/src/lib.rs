@@ -107,7 +107,11 @@ async fn download(
     let mut audio_args: Vec<String> = vec![
         "-x".to_string(),
         "--audio-format".to_string(),
-        if file_ext_default_handle == "any" {"best".to_string()} else {file_ext_default_handle.clone()},
+        if file_ext_default_handle == "any" {
+            "best".to_string()
+        } else {
+            file_ext_default_handle.clone()
+        },
         "--audio-quality".to_string(),
         "0".to_string(),
     ];
@@ -134,30 +138,29 @@ async fn download(
     args.push("-o".to_string());
     args.push(format!("{output}.%(ext)s"));
 
-
     args.push("-S".to_string());
-        let mut format_sort_arg: Vec<String> = vec![];
+    let mut format_sort_arg: Vec<String> = vec![];
 
-        if resolution_num != "any" && resolution_num != "" && is_audio == false {
-            let resolution_string = format!("res:{}", resolution_num);
-            format_sort_arg.push(resolution_string);
-        }
+    if resolution_num != "any" && resolution_num != "" && is_audio == false {
+        let resolution_string = format!("res:{}", resolution_num);
+        format_sort_arg.push(resolution_string);
+    }
 
-        if bitrate_num != "any" && bitrate_num != "" {
-            let bitrate_string = format!("tbr:{}", bitrate_num);
-            format_sort_arg.push(bitrate_string);
-        }
+    if bitrate_num != "any" && bitrate_num != "" {
+        let bitrate_string = format!("tbr:{}", bitrate_num);
+        format_sort_arg.push(bitrate_string);
+    }
 
-        if file_ext_default_handle != "any" && file_ext_default_handle != "" {
-            let format_string = format!("ext:{}", file_ext_default_handle);
-            format_sort_arg.push(format_string);
-        }
+    if file_ext_default_handle != "any" && file_ext_default_handle != "" {
+        let format_string = format!("ext:{}", file_ext_default_handle);
+        format_sort_arg.push(format_string);
+    }
 
-        args.push(
-            // format!("res:{},ext:{},filesize~{}M",resolution_num,file_ext_default_handle,goalFileSize)
-            format_sort_arg.join(","),
-        );
-    
+    args.push(
+        // format!("res:{},ext:{},filesize~{}M",resolution_num,file_ext_default_handle,goalFileSize)
+        format_sort_arg.join(","),
+    );
+
     args.push("--print".to_string());
     args.push("after_move:filepath".to_string());
     args.push("-q".to_string());
@@ -236,10 +239,7 @@ fn get_progress_info() -> String {
 fn show_in_folder(path: String) {
     #[cfg(target_os = "windows")]
     {
-        Command::new("explorer")
-            .args([&path])
-            .spawn()
-            .unwrap();
+        Command::new("explorer").args([&path]).spawn().unwrap();
     }
 
     #[cfg(target_os = "linux")]
@@ -284,7 +284,7 @@ fn delete_file(path: String) {
     {
         println!("{}", format!(r##""del "{path}"""##, path = &path).as_str());
         Command::new("cmd")
-            .args(["/C", format!(r##""del "{path}"""##, path = &path).as_str()]) 
+            .args(["/C", format!(r##""del "{path}"""##, path = &path).as_str()])
             .spawn()
             .unwrap();
     }
@@ -303,9 +303,11 @@ fn delete_file(path: String) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_store::Builder::default().build())
         // .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![

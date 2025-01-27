@@ -1,5 +1,4 @@
-import { BaseDirectory, open, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
-import { info } from "@tauri-apps/plugin-log";
+import { Store } from '@tauri-apps/plugin-store'
 
 export async function initConfigFile() {
     const userConfig = await readConfigFile();
@@ -16,64 +15,35 @@ export async function initConfigFile() {
 }
 
 export async function changeConfig(config: string, value: string) {
-    const userConfig = await readConfigFile();
-    let newUserConfig;
-    
-    if(userConfig == null) {
-        await createConfigFile();
-        changeConfig(config,value);
-        return 
-    }
+    const store = await Store.load('user-config.json');
+    const data = await store.get<UserConfig>('user-config');
+    let newData = data ?? {} as UserConfig;
 
-    newUserConfig = userConfig;
-    newUserConfig[config as keyof UserConfig] = value;
+    newData[config as keyof UserConfig] = value;
 
-
-    const file = await open('user-config.json',{
-        write: true,
-        baseDir: BaseDirectory.AppLocalData
-    })
-
-    await file.write(new TextEncoder().encode(JSON.stringify(newUserConfig)));
-    await file.close();
+    await store.set('user-config',newData);
 }
 
 export async function clearConfig() {
-    const userConfig = await readConfigFile();
+    const store = await Store.load('user-config.json');
 
-    if(userConfig == null) {
-        await createConfigFile();
-        return 
-    }
-
-    const file = await open('user-config.json',{
-        write: true,
-        truncate: true,
-        baseDir: BaseDirectory.AppLocalData
-    })
-
-    const data = <UserConfig>{}
-
-    await file.write(new TextEncoder().encode(JSON.stringify(data)));
-    await file.close();
+    store.clear();
 }
 
 export async function createConfigFile(predefinedData?: UserConfig) {
+    const store = await Store.load('user-config.json', {
+        createNew: true,
+    })
     const data = predefinedData ?? <UserConfig>{}
 
-    console.log("Arquivo criado")
-
-    await writeTextFile('user-config.json',JSON.stringify(data),{baseDir: BaseDirectory.AppLocalData}).catch((err)=>{
-        info('ERROR'+err)
-    })
+    store.set('user-config',data);
 }
 
 export async function readConfigFile(): Promise<UserConfig | null> {
-    return readTextFile('user-config.json',{baseDir: BaseDirectory.AppLocalData}).then((content)=>{
-        let data:UserConfig = JSON.parse(content);
+    
+    const store = await Store.load('user-config.json')
 
-        return data
-    }).catch(()=>{
-        return null
-    })
+    const data = await store.get<UserConfig>('user-config');
+
+    return data ?? null;
 }
