@@ -1,6 +1,6 @@
 import { Store } from '@tauri-apps/plugin-store'
 
-export async function initConfigFile() {
+export async function initConfigFile(): Promise<boolean> { //Return true if already exists, if not return false
     const userConfig = await readConfigFile();
 
     if(userConfig == null) {
@@ -11,7 +11,16 @@ export async function initConfigFile() {
             defaultAudioFormat: '.mp3',
             defaultVideoFormat: '.mp4'
         });
+        return false
     }
+
+    return true;
+}
+
+export async function deleteConfig() {
+    const store = await Store.load('user-config.json');
+    console.log('reset');
+    await store.reset();
 }
 
 export async function changeConfig(config: string, value: string) {

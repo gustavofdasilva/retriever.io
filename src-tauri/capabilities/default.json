@@ -6,8 +6,8 @@
     "main"
   ],
   "permissions": [
-    "core:default",
     "shell:allow-open",
+    "core:default",
     "dialog:default",
     "fs:default",
     "fs:allow-applocaldata-meta",
@@ -23,7 +23,6 @@
     "core:window:allow-toggle-maximize",
     "core:window:allow-internal-toggle-maximize",
     "log:default",
-    "process:default",
     "process:default",
     "store:default"
   ]

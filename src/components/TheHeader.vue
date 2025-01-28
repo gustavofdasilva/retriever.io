@@ -1,6 +1,6 @@
 <template>
     <nav>
-        <Dialog class="config-modal" v-model:visible="configModalVisible" modal header="Settings">
+        <Dialog class="config-modal" v-model:visible="configModalVisible" :draggable="false" modal header="Settings">
             <div class="config-sidebar">
                 <div>
                     <Button style="width: 100%;" @click="configModalView = 'Downloads'"  label="Downloads" :severity="configModalView == 'Downloads' ? 'primary' : 'secondary'" />
@@ -48,7 +48,7 @@
             <Button style="font-size: .9em; margin-right: 1em;" label="Downloads" :severity="checkView('/downloads') ? 'primary' : 'secondary'" @click="()=>{changeView('/downloads')}"  />
             <BaseFileInput 
                 style="margin: 0 1em 0 0; font-size: 0.93em;"
-                :path="fsStore.getDefaultOutput"
+                :path="userConfigStore.getDefaultOutput"
                 @folder-selected="setDefaultFolder"/>
                 <Button icon="pi pi-cog" @click="()=>configModalVisible=true" variant="text" size="large" severity="secondary" />
         </div>
@@ -60,7 +60,7 @@ import { useFSStore } from '../stores/fileSystem';
 import BaseButton from './BaseButton.vue';
 import BaseFileInput from './BaseFileInput.vue';
 import BaseIconButton from './BaseIconButton.vue';
-import { changeConfig, readConfigFile } from '../helpers/userConfig';
+import { changeConfig, deleteConfig, readConfigFile } from '../helpers/userConfig';
 import Dialog from 'primevue/dialog';
 import Tabs from 'primevue/tabs';
 import TabPanel from 'primevue/tabpanel';
@@ -117,6 +117,9 @@ import DownloadsTab from './userConfigModal/DownloadsTab.vue';
             }
         },
         methods: {
+            deleteConfigHandle() {
+             deleteConfig()   
+            },
             compareUserConfigs(obj1: UserConfig, obj2:UserConfig) {
                 const keys1 = Object.keys(obj1);
                 const keys2 = Object.keys(obj2);
@@ -140,7 +143,7 @@ import DownloadsTab from './userConfigModal/DownloadsTab.vue';
                 if(this.changes) {
                     await this.changeUserConfig('defaultFileName', this.newUserConfig.defaultFileName);
                     await this.changeUserConfig('defaultOutput', this.newUserConfig.defaultOutput);
-                    this.fsStore.setDefaultOutput(this.newUserConfig.defaultOutput);
+                    this.userConfigStore.setDefaultOutput(this.newUserConfig.defaultOutput);
                     this.userConfigStore.setUserConfig(this.newUserConfig);
                     this.configModalVisible = false;
                 }
@@ -158,8 +161,7 @@ import DownloadsTab from './userConfigModal/DownloadsTab.vue';
             },
             setDefaultFolder(path: string) {
                 this.changeUserConfig('defaultOutput', path);
-                this.fsStore.setDefaultOutput(path);
-                console.log(this.fsStore.getDefaultOutput);
+                this.userConfigStore.setDefaultOutput(path);
             },
             search(event:any) {
                 setTimeout(() => {

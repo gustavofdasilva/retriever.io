@@ -27,4 +27,5 @@ tauri-plugin-fs = "2"
 tauri-plugin-log = "2"
 tauri-plugin-process = "2"
 tauri-plugin-store = "2"
+encoding_rs="0.8.35"
 

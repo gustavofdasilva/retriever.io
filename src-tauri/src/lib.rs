@@ -9,6 +9,7 @@ use std::{
     vec,
 };
 
+use encoding_rs::WINDOWS_1252;
 use tauri::AppHandle;
 
 static mut DOWNLOAD_STATUS: String = String::new();
@@ -50,7 +51,15 @@ async fn get_metadata(url: String) -> Vec<String> {
     );
 
     let mut data = Vec::new();
-    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+
+    let mut formatted_output;
+
+    #[cfg(target_os = "windows")]
+    {
+        (formatted_output, _, _) = WINDOWS_1252.decode(&output.stdout);
+    }
+
+    let stdout = formatted_output.to_string();
     let title = stdout.lines().nth(0).unwrap().to_string();
     let channel = stdout.lines().nth(1).unwrap().to_string();
     let thumbnail = stdout.lines().nth(2).unwrap().to_string();
@@ -310,6 +319,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         // .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             get_metadata,
             download,
