@@ -39,13 +39,14 @@
                 <!-- <BaseButton text="Simple" :btnClass="(checkView('/') ? 'red' : '') + ' header-button'" :onClickFunc="()=>{changeView('/')}"/>
                 <BaseButton text="Detailed" :btnClass="(checkView('/singleDetailed') ? 'red' : '') + ' header-button'"  :onClickFunc="()=>{changeView('/singleDetailed')}"/>
                 <BaseButton text="Multiple" :btnClass="(checkView('/multiple') ? 'red' : '') + ' header-button'"  :onClickFunc="()=>{changeView('/multiple')}"/> -->
-                    <Button style="font-size: .9em;" label="Simple" :severity="checkView('/') ? 'primary' : 'secondary'" @click="()=>{changeView('/')}" />
-                        <Button style="font-size: .9em;" label="Detailed"  :severity="checkView('/singleDetailed') ? 'primary' : 'secondary'" @click="()=>{changeView('/singleDetailed')}" />
-                            <Button style="font-size: .9em;" label="Multiple" :severity="checkView('/multiple') ? 'primary' : 'secondary'" @click="()=>{changeView('/multiple')}"  />
+                    <Button class="btn-page"  label="Simple" :severity="checkView('/') ? 'primary' : 'secondary'" @click="()=>{changeView('/')}" />
+                        <Button class="btn-page"  label="Detailed"  :severity="checkView('/singleDetailed') ? 'primary' : 'secondary'" @click="()=>{changeView('/singleDetailed')}" />
+                            <Button class="btn-page"  label="Multiple" :severity="checkView('/multiple') ? 'primary' : 'secondary'" @click="()=>{changeView('/multiple')}"  />
+                            <Button class="btn-page"  label="Multiple detailed" :severity="checkView('/multipleDetailed') ? 'primary' : 'secondary'" @click="()=>{changeView('/multipleDetailed')}"  />
                             </div>
                         </div>
                         <div class="path-and-settings">
-            <Button style="font-size: .9em; margin-right: 1em;" label="Downloads" :severity="checkView('/downloads') ? 'primary' : 'secondary'" @click="()=>{changeView('/downloads')}"  />
+            <Button class="btn-page" style=" margin-right: 1em;" label="Downloads" :severity="checkView('/downloads') ? 'primary' : 'secondary'" @click="()=>{changeView('/downloads')}"  />
             <BaseFileInput 
                 style="margin: 0 1em 0 0; font-size: 0.93em;"
                 :path="userConfigStore.getDefaultOutput"
@@ -209,6 +210,10 @@ import DownloadsTab from './userConfigModal/DownloadsTab.vue';
     .header-button {
         padding: .3em 1.1em;
         margin-right: 1em;
+    }
+
+    .btn-page {
+        padding: .3em 1em;
     }
 
     .config-sidebar {

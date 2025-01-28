@@ -3,7 +3,7 @@
         <main>
             <div class="main-sub-container">
                 <h2 class="sub-title" >Recent Downloads</h2>
-                <RecentDownloadDetailedContainer style="height: 400px;"/>
+                <RecentDownloadDetailedContainer style="margin-bottom: 4em;"/>
             </div>
         </main>
     </div>

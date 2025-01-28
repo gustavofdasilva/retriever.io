@@ -125,6 +125,7 @@ import { useDownloadLogStore } from '../stores/downloadLog';
 
                     await this.addDownload(activeDownloadLog);
                     await this.downloadLogStore.loadDownloadHistory();
+                    this.$router.push('/downloads')
                     this.mediaStore.reset();
                 }
             },

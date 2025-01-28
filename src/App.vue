@@ -91,7 +91,6 @@ import { useFSStore } from './stores/fileSystem';
 import { useUserConfig } from './stores/userConfig';
 import Menubar from 'primevue/menubar';
 import titlebarMenuOptions from './constants/titlebarMenuOptions';
-import InitConfigModal from './components/InitConfigModal.vue';
 import Dialog from 'primevue/dialog';
 import Stepper from 'primevue/stepper';
 import StepList from 'primevue/steplist';
@@ -110,7 +109,6 @@ import { open } from '@tauri-apps/plugin-shell';
       RouterView,
       Toast,
       Menubar,
-      InitConfigModal,
       Dialog,
       Stepper,
       StepList,
