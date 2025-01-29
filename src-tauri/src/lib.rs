@@ -13,6 +13,7 @@ use encoding_rs::WINDOWS_1252;
 use tauri::AppHandle;
 
 static mut DOWNLOAD_STATUS: String = String::new();
+static mut ACTIVE_PROCESS_ID: Option<u32> = None;
 
 #[tauri::command]
 async fn get_metadata(url: String) -> Vec<String> {
@@ -187,6 +188,10 @@ async fn download(
         .spawn()
         .unwrap();
 
+        unsafe {
+            ACTIVE_PROCESS_ID = Some(child.id());
+        }
+
     let stdout = child.stdout.take().expect("Falha ao obter stdout");
 
     std::thread::spawn(move || {
@@ -309,6 +314,31 @@ fn delete_file(path: String) {
     }
 }
 
+#[tauri::command]
+async fn kill_active_process()  {
+    #[cfg(target_os = "windows")]
+       {
+            kill_process_windows();
+       }
+     
+       #[cfg(target_os = "linux")]
+       {
+         //Kill process command in linux
+       }
+     
+       #[cfg(target_os = "macos")]
+       {
+         //Kill process command in macos
+       }
+   }
+
+fn kill_process_windows() {
+        // Additional check to ensure all child processes are killed
+        let _ = Command::new("wmic")
+            .args(&["process", "where", &format!("name='yt-dlp.exe'"), "delete"])
+            .output().unwrap();
+   }
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -325,7 +355,8 @@ pub fn run() {
             download,
             get_progress_info,
             show_in_folder,
-            delete_file
+            delete_file,
+            kill_active_process
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -175,6 +175,7 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
         data() {
             return {
                 loading: false,
+                cancelled: false,
                 // format: '',
                 // formats:[
                 //     {label:"Audio (mp3)",value:"Audio"},
@@ -208,7 +209,7 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
                         label: 'Cancel download',
                         icon: 'pi pi-undo',
                         command: () => {
-                            console.log("Delete file")
+                            this.killProcess()
                         },
                         class: 'alert'
                     }
@@ -238,6 +239,26 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
             this.range.end = this.mediaStore.getDuration
         },
         methods: {
+            killProcess() {
+                this.cancelled=true;
+                let intervalCount=0;
+                const intervalId = setInterval(()=>{
+                    intervalCount++;
+
+                    if(intervalCount >= 10) {
+                        clearInterval(intervalId);
+                    }
+
+                    invoke('kill_active_process');
+                },500)
+
+                
+                this.newNotification("Download cancelled");
+                this.loading = false
+                this.loadingStore.setDownloadProgress('');
+                this.loadingStore.setDownloadInfo('');
+                this.closeDownloadProgressToast();
+            },
             searchResolution(event) {
                 this.filteredVideoQualities = event.query ? this.videoQualities.filter((resolution) => {
                     return resolution.name.toLowerCase().includes(event.query.toLowerCase());
@@ -330,6 +351,10 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
                         endSection: this.trim ? this.range.end : '',
                         thumbnailPath:thumbnailPath,
                     }).then(async(response)=>{
+                        if(this.cancelled) {
+                            this.cancelled =false;
+                            return 
+                        }
 
                         const outputFullPath = response.output.split('\\')
                         const outputName = outputFullPath[outputFullPath.length-1].replace(/\.(\w+)$/g,'');
@@ -370,6 +395,10 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
 
                         this.newNotification("Download successful!");
                     }).finally(()=>{
+                        if(this.cancelled) {
+                            this.cancelled =false;
+                            return 
+                        }
                         this.$emit('download-successful',true);
                         const index = this.mediaStore.getMultiUrls.indexOf(url);
                         const length = this.mediaStore.getMultiUrls.length;

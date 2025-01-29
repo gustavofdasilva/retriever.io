@@ -63,6 +63,7 @@ import { audioQualities, videoQualities } from '../constants/qualities';
 import { formats } from '../constants/fileExtensions';
 import AutoComplete from 'primevue/autocomplete';
 import FloatLabel from 'primevue/floatlabel';
+import { findConfigCode } from '../helpers/download';
 
     export default {
         components: {
@@ -80,6 +81,7 @@ import FloatLabel from 'primevue/floatlabel';
         data() {
             return {
                 loading: false,
+                cancelled: false,
                 format: '',
                 formats:formats,
                 videoQualities: videoQualities,
@@ -93,7 +95,7 @@ import FloatLabel from 'primevue/floatlabel';
                         label: 'Cancel download',
                         icon: 'pi pi-undo',
                         command: () => {
-                            console.log("Delete file")
+                            this.killProcess()
                         },
                         class: 'alert'
                     }
@@ -122,6 +124,26 @@ import FloatLabel from 'primevue/floatlabel';
             }
         },
         methods: {
+            killProcess() {
+                this.cancelled=true;
+                let intervalCount=0;
+                const intervalId = setInterval(()=>{
+                    intervalCount++;
+
+                    if(intervalCount >= 10) {
+                        clearInterval(intervalId);
+                    }
+
+                    invoke('kill_active_process');
+                },500)
+
+                
+                this.newNotification("Download cancelled");
+                this.loading = false
+                this.loadingStore.setDownloadProgress('');
+                this.loadingStore.setDownloadInfo('');
+                this.closeDownloadProgressToast();
+            },
             search(event) {
                 if(this.format.name == 'Audio') {
                     console.log("Audio")
@@ -163,6 +185,10 @@ import FloatLabel from 'primevue/floatlabel';
                         endSection: "",
                         thumbnailPath:"",
                     }).then(async()=>{
+                    if(this.cancelled) {
+                        this.cancelled =false;
+                        return 
+                    }
                     
                         const activeDownloadLog = {
                             thumbnailUrl: videoData.thumbnail,
@@ -180,6 +206,10 @@ import FloatLabel from 'primevue/floatlabel';
                         this.newNotification("Download successful!");
                         console.log(`VIDEO ${this.mediaStore.getMultiUrls.indexOf(url)+1} DOWNLOAD LOG SUCCESSFUL`)
                     }).finally(()=>{
+                    if(this.cancelled) {
+                        this.cancelled =false;
+                        return 
+                    }
                         this.$emit('download-successful',true);
                         const index = this.mediaStore.getMultiUrls.indexOf(url);
                         const length = this.mediaStore.getMultiUrls.length;

@@ -180,6 +180,7 @@ import { checkFormat, findConfigCode } from '../helpers/download';
         data() {
             return {
                 loading: false,
+                cancelled: false,
                 // format: '',
                 // formats:[
                 //     {label:"Audio (mp3)",value:"Audio"},
@@ -212,7 +213,7 @@ import { checkFormat, findConfigCode } from '../helpers/download';
                         label: 'Cancel download',
                         icon: 'pi pi-undo',
                         command: () => {
-                            console.log("Delete file")
+                            this.killProcess()
                         },
                         class: 'alert'
                     }
@@ -234,6 +235,26 @@ import { checkFormat, findConfigCode } from '../helpers/download';
             this.range.end = this.mediaStore.getDuration
         },
         methods: {
+            killProcess() {
+                this.cancelled=true;
+                let intervalCount=0;
+                const intervalId = setInterval(()=>{
+                    intervalCount++;
+
+                    if(intervalCount >= 5) {
+                        clearInterval(intervalId);
+                    }
+
+                    invoke('kill_active_process');
+                },500)
+
+                
+                this.newNotification("Download cancelled");
+                this.loading = false
+                this.loadingStore.setDownloadProgress('');
+                this.loadingStore.setDownloadInfo('');
+                this.closeDownloadProgressToast();
+            },
             searchResolution(event) {
                 this.filteredVideoQualities = event.query ? this.videoQualities.filter((resolution) => {
                     return resolution.name.toLowerCase().includes(event.query.toLowerCase());
@@ -320,6 +341,10 @@ import { checkFormat, findConfigCode } from '../helpers/download';
                     endSection: this.trim ? this.range.end : '',
                     thumbnailPath: thumbnailPath
                 }).then((response)=>{
+                    if(this.cancelled) {
+                        this.cancelled =false;
+                        return 
+                    }
 
                     const outputFullPath = response.output.split('\\')
                     const outputName = outputFullPath[outputFullPath.length-1].replace(/\.(\w+)$/g,'');
@@ -351,10 +376,20 @@ import { checkFormat, findConfigCode } from '../helpers/download';
                     this.newNotification("Download successful!");
                     this.$emit('download-successful',true,outputName,length);
                 }).catch((err)=>{
+                    if(this.cancelled) {
+                        this.cancelled =false;
+                        return 
+                    }
+
                     this.newNotification("Something went wrong :(");
                     console.log(err)
                     this.$emit('download-successful',false)
                 }).finally(()=>{
+                    if(this.cancelled) {
+                        this.cancelled =false;
+                        return 
+                    }
+
                     this.loading = false
                     this.loadingStore.setDownloadProgress('');
                     this.loadingStore.setDownloadInfo('');

@@ -81,6 +81,7 @@ import { findConfigCode } from '../helpers/download';
         data() {
             return {
                 loading: false,
+                cancelled: false,
                 format: '',
                 formats:formats,
                 videoQualities: videoQualities,
@@ -93,7 +94,7 @@ import { findConfigCode } from '../helpers/download';
                         label: 'Cancel download',
                         icon: 'pi pi-undo',
                         command: () => {
-                            console.log("Delete file")
+                            this.killProcess()
                         },
                         class: 'alert'
                     }
@@ -114,6 +115,26 @@ import { findConfigCode } from '../helpers/download';
             }
         },
         methods: {
+            killProcess() {
+                this.cancelled=true;
+                let intervalCount=0;
+                const intervalId = setInterval(()=>{
+                    intervalCount++;
+
+                    if(intervalCount >= 5) {
+                        clearInterval(intervalId);
+                    }
+
+                    invoke('kill_active_process');
+                },500)
+
+                
+                this.newNotification("Download cancelled");
+                this.loading = false
+                this.loadingStore.setDownloadProgress('');
+                this.loadingStore.setDownloadInfo('');
+                this.closeDownloadProgressToast();
+            },
             search(event) {
                 if(this.format.name == 'Audio') {
                     console.log("Audio")
@@ -149,6 +170,11 @@ import { findConfigCode } from '../helpers/download';
                     endSection: "",
                     thumbnailPath: "",
                 }).then((response)=>{
+                    if(this.cancelled) {
+                        this.cancelled =false;
+                        return 
+                    }
+
                     const outputFullPath = response.output.split('\\')
                     const outputName = outputFullPath[outputFullPath.length-1].replace(/\.(\w+)$/g,'');
 
@@ -159,10 +185,20 @@ import { findConfigCode } from '../helpers/download';
                     this.newNotification("Download successful!");
                     this.$emit('download-successful',true,length);
                 }).catch((err)=>{
+                    if(this.cancelled) {
+                        this.cancelled =false;
+                        return 
+                    }
+
                     this.newNotification("Something went wrong :(");
                     console.log(err)
                     this.$emit('download-successful',false)
                 }).finally(()=>{
+                    if(this.cancelled) {
+                        this.cancelled =false;
+                        return 
+                    }
+
                     this.loading = false
                     this.loadingStore.setDownloadProgress('');
                     this.loadingStore.setDownloadInfo('');
