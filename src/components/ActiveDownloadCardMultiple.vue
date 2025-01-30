@@ -9,7 +9,7 @@
                     <p style="font-weight: 600; font-size: 1.1em;">Download progress</p>
                     <p v-if="loadingStore.getDownloadInfo != ''" style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; width: 80%;">Video: {{ videoIndex+1 }} / {{ mediaStore.getMultiUrls.length }}</p>
                     <p v-if="loadingStore.getDownloadInfo != ''" style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; width: 80%;">Info: {{ loadingStore.getDownloadInfo }}</p>
-                    <ProgressBar style="margin-top: .9em; " :mode="loadingStore.getDownloadProgress == '' ? 'inderteminate' : 'determinate'" :value="Number(loadingStore.getDownloadProgress)" />
+                    <ProgressBar style="margin-top: .9em; " :mode="loadingStore.getDownloadProgress == '' ? 'indeterminate' : 'determinate'" :value="Number(loadingStore.getDownloadProgress)" />
                 </div>
             </template>
         </Toast>
@@ -164,6 +164,7 @@ import { findConfigCode } from '../helpers/download';
 
                 const fileType = this.format.code == "Audio" ? 'mp3' : 'mp4';
                 
+                this.getProgressInfo();
                 for (const url of this.mediaStore.getMultiUrls) {
                     
                     const videoData = await this.getMetadata(url)
@@ -175,7 +176,6 @@ import { findConfigCode } from '../helpers/download';
                     const defaultFileName = this.userConfig.getDefaultFileName;
                     const output = `${this.fsStore.getDefaultOutput}/${defaultFileName}`
 
-                    this.getProgressInfo();
                     this.videoIndex = this.mediaStore.getMultiUrls.indexOf(url);
                     await invoke('download',{
                         url: url, 
