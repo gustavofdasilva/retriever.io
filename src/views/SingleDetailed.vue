@@ -73,24 +73,28 @@ import { useLoadingStore } from '../stores/loading';
             this.loadDownloadHistory();
         },
         methods: {
-            
             getMetadata(inputText: string) {
                 if(this.loadingStore.loading) return
 
                 this.loadingSearch = true
-                invoke('get_metadata',{url: inputText}).then((res)=>{
-                    if(Array.isArray(res)) {
-                        const basicMetadata = res
-                        this.mediaStore.setTitle(basicMetadata[0]);
-                        this.mediaStore.setChannel(basicMetadata[1]);
-                        this.mediaStore.setThumbnail(basicMetadata[2]);
-                        this.mediaStore.setViews(basicMetadata[3]);
-                        this.mediaStore.setLikes(basicMetadata[4]);
-                        this.mediaStore.setDislikes(basicMetadata[5]);
-                        this.mediaStore.setDuration(basicMetadata[6]);
-                        this.mediaStore.setUrl(inputText);
+                invoke('get_metadata',{url: inputText}).then((res: any)=>{
+                    if (res.error && res.error != "") {
+                        const errorIndex = res.error.indexOf("ERROR:");
+                        const errorOnly = res.error.substring(errorIndex);
+                        this.newNotification(`${errorOnly}`,10000);
                         this.loadingSearch = false;
+                        return;
                     }
+
+                    this.mediaStore.setTitle(res.title);
+                    this.mediaStore.setChannel(res.channel);
+                    this.mediaStore.setThumbnail(res.thumbnail);
+                    this.mediaStore.setViews(res.views);
+                    this.mediaStore.setLikes(res.likes);
+                    this.mediaStore.setDislikes(res.dislikes);
+                    this.mediaStore.setDuration(res.duration);
+                    this.mediaStore.setUrl(inputText);
+                    this.loadingSearch = false;
                 })
             },
             async loadDownloadHistory() {
@@ -108,7 +112,7 @@ import { useLoadingStore } from '../stores/loading';
                     this.downloadLog = downloadArr
                 }
             },
-            async checkDownload(val: boolean,output:string,length:string){
+            async checkDownload(val: boolean,output:string, outputPath: string,length:string){
                 this.downloadResultMsg = val ? 'Download successful!' : 'Could not download'
                 setTimeout(()=>{
                     this.downloadResultMsg = ''
@@ -124,7 +128,7 @@ import { useLoadingStore } from '../stores/loading';
                         format: this.mediaStore.getFormat ? this.mediaStore.getFormat : "Video",
                         quality: this.mediaStore.getQuality,
                         length: length,
-                        path: this.fsStore.getDefaultOutput,
+                        path: outputPath,
                         dateCreated: new Date()
                     } 
 
@@ -134,7 +138,15 @@ import { useLoadingStore } from '../stores/loading';
                     this.mediaStore.reset();
                 }
             },
-            
+            newNotification(message: string, life: number) {
+                this.$toast.add({
+                    severity: 'secondary',
+                    summary: 'Download log',
+                    detail: message,
+                    life: life,
+                    closable: true
+                })
+            },
         }
     }
 </script>

@@ -138,7 +138,7 @@ import { findConfigCode } from '../helpers/download';
                 },500)
 
                 
-                this.newNotification("Download cancelled");
+                this.newNotification("Download cancelled",3000);
                 this.loading = false
                 this.loadingStore.setDownloadProgress('');
                 this.loadingStore.setDownloadInfo('');
@@ -168,6 +168,9 @@ import { findConfigCode } from '../helpers/download';
                     
                     const videoData = await this.getMetadata(url)
 
+                    if(!videoData) {
+                        return
+                    }
                     
                     const defaultFileName = this.userConfig.getDefaultFileName;
                     const output = `${this.fsStore.getDefaultOutput}/${defaultFileName}`
@@ -185,10 +188,18 @@ import { findConfigCode } from '../helpers/download';
                         endSection: "",
                         thumbnailPath:"",
                     }).then(async(response)=>{
-                    if(this.cancelled) {
-                        this.cancelled =false;
-                        return 
-                    }
+                        if(this.cancelled) {
+                            this.cancelled =false;
+                            return 
+                        }
+
+                        if (response.error && response.error != "") {
+                            const errorIndex = response.error.indexOf("ERROR:");
+                            const errorOnly = response.error.substring(errorIndex);
+                            this.newNotification(`${errorOnly}`,10000);
+                            this.loading = false;
+                            return;
+                        }
                     
                     
                         const outputFullPath = response.output.split('\\')
@@ -207,7 +218,7 @@ import { findConfigCode } from '../helpers/download';
     
                         await this.addDownload(activeDownloadLog);
 
-                        this.newNotification("Download successful!");
+                        this.newNotification("Download successful!",3000);
                         console.log(`VIDEO ${this.mediaStore.getMultiUrls.indexOf(url)+1} DOWNLOAD LOG SUCCESSFUL`)
                     }).finally(()=>{
                     if(this.cancelled) {
@@ -233,23 +244,19 @@ import { findConfigCode } from '../helpers/download';
 
             async getMetadata(url) {
                 const res = await invoke('get_metadata',{url: url})
-                if(Array.isArray(res)) {
-                    const basicMetadata = res;
-                    // this.mediaStore.setTitle(basicMetadata[0]);
-                    // this.mediaStore.setChannel(basicMetadata[1]);
-                    // this.mediaStore.setThumbnail(basicMetadata[2]);
-                    // this.mediaStore.setViews(basicMetadata[3]);
-                    // this.mediaStore.setLikes(basicMetadata[4]);
-                    // this.mediaStore.setDislikes(basicMetadata[5]);
-                    // this.mediaStore.setDuration(basicMetadata[6]);
-                    // this.mediaStore.setUrl(url);
+                if (res.error && res.error != "") {
+                    const errorIndex = res.error.indexOf("ERROR:");
+                    const errorOnly = res.error.substring(errorIndex);
+                    this.newNotification(`${errorOnly}`,10000);
+                    this.loading = false;
+                    return null;
+                }
 
-                    return {
-                        title: basicMetadata[0],
-                        channel: basicMetadata[1],
-                        thumbnail: basicMetadata[2],
-                        duration: basicMetadata[6],
-                    }
+                return {
+                    title: res.title,
+                    channel: res.channel,
+                    thumbnail: res.thumbnail,
+                    duration: res.duration,
                 }
             },
 
@@ -287,12 +294,12 @@ import { findConfigCode } from '../helpers/download';
             exit() {
                 this.mediaStore.reset();
             },
-            newNotification(message) {
+            newNotification(message,life) {
                 this.$toast.add({
                     severity: 'secondary',
                     summary: 'Download log',
                     detail: message,
-                    life: 3000,
+                    life: life,
                     closable: true
                 })
             },

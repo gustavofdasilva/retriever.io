@@ -1,17 +1,16 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
 use std::{
-    collections::HashMap, fs, io::{self, BufRead, BufReader, Error, ErrorKind, Read, Write}, process::{Command, Stdio}, thread, time::Duration, vec
+    collections::HashMap, fs, io::{ stderr, BufRead, BufReader}, process::{Command, Stdio}, vec
 };
 
 use encoding_rs::WINDOWS_1252;
-use tauri::AppHandle;
 
 static mut DOWNLOAD_STATUS: String = String::new();
 static mut ACTIVE_PROCESS_ID: Option<u32> = None;
 
 #[tauri::command]
-async fn get_metadata(url: String) -> Vec<String> {
+async fn get_metadata(url: String) -> HashMap<String, String> {
     use std::process::Command;
 
     println!("Received!, lets start");
@@ -36,19 +35,27 @@ async fn get_metadata(url: String) -> Vec<String> {
         .stdout(Stdio::piped())
         .output()
         .unwrap();
+    
+    if String::from_utf8_lossy(&output.stderr).contains("ERROR:") {
+        println!(
+            "STDERR {}",
+            String::from_utf8_lossy(&output.stderr).to_string()
+        );
 
-    println!(
-        "STDOUT {}",
-        String::from_utf8_lossy(&output.stdout).to_string()
-    );
-    println!(
-        "STDERR {}",
-        String::from_utf8_lossy(&output.stderr).to_string()
-    );
+        let formatted_stderr;
 
-    let mut data = Vec::new();
+        #[cfg(target_os = "windows")]
+        {
+            (formatted_stderr, _, _) = WINDOWS_1252.decode(&output.stderr);
+        }
 
-    let mut formatted_output;
+        let mut response: HashMap<String, String> = HashMap::new();
+        response.insert("error".to_string(), formatted_stderr.to_string());
+
+        return response;
+    }
+
+    let formatted_output;
 
     #[cfg(target_os = "windows")]
     {
@@ -63,14 +70,18 @@ async fn get_metadata(url: String) -> Vec<String> {
     let likes = stdout.lines().nth(4).unwrap().to_string();
     let dislikes = stdout.lines().nth(5).unwrap().to_string();
     let duration = stdout.lines().nth(6).unwrap().to_string();
-    data.push(title);
-    data.push(channel);
-    data.push(thumbnail);
-    data.push(views);
-    data.push(likes);
-    data.push(dislikes);
-    data.push(duration);
-    return data;
+
+    let mut response: HashMap<String, String> = HashMap::new();
+
+    response.insert("title".to_string(), title.to_string());
+    response.insert("channel".to_string(), channel.to_string());
+    response.insert("thumbnail".to_string(), thumbnail.to_string());
+    response.insert("views".to_string(), views.to_string());
+    response.insert("likes".to_string(), likes.to_string());
+    response.insert("dislikes".to_string(), dislikes.to_string());
+    response.insert("duration".to_string(), duration.to_string());
+
+    return response;
 }
 
 #[tauri::command]
@@ -187,7 +198,7 @@ async fn download(
             ACTIVE_PROCESS_ID = Some(child.id());
         }
 
-    let stdout = child.stdout.take().expect("Falha ao obter stdout");
+    let stdout = child.stdout.take().expect("Failed to get stdout");
 
     std::thread::spawn(move || {
         let mut reader = BufReader::new(stdout);
@@ -210,9 +221,22 @@ async fn download(
 
     let status = child.wait().unwrap();
     if status.success() {
-        println!("Download concluído com sucesso!");
+        println!("Download succeeded");
     } else {
-        eprintln!("Erro ao executar o yt-dlp.");
+        let stderr = child.stderr.take().expect("Failed to get stderr");
+        let reader = BufReader::new(stderr);
+
+        let mut err_string = String::new();
+        reader
+            .lines()
+            .for_each(|line| err_string.push_str(&format!("{}\n",&line.unwrap().to_string()) ));
+
+        let mut response: HashMap<String, String> = HashMap::new();
+
+        response.insert("error".to_string(), err_string);
+
+        eprintln!("Error while downloading");
+        return response;
     }
 
     let output = command.output().unwrap();
@@ -229,7 +253,14 @@ async fn download(
         String::from_utf8_lossy(&output.stderr).to_string()
     );
 
-    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    let formatted_output;
+
+    #[cfg(target_os = "windows")]
+    {
+        (formatted_output, _, _) = WINDOWS_1252.decode(&output.stdout);
+    }
+
+    let stdout = formatted_output.to_string();
     let output_name = stdout.lines().nth(0).unwrap_or("video");
 
     let mut response: HashMap<String, String> = HashMap::new();

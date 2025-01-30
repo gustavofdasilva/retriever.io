@@ -129,7 +129,7 @@ import { findConfigCode } from '../helpers/download';
                 },500)
 
                 
-                this.newNotification("Download cancelled");
+                this.newNotification("Download cancelled",3000);
                 this.loading = false
                 this.loadingStore.setDownloadProgress('');
                 this.loadingStore.setDownloadInfo('');
@@ -175,6 +175,16 @@ import { findConfigCode } from '../helpers/download';
                         return 
                     }
 
+                    if (response.error && response.error != "") {
+                        const errorIndex = response.error.indexOf("ERROR:");
+                        const errorOnly = response.error.substring(errorIndex);
+                        this.newNotification(`${errorOnly}`,10000);
+                        this.loading = false;
+                        return;
+                    }
+                    
+                    console.log(response);
+
                     const outputFullPath = response.output.split('\\')
                     const outputName = outputFullPath[outputFullPath.length-1];
 
@@ -182,7 +192,7 @@ import { findConfigCode } from '../helpers/download';
                     this.mediaStore.setQuality(this.quality);
                     this.mediaStore.setTitle(outputName);
                     
-                    this.newNotification("Download successful!");
+                    this.newNotification("Download successful!",3000);
                     this.$emit('download-successful',true,length);
                 }).catch((err)=>{
                     if(this.cancelled) {
@@ -190,7 +200,7 @@ import { findConfigCode } from '../helpers/download';
                         return 
                     }
 
-                    this.newNotification("Something went wrong :(");
+                    this.newNotification("Something went wrong :(",3000);
                     console.log(err)
                     this.$emit('download-successful',false)
                 }).finally(()=>{
@@ -235,12 +245,12 @@ import { findConfigCode } from '../helpers/download';
             downloadProgressToast() {
                 this.$toast.add({ severity: 'secondary', summary: 'Uploading your files.', group: 'downloadProgress'});
             },
-            newNotification(message) {
+            newNotification(message, life) {
                 this.$toast.add({
                     severity: 'secondary',
                     summary: 'Download log',
                     detail: message,
-                    life: 3000,
+                    life: life,
                     closable: true
                 })
             },

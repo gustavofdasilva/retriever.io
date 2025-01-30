@@ -249,7 +249,7 @@ import { checkFormat, findConfigCode } from '../helpers/download';
                 },500)
 
                 
-                this.newNotification("Download cancelled");
+                this.newNotification("Download cancelled",3000);
                 this.loading = false
                 this.loadingStore.setDownloadProgress('');
                 this.loadingStore.setDownloadInfo('');
@@ -346,6 +346,15 @@ import { checkFormat, findConfigCode } from '../helpers/download';
                         return 
                     }
 
+                    
+                    if (response.error && response.error != "") {
+                        const errorIndex = response.error.indexOf("ERROR:");
+                        const errorOnly = response.error.substring(errorIndex);
+                        this.newNotification(`${errorOnly}`,10000);
+                        this.loading = false;
+                        return;
+                    }
+
                     const outputFullPath = response.output.split('\\')
                     const outputName = outputFullPath[outputFullPath.length-1];
 
@@ -373,15 +382,15 @@ import { checkFormat, findConfigCode } from '../helpers/download';
                     this.mediaStore.setFormat(fileType)
                     this.mediaStore.setQuality(`${this.resolution}/${this.bitrate}`);
                     
-                    this.newNotification("Download successful!");
-                    this.$emit('download-successful',true,outputName,length);
+                    this.newNotification("Download successful!",3000);
+                    this.$emit('download-successful',true,outputName,outputPath,length);
                 }).catch((err)=>{
                     if(this.cancelled) {
                         this.cancelled =false;
                         return 
                     }
 
-                    this.newNotification("Something went wrong :(");
+                    this.newNotification("Something went wrong :(",3000);
                     console.log(err)
                     this.$emit('download-successful',false)
                 }).finally(()=>{
@@ -423,12 +432,12 @@ import { checkFormat, findConfigCode } from '../helpers/download';
             downloadProgressToast() {
                 this.$toast.add({ severity: 'secondary', summary: 'Uploading your files.', group: 'downloadProgress'});
             },
-            newNotification(message) {
+            newNotification(message,life) {
                 this.$toast.add({
                     severity: 'secondary',
                     summary: 'Download log',
                     detail: message,
-                    life: 3000,
+                    life: life,
                     closable: true
                 })
             },

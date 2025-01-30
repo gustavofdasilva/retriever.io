@@ -253,7 +253,7 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
                 },500)
 
                 
-                this.newNotification("Download cancelled");
+                this.newNotification("Download cancelled",3000);
                 this.loading = false
                 this.loadingStore.setDownloadProgress('');
                 this.loadingStore.setDownloadInfo('');
@@ -332,6 +332,9 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
                 for (const url of this.mediaStore.getMultiUrls) {
                     
                     const videoData = await this.getMetadata(url)
+                    if(!videoData) {
+                        return
+                    }
 
                     const fileExt = fileExtCode.includes('any') ? 'any' : fileExtCode
                     const outputPath = this.outputPath == '' ? this.fsStore.getDefaultOutput : this.outputPath 
@@ -354,6 +357,14 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
                         if(this.cancelled) {
                             this.cancelled =false;
                             return 
+                        }
+
+                        if (response.error && response.error != "") {
+                            const errorIndex = response.error.indexOf("ERROR:");
+                            const errorOnly = response.error.substring(errorIndex);
+                            this.newNotification(`${errorOnly}`,10000);
+                            this.loading = false;
+                            return;
                         }
 
                         const outputFullPath = response.output.split('\\')
@@ -393,7 +404,7 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
     
                         await this.addDownload(activeDownloadLog);
 
-                        this.newNotification("Download successful!");
+                        this.newNotification("Download successful!",3000);
                     }).finally(()=>{
                         if(this.cancelled) {
                             this.cancelled =false;
@@ -417,23 +428,19 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
             },
             async getMetadata(url) {
                 const res = await invoke('get_metadata',{url: url})
-                if(Array.isArray(res)) {
-                    const basicMetadata = res;
-                    // this.mediaStore.setTitle(basicMetadata[0]);
-                    // this.mediaStore.setChannel(basicMetadata[1]);
-                    // this.mediaStore.setThumbnail(basicMetadata[2]);
-                    // this.mediaStore.setViews(basicMetadata[3]);
-                    // this.mediaStore.setLikes(basicMetadata[4]);
-                    // this.mediaStore.setDislikes(basicMetadata[5]);
-                    // this.mediaStore.setDuration(basicMetadata[6]);
-                    // this.mediaStore.setUrl(url);
+                if (res.error && res.error != "") {
+                    const errorIndex = res.error.indexOf("ERROR:");
+                    const errorOnly = res.error.substring(errorIndex);
+                    this.newNotification(`${errorOnly}`,10000);
+                    this.loading = false;
+                    return null;
+                }
 
-                    return {
-                        title: basicMetadata[0],
-                        channel: basicMetadata[1],
-                        thumbnail: basicMetadata[2],
-                        duration: basicMetadata[6],
-                    }
+                return {
+                    title: res.title,
+                    channel: res.channel,
+                    thumbnail: res.thumbnail,
+                    duration: res.duration,
                 }
             },
             getProgressInfo() {
@@ -469,12 +476,12 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
                     this.toastVisible = true;
                 } 
             },
-            newNotification(message) {
+            newNotification(message,life) {
                 this.$toast.add({
                     severity: 'secondary',
                     summary: 'Download log',
                     detail: message,
-                    life: 3000,
+                    life: life,
                     closable: true
                 })
             },
