@@ -29,6 +29,21 @@ export async function createHistFile() {
     store.set('download-history',[]);
 }
 
+export async function deleteRegister(title: string, timestamp: Date) {
+    const store = await Store.load('download-history.json')
+
+    const data = await store.get<DownloadLog[]>('download-history');
+
+    const newData = data?.filter((item)=>{
+        console.log(new Date(item.dateCreated).toISOString()==timestamp.toISOString(), new Date(item.dateCreated).toISOString(),timestamp.toISOString())
+        return !(item.title == title && new Date(item.dateCreated).toISOString()==timestamp.toISOString())
+    })
+
+    console.log(newData?.length,data?.length)
+
+    await store.set('download-history',newData);
+}
+
 export async function readHistFile(): Promise<DownloadLog[] | null> {
     const store = await Store.load('download-history.json')
 

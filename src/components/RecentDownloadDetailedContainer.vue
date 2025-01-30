@@ -42,7 +42,8 @@
                     :quality="download.quality" 
                     :format="download.format" 
                     :length="String(download.length)"
-                    :path="download.path"/>
+                    :path="download.path"
+                    :date="new Date(download.dateCreated)"/>
 
         <Paginator class="paginator" v-if="downloadLogStore.getDownloadLog.length!=0" :rows="10" :totalRecords="downloadLogStore.getDownloadLog.length" @page="filterLogs" ></Paginator>
 
@@ -65,6 +66,7 @@ import { useDownloadLogStore } from '../stores/downloadLog';
         data() {
             return {
                 filteredLogs: [],
+                first: 0,
             }
         },
         setup() {
@@ -76,7 +78,7 @@ import { useDownloadLogStore } from '../stores/downloadLog';
         },
         async mounted() {
             this.downloadLogStore.$subscribe((mutation, state) => {
-                this.filteredLogs = state.downloadLog.slice(0,10);
+                this.filteredLogs = state.downloadLog.slice(this.first,this.first+10>=state.downloadLog.length?state.downloadLog.length:this.first+10);
             })
 
             await this.downloadLogStore.loadDownloadHistory();
@@ -84,7 +86,7 @@ import { useDownloadLogStore } from '../stores/downloadLog';
         },
         methods: {
             filterLogs(event) {
-                console.log(event)
+                this.first = event.first
                 const start = event.first
                 const end = event.first + event.rows;
                 this.filteredLogs = this.downloadLogStore.getDownloadLog.slice(start,end);

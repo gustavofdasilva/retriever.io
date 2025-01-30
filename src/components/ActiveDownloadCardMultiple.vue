@@ -184,15 +184,19 @@ import { findConfigCode } from '../helpers/download';
                         startSection: "",
                         endSection: "",
                         thumbnailPath:"",
-                    }).then(async()=>{
+                    }).then(async(response)=>{
                     if(this.cancelled) {
                         this.cancelled =false;
                         return 
                     }
                     
+                    
+                        const outputFullPath = response.output.split('\\')
+                        const outputName = outputFullPath[outputFullPath.length-1];
+
                         const activeDownloadLog = {
                             thumbnailUrl: videoData.thumbnail,
-                            title: videoData.title,
+                            title: outputName,
                             channel: videoData.channel,
                             format: this.format.code,
                             quality: this.quality,

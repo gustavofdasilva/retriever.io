@@ -347,7 +347,7 @@ import { checkFormat, findConfigCode } from '../helpers/download';
                     }
 
                     const outputFullPath = response.output.split('\\')
-                    const outputName = outputFullPath[outputFullPath.length-1].replace(/\.(\w+)$/g,'');
+                    const outputName = outputFullPath[outputFullPath.length-1];
 
                     let startTime, endTime;
                     if(this.range.start.split(":").length == 2) {

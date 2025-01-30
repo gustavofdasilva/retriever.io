@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
-import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/history';
-import { useMediaStore } from "./media";
+import { createHistFile, readHistFile } from '../helpers/history';
 
 export const useDownloadLogStore = defineStore("downloadLog", {
     state: () =>({downloadLog: [] as DownloadLog[]}),

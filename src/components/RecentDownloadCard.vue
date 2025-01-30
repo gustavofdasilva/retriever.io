@@ -38,6 +38,8 @@ import BaseIconButton from './BaseIconButton.vue';
 import Menu from 'primevue/menu';
 import { ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
+import { deleteRegister } from '../helpers/history';
+import { useDownloadLogStore } from '../stores/downloadLog';
 
 
     export default {
@@ -54,6 +56,16 @@ import { invoke } from '@tauri-apps/api/core';
             format: String,
             length: String,
             path: String,
+            date: Date,
+        },
+        setup() {
+            const deleteItem = (title, timestamp) => {deleteRegister(title,timestamp)};
+            const downloadStore = useDownloadLogStore();
+
+            return {
+                deleteItem,
+                downloadStore
+            }
         },
         data() {
             return {
@@ -62,7 +74,6 @@ import { invoke } from '@tauri-apps/api/core';
                         label: 'Open in explorer',
                         icon: 'pi pi-folder-open',
                         command: () => {
-                            console.log(this.path)
                             invoke('show_in_folder',{
                                 path: `${this.path}`,
                             })
@@ -80,10 +91,12 @@ import { invoke } from '@tauri-apps/api/core';
                         icon: 'pi pi-trash',
                         command: () => {
                             
-                            const pathToFile = `${this.path.replace(/\\/g,'/')}/${this.title}`
+                            const pathToFile = `${this.path}\\${this.title}`
                             invoke('delete_file',{
                                 path: pathToFile,
-                            }).then(()=>{
+                            }).then(async()=>{
+                                await deleteRegister(this.title, this.date);
+                                await this.downloadStore.loadDownloadHistory();
                                 this.$toast.add({
                                     severity: 'secondary',
                                     summary: 'Delete file',

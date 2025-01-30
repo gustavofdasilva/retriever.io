@@ -1,12 +1,7 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
 use std::{
-    collections::HashMap,
-    io::{self, BufRead, BufReader, Error, ErrorKind, Read, Write},
-    process::{Command, Stdio},
-    thread,
-    time::Duration,
-    vec,
+    collections::HashMap, fs, io::{self, BufRead, BufReader, Error, ErrorKind, Read, Write}, process::{Command, Stdio}, thread, time::Duration, vec
 };
 
 use encoding_rs::WINDOWS_1252;
@@ -294,24 +289,7 @@ fn show_in_folder(path: String) {
 
 #[tauri::command]
 fn delete_file(path: String) {
-    #[cfg(target_os = "windows")]
-    {
-        println!("{}", format!(r##""del "{path}"""##, path = &path).as_str());
-        Command::new("cmd")
-            .args(["/C", format!(r##""del "{path}"""##, path = &path).as_str()])
-            .spawn()
-            .unwrap();
-    }
-
-    #[cfg(target_os = "linux")]
-    {
-        //Delete command in linux
-    }
-
-    #[cfg(target_os = "macos")]
-    {
-        //Delete command in macos
-    }
+    let _ = fs::remove_file(path).map_err(|e| format!("Error while deleting file: {}",e));
 }
 
 #[tauri::command]
