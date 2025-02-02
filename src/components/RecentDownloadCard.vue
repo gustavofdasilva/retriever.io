@@ -23,7 +23,7 @@
         </div>
         <div>
             <p>
-                {{ length }}
+                {{ formatLength(length) }}
             </p>
         </div>
         <div >
@@ -32,11 +32,10 @@
         </div>
     </div>
 </template>
-<script>
+<script lang="ts" >
 import Button from 'primevue/button';
 import BaseIconButton from './BaseIconButton.vue';
 import Menu from 'primevue/menu';
-import { ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { deleteRegister } from '../helpers/history';
 import { useDownloadLogStore } from '../stores/downloadLog';
@@ -59,7 +58,7 @@ import { useDownloadLogStore } from '../stores/downloadLog';
             date: Date,
         },
         setup() {
-            const deleteItem = (title, timestamp) => {deleteRegister(title,timestamp)};
+            const deleteItem = (title: string, timestamp:Date) => {deleteRegister(title,timestamp)};
             const downloadStore = useDownloadLogStore();
 
             return {
@@ -69,6 +68,7 @@ import { useDownloadLogStore } from '../stores/downloadLog';
         },
         data() {
             return {
+                formattedLength: "",
                 items: [
                     {
                         label: 'Open in explorer',
@@ -95,7 +95,11 @@ import { useDownloadLogStore } from '../stores/downloadLog';
                             invoke('delete_file',{
                                 path: pathToFile,
                             }).then(async()=>{
-                                await deleteRegister(this.title, this.date);
+                                if(this.title && this.date) {
+                                    await deleteRegister(this.title, this.date);
+                                }
+
+                                //@ts-ignore
                                 await this.downloadStore.loadDownloadHistory();
                                 this.$toast.add({
                                     severity: 'secondary',
@@ -112,10 +116,24 @@ import { useDownloadLogStore } from '../stores/downloadLog';
             }
         },
         methods: {
-            formatLength() {
+            formatLength(length: string) {
+                if(length == "" || length == "NA" || !length){
+                    return "NA"
+                }            
 
+
+                switch (length.length) {
+                    case 1: return `00:0${length}`
+
+                    case 2: return `00:${length}`
+
+                    case 4: return `0${length}`
+                
+                    default: return length
+                }
             },
-            toggle(event) {
+            toggle(event: any) {
+                //@ts-ignore
                 this.$refs.menu.toggle(event);
             }
         }

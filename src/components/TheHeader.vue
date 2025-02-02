@@ -46,11 +46,12 @@
                             </div>
                         </div>
                         <div class="path-and-settings">
-            <Button class="btn-page" style=" margin-right: 1em;" label="Downloads" :severity="checkView('/downloads') ? 'primary' : 'secondary'" @click="()=>{changeView('/downloads')}"  />
+            
             <BaseFileInput 
                 style="margin: 0 1em 0 0; font-size: 0.93em;"
                 :path="userConfigStore.getDefaultOutput"
                 @folder-selected="setDefaultFolder"/>
+                <Button icon="pi pi-download" class="btn-page" style=" margin-right: 1em;" variant="text" :severity="checkView('/downloads') ? 'primary' : 'secondary'" @click="()=>{changeView('/downloads')}"  />
                 <Button icon="pi pi-cog" @click="()=>configModalVisible=true" variant="text" size="large" severity="secondary" />
         </div>
     </nav>

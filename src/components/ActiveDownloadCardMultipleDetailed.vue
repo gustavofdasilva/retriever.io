@@ -397,7 +397,7 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
                             channel: videoData.channel,
                             format: fileType,
                             quality: `${this.resolution}/${this.bitrate}`,
-                            length: length,
+                            length: length == "00:00" ? videoData.duration : length,
                             path: outputPath,
                             dateCreated: new Date()
                         } 
