@@ -87,7 +87,13 @@ import { useLoadingStore } from '../stores/loading';
                     }
 
                     this.mediaStore.setTitle(res.title);
-                    this.mediaStore.setChannel(res.channel);
+                    if(res.channel != "NA") {
+                        this.mediaStore.setChannel(res.channel);
+                    } else if (res.uploader != "NA"){
+                        this.mediaStore.setChannel(res.uploader);
+                    } else if (res.creator != "NA") {
+                        this.mediaStore.setChannel(res.creator);
+                    } else {this.mediaStore.setChannel("NA");}
                     this.mediaStore.setThumbnail(res.thumbnail);
                     this.mediaStore.setViews(res.views);
                     this.mediaStore.setLikes(res.likes);
@@ -208,7 +214,7 @@ import { useLoadingStore } from '../stores/loading';
     main {
         min-height: 87.7%;
         margin: auto;
-        width: 50%;
+        width: 55%;
         display: flex;
         align-items: center;
         justify-content: center;

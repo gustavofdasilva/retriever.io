@@ -84,8 +84,8 @@ import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
 
             prepareDownload(inputText: string) {
                 const urlsArray = inputText.split("\n");
-
-                this.mediaStore.setMultiUrls(urlsArray)
+                
+                this.mediaStore.setMultiUrls(urlsArray.filter(item=>item!=""))
             },
 
             async checkDownload(val: boolean){

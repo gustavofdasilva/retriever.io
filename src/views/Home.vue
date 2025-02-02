@@ -100,7 +100,15 @@ import { useDownloadLogStore } from '../stores/downloadLog';
                     }
 
                     this.mediaStore.setTitle(res.title);
-                    this.mediaStore.setChannel(res.channel);
+
+                    if(res.channel != "NA") {
+                        this.mediaStore.setChannel(res.channel);
+                    } else if (res.uploader != "NA"){
+                        this.mediaStore.setChannel(res.uploader);
+                    } else if (res.creator != "NA") {
+                        this.mediaStore.setChannel(res.creator);
+                    } else {this.mediaStore.setChannel("NA");}
+
                     this.mediaStore.setThumbnail(res.thumbnail);
                     this.mediaStore.setViews(res.views);
                     this.mediaStore.setLikes(res.likes);

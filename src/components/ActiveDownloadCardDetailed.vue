@@ -109,12 +109,12 @@
                     <ToggleSwitch style="margin-left: .8em;" v-tooltip="'Select video range'" v-model="trim" />
                 </div>
                 <template v-if="trim" >
-                    <div style="width: 100%;">
+                    <div style="width: 100%; padding: 0 1em;">
                         <div class="double-input" style="justify-content: center;">
                             <p style="margin-right: 1.2em; font-weight: 600;">Range:</p>
                             <p style="margin-right: .8em;">Start</p>
                             <input placeholder="Start" type="text" name="start" id="start" v-model="range.start">
-                            <p style="margin-right: .8em; margin-left: .5em;">Finish</p>
+                            <p style="margin-right: .8em; margin-left: 1em;">Finish</p>
                             <input placeholder="Finish" type="text" name="finish" id="finish" v-model="range.end">
                         </div>
                     </div>
@@ -127,14 +127,16 @@
                     <ToggleSwitch style="margin-left: .8em;" v-tooltip="'Download thumbnail?'" v-model="thumbnail.download" />
                 </div>
                 <template v-if="thumbnail.download" >
-                    <h2 style="margin-top: .5em;">File name</h2>
-                    <div style="width: 100%; padding: 0 1em;">
-                        <InputText v-model="thumbnail.fileName" type="text" name="thumbfilename" id="thumbfilename" style="width: 100%;"/>
+                    <div style="padding: 0 1em;">
+                        <h2 style="margin-top: .5em;">File name</h2>
+                        <div style="width: 100%; padding: 0 1em;">
+                            <InputText v-model="thumbnail.fileName" type="text" name="thumbfilename" id="thumbfilename" style="width: 100%;"/>
+                        </div>
                     </div>
                 </template>
             </div>
 
-            <Button style="width: 100%;" :disabled="loading" label="Download" severity="primary" @click="()=>{if(!loading){download()}}" />
+            <Button icon="pi pi-download" style="width: 100%;" :disabled="loading" label="Download" severity="primary" @click="()=>{if(!loading){download()}}" />
         </div>
     </div>
 </template>
@@ -550,12 +552,12 @@ import { checkFormat, findConfigCode } from '../helpers/download';
     .double-input {
         display: flex;
         align-items: center;
+        justify-content: center;
     }
 
     .double-input input {
-        max-width: 4.5em;
+        width: 100%;
         text-align: center;
-        margin-right: 1em;
     }
 
     .fileName {

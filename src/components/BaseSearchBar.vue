@@ -65,6 +65,9 @@ export default {
         position: relative;
         width: 100%;
     }
+    .search-bar-container textarea::-webkit-scrollbar {
+        width: 5px;
+    }
 
     input, textarea {
         width: 100%;

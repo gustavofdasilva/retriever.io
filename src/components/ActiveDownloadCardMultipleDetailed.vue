@@ -22,7 +22,6 @@
                 <h1 style="font-size: 1.5em;">{{mediaStore.getMultiUrls.length}} Videos selected</h1>
                 <Button icon="pi pi-times" @click="()=>{exit()}" variant="text" size="large" severity="secondary" />
             </div>
-            <p style="font-size: 1em; color:var(--black-background-600); margin: .2em 0 .6em 0;">{{mediaStore.getChannel}}</p>
             <h2>Output file</h2>
             <div class="options-container">
 
@@ -101,12 +100,12 @@
                     <ToggleSwitch style="margin-left: .8em;" v-tooltip="'Select video range'" v-model="trim" />
                 </div>
                 <template v-if="trim" >
-                    <div style="width: 100%;">
+                    <div style="width: 100%; padding: 0 1em;">
                         <div class="double-input" style="justify-content: center;">
                             <p style="margin-right: 1.2em; font-weight: 600;">Range:</p>
                             <p style="margin-right: .8em;">Start</p>
                             <input placeholder="Start" type="text" name="start" id="start" v-model="range.start">
-                            <p style="margin-right: .8em; margin-left: .5em;">Finish</p>
+                            <p style="margin-right: .8em; margin-left: 1em;">Finish</p>
                             <input placeholder="Finish" type="text" name="finish" id="finish" v-model="range.end">
                         </div>
                     </div>
@@ -119,14 +118,16 @@
                     <ToggleSwitch style="margin-left: .8em;" v-tooltip="'Download thumbnail?'" v-model="thumbnail.download" />
                 </div>
                 <template v-if="thumbnail.download" >
-                    <h2 style="margin-top: .5em;">File name</h2>
-                    <div style="width: 100%; padding: 0 1em;">
-                        <InputText v-model="thumbnail.fileName" type="text" name="thumbfilename" id="thumbfilename" style="width: 100%;"/>
+                    <div style="padding: 0 1em;">
+                        <h2 style="margin-top: .5em;">File name</h2>
+                        <div style="width: 100%; padding: 0 1em;">
+                            <InputText v-model="thumbnail.fileName" type="text" name="thumbfilename" id="thumbfilename" style="width: 100%;"/>
+                        </div>
                     </div>
                 </template>
             </div>
 
-            <Button style="width: 100%;" :disabled="loading || !checkFields" label="Download" severity="primary" @click="()=>{if(!loading){download()}}" />
+            <Button icon="pi pi-download" style="width: 100%;" :disabled="loading || !checkFields" label="Download" severity="primary" @click="()=>{if(!loading){download()}}" />
         </div>
     </div>
 </template>
@@ -234,9 +235,6 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
                 addDownload,
                 clearInfo
             }
-        },
-        mounted() {
-            this.range.end = this.mediaStore.getDuration
         },
         methods: {
             killProcess() {
@@ -599,12 +597,12 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
     .double-input {
         display: flex;
         align-items: center;
+        justify-content: center;
     }
 
     .double-input input {
-        max-width: 4.5em;
+        width: 100%;
         text-align: center;
-        margin-right: 1em;
     }
 
     .fileName {
@@ -641,7 +639,7 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
         
     .button-w-title-container {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         align-self: center;
         justify-content: space-between;
         width: 100%;

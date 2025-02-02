@@ -30,11 +30,20 @@ async fn get_metadata(url: String) -> HashMap<String, String> {
         .arg("dislike_count")
         .arg("--print")
         .arg("duration_string")
+        .arg("--print")
+        .arg("uploader")
+        .arg("--print")
+        .arg("creator")
+        .arg("--print")
         .arg("--skip-download")
         .arg(url)
         .stdout(Stdio::piped())
         .output()
         .unwrap();
+    println!(
+        "STDERR {}",
+        String::from_utf8_lossy(&output.stderr).to_string()
+    );
     
     if String::from_utf8_lossy(&output.stderr).contains("ERROR:") {
         println!(
@@ -70,6 +79,8 @@ async fn get_metadata(url: String) -> HashMap<String, String> {
     let likes = stdout.lines().nth(4).unwrap().to_string();
     let dislikes = stdout.lines().nth(5).unwrap().to_string();
     let duration = stdout.lines().nth(6).unwrap().to_string();
+    let uploader = stdout.lines().nth(7).unwrap().to_string();
+    let creator = stdout.lines().nth(8).unwrap().to_string();
 
     let mut response: HashMap<String, String> = HashMap::new();
 
@@ -80,6 +91,8 @@ async fn get_metadata(url: String) -> HashMap<String, String> {
     response.insert("likes".to_string(), likes.to_string());
     response.insert("dislikes".to_string(), dislikes.to_string());
     response.insert("duration".to_string(), duration.to_string());
+    response.insert("uploader".to_string(), uploader.to_string());
+    response.insert("creator".to_string(), creator.to_string());
 
     return response;
 }

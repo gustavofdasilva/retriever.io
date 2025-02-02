@@ -78,8 +78,8 @@ import ActiveDownloadCardMultipleDetailed from '../components/ActiveDownloadCard
 
             prepareDownload(inputText: string) {
                 const urlsArray = inputText.split("\n");
-
-                this.mediaStore.setMultiUrls(urlsArray)
+                
+                this.mediaStore.setMultiUrls(urlsArray.filter(item=>item!=""))
             },
 
             async checkDownload(val: boolean){
