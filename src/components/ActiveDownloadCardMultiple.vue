@@ -173,7 +173,7 @@ import { findConfigCode } from '../helpers/download';
                         return
                     }
                     
-                    const defaultFileName = this.userConfig.getDefaultFileName;
+                    const defaultFileName = this.userConfig.getUserConfig.getDefaultFileName;
                     const output = `${this.fsStore.getDefaultOutput}/${defaultFileName}`
 
                     this.videoIndex = this.mediaStore.getMultiUrls.indexOf(url);

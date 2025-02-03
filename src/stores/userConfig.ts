@@ -1,42 +1,23 @@
 import { defineStore } from "pinia";
+import { changeConfig } from "../helpers/userConfig";
 
 export const useUserConfig = defineStore("userConfig", {
     state: () =>({
-        defaultOutput: '',
-        defaultFileName: '',
-        defaultAudioFormat: '',
-        defaultVideoFormat: '',
+        userConfig: {} as UserConfig
     }),
     getters: {
-        getDefaultOutput: (state)=>state.defaultOutput,
-        getDefaultFileName: (state)=>state.defaultFileName,
-        getDefaultAudioFormat: (state)=>state.defaultAudioFormat,
-        getDefaultVideoFormat: (state)=>state.defaultVideoFormat,
-        getUserConfig: (state)=>({
-            defaultOutput: state.defaultOutput,
-            defaultFileName: state.defaultFileName,
-            defaultAudioFormat: state.defaultAudioFormat,
-            defaultVideoFormat: state.defaultVideoFormat
-        } as UserConfig)
+        getUserConfig: (state)=>(state.userConfig)
     },
     actions: {
-        setDefaultOutput(newDefaultOutput: string) {
-            this.defaultOutput = newDefaultOutput
+        async setUserConfigField<K extends keyof UserConfig>(config: K, value: UserConfig[K]) {
+            this.userConfig[config] = value;
+            await changeConfig(config,value);
         },
-        setDefaultFileName(newDefaultFileName: string) {
-            this.defaultFileName = newDefaultFileName
-        },
-        setDefaultAudioFormat(newDefaultAudioFormat: string) {
-            this.defaultAudioFormat = newDefaultAudioFormat
-        },
-        setDefaultVideoFormat(newDefaultVideoFormat: string) {
-            this.defaultVideoFormat = newDefaultVideoFormat
-        },
-        setUserConfig(userConfig: UserConfig) {
-            this.defaultOutput = userConfig.defaultOutput
-            this.defaultFileName = userConfig.defaultFileName
-            this.defaultAudioFormat = userConfig.defaultAudioFormat
-            this.defaultVideoFormat = userConfig.defaultVideoFormat
+        async setUserConfig(userConfig: UserConfig) {
+            this.userConfig = userConfig;
+            for(const [key,value] of Object.entries(userConfig)) {
+                await changeConfig(key as keyof UserConfig, value)
+            }
         }
     }
 })

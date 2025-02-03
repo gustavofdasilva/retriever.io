@@ -4,6 +4,16 @@
     display: flex;
 }
 
+.accounts-modal {
+    width: 60%;
+    height: 70%;
+    display: flex;
+}
+
+.crud-account-modal {
+    width: 40%;
+    display: flex;
+}
 
 .p-dialog-content {
     display: flex;

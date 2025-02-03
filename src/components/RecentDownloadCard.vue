@@ -23,7 +23,7 @@
         </div>
         <div>
             <p>
-                {{ formatLength(length) }}
+                {{ formatLength(length??"") }}
             </p>
         </div>
         <div >
@@ -90,7 +90,6 @@ import { useDownloadLogStore } from '../stores/downloadLog';
                         label: 'Delete file',
                         icon: 'pi pi-trash',
                         command: () => {
-                            
                             const pathToFile = `${this.path}\\${this.title}`
                             invoke('delete_file',{
                                 path: pathToFile,

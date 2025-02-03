@@ -3,4 +3,5 @@ type UserConfig = {
     defaultFileName: string,
     defaultAudioFormat: string,
     defaultVideoFormat: string,
+    accounts?: Account[]
 }

@@ -33,6 +33,12 @@
                 </TabPanels>
             </Tabs>
         </Dialog>
+        <Dialog class="accounts-modal" v-model:visible="accountsModalVisible" :draggable="false" modal header="Accounts">
+            <div class="config-content">
+                <p style="color: var(--surface-400);">Create Accounts to use a login in a website. If a website requires the user to login, you can specify the website, username and password by registering this account here.</p>
+                <AccountsContainer/>
+            </div>
+        </Dialog>
         <div class="options">
             <img src="../assets/vue.svg" alt="logo"/>
             <div style="margin-left: 2em;">
@@ -49,9 +55,10 @@
             
             <BaseFileInput 
                 style="margin: 0 1em 0 0; font-size: 0.93em;"
-                :path="userConfigStore.getDefaultOutput"
+                :path="userConfigStore.userConfig.defaultOutput"
                 @folder-selected="setDefaultFolder"/>
-                <Button icon="pi pi-download" class="btn-page" style=" margin-right: 1em;" variant="text" :severity="checkView('/downloads') ? 'primary' : 'secondary'" @click="()=>{changeView('/downloads')}"  />
+                <Button icon="pi pi-download" class="btn-page" style=" margin-right: .5em;" variant="text" :severity="checkView('/downloads') ? 'primary' : 'secondary'" @click="()=>{changeView('/downloads')}"  />
+                    <Button icon="pi pi-user" @click="()=>accountsModalVisible=true" style=" margin-right: .5em;"  variant="text" size="large" severity="secondary" />
                 <Button icon="pi pi-cog" @click="()=>configModalVisible=true" variant="text" size="large" severity="secondary" />
         </div>
     </nav>
@@ -71,6 +78,7 @@ import ytdlpVariables from '../constants/ytdlpVariables';
 import AutoComplete from 'primevue/autocomplete';
 import { useUserConfig } from '../stores/userConfig';
 import DownloadsTab from './userConfigModal/DownloadsTab.vue';
+import AccountsContainer from './accountsModal/AccountsContainer.vue';
 
     export default {
         name: "TheHeader",
@@ -84,12 +92,14 @@ import DownloadsTab from './userConfigModal/DownloadsTab.vue';
             TabPanel,
             TabPanels,
             AutoComplete,
-            DownloadsTab
+            DownloadsTab,
+            AccountsContainer
         },
         data() {
             return {
                 activeView: 'home',
                 configModalVisible: false,
+                accountsModalVisible: false,
                 configModalView: 'Downloads',
                 changes: false,
                 message: '',
@@ -102,7 +112,7 @@ import DownloadsTab from './userConfigModal/DownloadsTab.vue';
         setup() {
             const fsStore = useFSStore()
             const userConfigStore = useUserConfig();
-            const changeUserConfig = (config: string, value: string) => changeConfig(config,value);
+            const changeUserConfig = (config: keyof UserConfig, value: UserConfig[keyof UserConfig]) => changeConfig(config,value);
 
             return {
                 changeUserConfig,
@@ -145,7 +155,6 @@ import DownloadsTab from './userConfigModal/DownloadsTab.vue';
                 if(this.changes) {
                     await this.changeUserConfig('defaultFileName', this.newUserConfig.defaultFileName);
                     await this.changeUserConfig('defaultOutput', this.newUserConfig.defaultOutput);
-                    this.userConfigStore.setDefaultOutput(this.newUserConfig.defaultOutput);
                     this.userConfigStore.setUserConfig(this.newUserConfig);
                     this.configModalVisible = false;
                 }
@@ -163,7 +172,7 @@ import DownloadsTab from './userConfigModal/DownloadsTab.vue';
             },
             setDefaultFolder(path: string) {
                 this.changeUserConfig('defaultOutput', path);
-                this.userConfigStore.setDefaultOutput(path);
+                this.userConfigStore.setUserConfigField('defaultOutput',path);
             },
             search(event:any) {
                 setTimeout(() => {

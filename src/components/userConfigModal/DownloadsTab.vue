@@ -84,7 +84,7 @@ import { audioExtensions, videoExtensions } from '../../constants/fileExtensions
         setup() {
             const fsStore = useFSStore()
             const userConfigStore = useUserConfig();
-            const changeUserConfig = (config: string, value: string) => changeConfig(config,value);
+            const changeUserConfig = (config: keyof UserConfig, value: UserConfig[keyof UserConfig]) => changeConfig(config,value);
 
             return {
                 changeUserConfig,
@@ -103,7 +103,7 @@ import { audioExtensions, videoExtensions } from '../../constants/fileExtensions
         mounted() {
             this.userConfigStore.$subscribe((userConfig) => {
                 //@ts-ignore
-                this.userConfig = userConfig.events.target;
+                this.userConfig = userConfig.events.target.userConfig;
                 this.newUserConfig = {...this.userConfig};
                 console.log(this.newUserConfig);
             });

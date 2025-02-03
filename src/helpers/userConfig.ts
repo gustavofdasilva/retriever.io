@@ -9,7 +9,7 @@ export async function initConfigFile(): Promise<boolean> { //Return true if alre
             defaultOutput: '',
             defaultFileName: '%(title)s',
             defaultAudioFormat: '.mp3',
-            defaultVideoFormat: '.mp4'
+            defaultVideoFormat: '.mp4',
         });
         return false
     }
@@ -23,12 +23,12 @@ export async function deleteConfig() {
     await store.reset();
 }
 
-export async function changeConfig(config: string, value: string) {
+export async function changeConfig<K extends keyof UserConfig>(config: K, value: UserConfig[K]) {
     const store = await Store.load('user-config.json');
     const data = await store.get<UserConfig>('user-config');
     let newData = data ?? {} as UserConfig;
 
-    newData[config as keyof UserConfig] = value;
+    newData[config] = value;
 
     await store.set('user-config',newData);
 }

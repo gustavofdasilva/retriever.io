@@ -152,9 +152,9 @@ import { findConfigCode } from '../helpers/download';
             },
             download() {
                 this.loading=true
-                const defaultFileName = this.userConfig.getDefaultFileName;
-                const defaultAudioFormat = this.userConfig.getDefaultAudioFormat;
-                const defaultVideoFormat = this.userConfig.getDefaultVideoFormat;
+                const defaultFileName = this.userConfig.getUserConfig.defaultOutput;
+                const defaultAudioFormat = this.userConfig.getUserConfig.defaultAudioFormat;
+                const defaultVideoFormat = this.userConfig.getUserConfig.defaultVideoFormat;
                 const fileType = this.format.code == "Audio" ? defaultAudioFormat.replace('.','') : defaultVideoFormat.replace('.','');
                 const output = `${this.fsStore.getDefaultOutput}/${defaultFileName}`
                 
