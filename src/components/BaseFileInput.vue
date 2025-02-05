@@ -1,7 +1,7 @@
 <template>
     <div class="fileInputContainer">
         <input ref="fileInput" type="file" name="file" id="file" style="display: none;">
-        <button v-on:click="openInput">
+        <button v-on:click="handleOpen">
             <VueFeather type="folder" size="16" class="icon-grey"/>
         </button>
         <p>
@@ -21,6 +21,12 @@ export default {
     },
     props: {
         path: String,
+        dialogTitle: String,
+        filter: Array,
+        directory: {
+            type: Boolean,
+            default: true
+        }
     },
     setup() {
         const fsStore = useFSStore();
@@ -30,15 +36,37 @@ export default {
         }
     },
     methods: {
+        async handleOpen() {
+            console.log(this.directory);
+            if(this.directory) {
+                await this.openInput()
+            } else {
+                await this.openFileInput();
+            }
+        },
         async openInput() {
             const dir = await open({
                 directory: true,
-                title:'Select default output'
+                title: this.dialogTitle ? this.dialogTitle : 'Select default output',
             })
             if(dir==null) return
 
             this.$emit('folder-selected',dir)
         },
+        async openFileInput() {
+            const file = await open({
+                directory: false,
+                title: this.dialogTitle ? this.dialogTitle : 'Select a valid .txt of cookies',
+                filters: this.filter ? this.filter : [{
+                    name: 'Text file',
+                    extensions: ['txt']
+                }]
+            });
+            
+            if(file==null) return
+
+            this.$emit('folder-selected',file)
+        }
     }
 }
 </script>
@@ -54,8 +82,10 @@ export default {
     p {
         margin-left: 10px;
         font-size: 1.1em;
-        white-space: nowrap;
+        justify-content: space-between;
         text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
     }
 
     .fileInputContainer {
@@ -71,9 +101,7 @@ export default {
         box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        white-space: nowrap;
-        text-overflow: ellipsis;
+        max-width: 100%;
     }
         .fileInputContainer:hover {
             border-color: var(--surface-700);

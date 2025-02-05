@@ -6,7 +6,7 @@
 
 .accounts-modal {
     width: 60%;
-    height: 70%;
+    max-height: 80%;
     display: flex;
 }
 

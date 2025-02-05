@@ -160,6 +160,7 @@ import { audioQualities, videoQualities } from '../constants/qualities';
 import { fileExtensions } from '../constants/fileExtensions';
 import FloatLabel from 'primevue/floatlabel';
 import { checkFormat, findConfigCode } from '../helpers/download';
+import { useUserConfig } from '../stores/userConfig';
 
 
     export default {
@@ -226,11 +227,13 @@ import { checkFormat, findConfigCode } from '../helpers/download';
             const mediaStore = useMediaStore()
             const fsStore = useFSStore()
             const loadingStore = useLoadingStore()
+            const userConfig = useUserConfig();
 
             return { 
                 mediaStore,
                 fsStore,
-                loadingStore
+                loadingStore,
+                userConfig
             }
         },
         mounted() {
@@ -327,9 +330,15 @@ import { checkFormat, findConfigCode } from '../helpers/download';
                 let fileType = checkFormat(fileExtCode);
 
                 const fileExt = fileExtCode.includes('any') ? 'any' : fileExtCode
-                const outputPath = this.outputPath == '' ? this.fsStore.getDefaultOutput : this.outputPath 
-                const output = `${outputPath}/${this.fileName == '' ? this.mediaStore.getTitle : this.fileName}`
+                const outputPath = this.outputPath == '' ? this.userConfig.getUserConfig.defaultOutput : this.outputPath 
+                const output = `${outputPath}/${this.fileName == '' ? this.userConfig.getUserConfig.defaultFileName : this.fileName}`
                 const thumbnailPath = this.thumbnail.download ? `${outputPath}/${this.thumbnail.fileName}` : ""
+
+                const enabledAuth = this.userConfig.getUserConfig.authentication.enabled;
+                const cookiesFromBrowser = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesFromBrowser: "";
+                const cookiesTxtFilePath = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesTxtFilePath: "";
+                const username = enabledAuth ? findAccount(this.mediaStore.getUrl)?.username : '';
+                const password = enabledAuth ? findAccount(this.mediaStore.getUrl)?.password : '';
   
                 this.getProgressInfo();
                 invoke('download',{
@@ -341,7 +350,11 @@ import { checkFormat, findConfigCode } from '../helpers/download';
                     bitrate: findConfigCode(this.bitrate, audioQualities),
                     startSection: this.trim ? this.range.start : '',
                     endSection: this.trim ? this.range.end : '',
-                    thumbnailPath: thumbnailPath
+                    thumbnailPath: thumbnailPath,
+                    username: username ?? "",
+                    password: password ?? "",
+                    cookiesFromBrowser: cookiesFromBrowser,
+                    cookiesTxtFilePath: cookiesTxtFilePath,
                 }).then((response)=>{
                     if(this.cancelled) {
                         this.cancelled =false;

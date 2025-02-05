@@ -33,32 +33,25 @@
                 </TabPanels>
             </Tabs>
         </Dialog>
-        <Dialog class="accounts-modal" v-model:visible="accountsModalVisible" :draggable="false" modal header="Accounts">
-            <div class="config-content">
-                <p style="color: var(--surface-400);">Create Accounts to use a login in a website. If a website requires the user to login, you can specify the website, username and password by registering this account here.</p>
-                <AccountsContainer/>
-            </div>
+        <Dialog class="accounts-modal" v-model:visible="accountsModalVisible" :draggable="false" modal header="Authentication">
+            <AuthenticationModal/>
         </Dialog>
         <div class="options">
             <img src="../assets/vue.svg" alt="logo"/>
             <div style="margin-left: 2em;">
-                <!-- <BaseButton text="Simple" :btnClass="(checkView('/') ? 'red' : '') + ' header-button'" :onClickFunc="()=>{changeView('/')}"/>
-                <BaseButton text="Detailed" :btnClass="(checkView('/singleDetailed') ? 'red' : '') + ' header-button'"  :onClickFunc="()=>{changeView('/singleDetailed')}"/>
-                <BaseButton text="Multiple" :btnClass="(checkView('/multiple') ? 'red' : '') + ' header-button'"  :onClickFunc="()=>{changeView('/multiple')}"/> -->
-                    <Button class="btn-page"  label="Simple" :severity="checkView('/') ? 'primary' : 'secondary'" @click="()=>{changeView('/')}" />
-                        <Button class="btn-page"  label="Detailed"  :severity="checkView('/singleDetailed') ? 'primary' : 'secondary'" @click="()=>{changeView('/singleDetailed')}" />
-                            <Button class="btn-page"  label="Multiple" :severity="checkView('/multiple') ? 'primary' : 'secondary'" @click="()=>{changeView('/multiple')}"  />
-                            <Button class="btn-page"  label="Multiple detailed" :severity="checkView('/multipleDetailed') ? 'primary' : 'secondary'" @click="()=>{changeView('/multipleDetailed')}"  />
-                            </div>
-                        </div>
-                        <div class="path-and-settings">
-            
+                <Button class="btn-page"  label="Simple" :severity="checkView('/') ? 'primary' : 'secondary'" @click="()=>{changeView('/')}" />
+                <Button class="btn-page"  label="Detailed"  :severity="checkView('/singleDetailed') ? 'primary' : 'secondary'" @click="()=>{changeView('/singleDetailed')}" />
+                <Button class="btn-page"  label="Multiple" :severity="checkView('/multiple') ? 'primary' : 'secondary'" @click="()=>{changeView('/multiple')}"  />
+                <Button class="btn-page"  label="Multiple detailed" :severity="checkView('/multipleDetailed') ? 'primary' : 'secondary'" @click="()=>{changeView('/multipleDetailed')}"  />
+            </div>
+        </div>
+        <div class="path-and-settings">
             <BaseFileInput 
                 style="margin: 0 1em 0 0; font-size: 0.93em;"
                 :path="userConfigStore.userConfig.defaultOutput"
                 @folder-selected="setDefaultFolder"/>
                 <Button icon="pi pi-download" class="btn-page" style=" margin-right: .5em;" variant="text" :severity="checkView('/downloads') ? 'primary' : 'secondary'" @click="()=>{changeView('/downloads')}"  />
-                    <Button icon="pi pi-user" @click="()=>accountsModalVisible=true" style=" margin-right: .5em;"  variant="text" size="large" severity="secondary" />
+                <Button icon="pi pi-user" @click="()=>accountsModalVisible=true" style=" margin-right: .5em;"  variant="text" size="large" severity="secondary" />
                 <Button icon="pi pi-cog" @click="()=>configModalVisible=true" variant="text" size="large" severity="secondary" />
         </div>
     </nav>
@@ -75,10 +68,16 @@ import Tabs from 'primevue/tabs';
 import TabPanel from 'primevue/tabpanel';
 import TabPanels from 'primevue/tabpanels';
 import ytdlpVariables from '../constants/ytdlpVariables';
-import AutoComplete from 'primevue/autocomplete';
+import AutoComplete, { AutoCompleteCompleteEvent } from 'primevue/autocomplete';
 import { useUserConfig } from '../stores/userConfig';
 import DownloadsTab from './userConfigModal/DownloadsTab.vue';
 import AccountsContainer from './accountsModal/AccountsContainer.vue';
+import { filterArray } from '../helpers/miscFuncs';
+import { browser } from '../constants/browser';
+import FloatLabel from 'primevue/floatlabel';
+import ToggleSwitch from 'primevue/toggleswitch';
+import { findConfigCode } from '../helpers/download';
+import AuthenticationModal from './accountsModal/AuthenticationModal.vue';
 
     export default {
         name: "TheHeader",
@@ -93,13 +92,17 @@ import AccountsContainer from './accountsModal/AccountsContainer.vue';
             TabPanels,
             AutoComplete,
             DownloadsTab,
-            AccountsContainer
+            AccountsContainer,
+            FloatLabel,
+            ToggleSwitch,
+            AuthenticationModal
         },
         data() {
             return {
                 activeView: 'home',
                 configModalVisible: false,
                 accountsModalVisible: false,
+                enableAuth: false,
                 configModalView: 'Downloads',
                 changes: false,
                 message: '',
@@ -107,6 +110,8 @@ import AccountsContainer from './accountsModal/AccountsContainer.vue';
                 newUserConfig: {} as UserConfig,
                 variables: ytdlpVariables,
                 filteredVariables: [] as string[],
+                filteredBrowsers: [] as string[],
+                browser: '',
             }
         },
         setup() {
@@ -129,6 +134,23 @@ import AccountsContainer from './accountsModal/AccountsContainer.vue';
             }
         },
         methods: {
+            async setBrowser() {
+                let auth = this.userConfigStore.getUserConfig.authentication ?? {} as UserAuthentication;
+
+                auth.cookiesFromBrowser = findConfigCode(this.browser,browser) ;
+
+                await this.userConfigStore.setUserConfigField('authentication',auth);
+            },
+            async toggleEnableAuth() {
+                let auth = this.userConfigStore.getUserConfig.authentication ?? {} as UserAuthentication;
+
+                auth.enabled = this.enableAuth;
+
+                await this.userConfigStore.setUserConfigField('authentication',auth);
+            },
+            searchBrowser(event: AutoCompleteCompleteEvent) {
+                this.filteredBrowsers = filterArray(event,browser);
+            },
             deleteConfigHandle() {
              deleteConfig()   
             },
@@ -170,10 +192,17 @@ import AccountsContainer from './accountsModal/AccountsContainer.vue';
                 this.newUserConfig.defaultOutput = path;
 
             },
+            async setCoookiesTxtFile(path: string)  {
+                let auth = this.userConfigStore.getUserConfig.authentication ?? {} as UserAuthentication;
+
+                auth.cookiesTxtFilePath = path;
+
+                await this.userConfigStore.setUserConfigField('authentication',auth);
+            },
             setDefaultFolder(path: string) {
-                this.changeUserConfig('defaultOutput', path);
                 this.userConfigStore.setUserConfigField('defaultOutput',path);
             },
+
             search(event:any) {
                 setTimeout(() => {
                     const querySplit = event.query.split(/[-._ ]/g)
@@ -245,6 +274,18 @@ import AccountsContainer from './accountsModal/AccountsContainer.vue';
         height: 100%;
         position: relative;
     }
+
+        .account-container {
+            margin-left: 1em;
+            margin-right: 1em;
+            margin-top: .5em;
+        }
+
+
+        .config-content .cookies-container {
+            width: 80%;
+            margin: 1em auto 4em auto;
+        }
 
         .config-options {
             display: flex;

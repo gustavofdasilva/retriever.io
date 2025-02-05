@@ -10,6 +10,11 @@ export async function initConfigFile(): Promise<boolean> { //Return true if alre
             defaultFileName: '%(title)s',
             defaultAudioFormat: '.mp3',
             defaultVideoFormat: '.mp4',
+            authentication: {
+                enabled: false,
+                cookiesFromBrowser: '',
+                cookiesTxtFilePath: '',
+            }
         });
         return false
     }

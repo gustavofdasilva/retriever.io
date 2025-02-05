@@ -2,10 +2,10 @@
     <div class="active-card-container" :style="style">
         <div>
         <Toast position="bottom-right" group="downloadProgress" @close="closeDownloadProgressToast">
-            <template #container="{ message, closeCallback }">
+            <template  #container="">
                 <div class="download-toast" >
                     <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" />
-                    <Button style="position: absolute; right: 1em; top: 1em;" icon="pi pi-times" @click="toggle" variant="text" size="medium" severity="secondary" />
+                    <Button style="position: absolute; right: 1em; top: 1em;" icon="pi pi-times" @click="toggle" variant="text" severity="secondary" />
                     <p style="font-weight: 600; font-size: 1.1em;">Download progress</p>
                     <p v-if="loadingStore.getDownloadInfo != ''" style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; margin-bottom: .9em; width: 80%;">Info: {{ loadingStore.getDownloadInfo }}</p>
                     <ProgressBar :mode="loadingStore.getDownloadProgress == '' ? 'indeterminate' : 'determinate'" :value="Number(loadingStore.getDownloadProgress)" />
@@ -25,8 +25,8 @@
                     <FloatLabel style="width: 100%;" fluid variant="on">
                         <label style="z-index: 1;" for="format_dropdown">Format</label>    
                         <Select fluid inputId="format_dropdown" style="width: 100%;" v-model="format" :options="formats" optionLabel="name"
-                            @change="(event)=>{
-                                qualities = event.value.name == 'Audio' ? audioQualities : videoQualities;
+                            @change="(event:SelectChangeEvent)=>{
+                                qualities = event.value.name == 'Audio' ? audioQualities.map(item=>item.name) : videoQualities.map(item=>item.name);
                                 quality = '';
                             }" />
                     </FloatLabel>
@@ -36,9 +36,8 @@
                     <div >
                         <FloatLabel variant="on">
                             <label style="z-index: 1;" for="quality_dropdown">Quality</label>
-                            <AutoComplete :key="format" fluid inputId="quality_dropdown" v-model="quality" dropdown :suggestions="qualities" @complete="search" />
+                            <AutoComplete fluid inputId="quality_dropdown" v-model="quality" dropdown :suggestions="qualities" @complete="search" />
                         </FloatLabel>
-                        <!-- <Select v-model="quality" :options="qualities" optionLabel="name" placeholder="Quality" class="w-full md:w-56" :disabled="format==''" /> -->
                     </div>
                 </div>
                 
@@ -48,22 +47,23 @@
         </div>
     </div>
 </template>
-<script>
+<script lang="ts">
 import { invoke } from '@tauri-apps/api/core';
 import { useMediaStore } from '../stores/media';
 import { useFSStore } from '../stores/fileSystem';
 import { useLoadingStore } from '../stores/loading';
 import Toast from 'primevue/toast';
 import ProgressBar from 'primevue/progressbar';
-import Select from 'primevue/select';
+import Select, { SelectChangeEvent } from 'primevue/select';
 import Button from 'primevue/button';
 import Menu from 'primevue/menu';
 import { audioQualities, videoQualities } from '../constants/qualities';
 import { formats } from '../constants/fileExtensions';
 import { useUserConfig } from '../stores/userConfig';
-import AutoComplete from 'primevue/autocomplete';
+import AutoComplete, { AutoCompleteCompleteEvent } from 'primevue/autocomplete';
 import FloatLabel from 'primevue/floatlabel';
 import { findConfigCode } from '../helpers/download';
+import { findAccount } from '../helpers/accounts';
 
     export default {
         components: {
@@ -82,12 +82,12 @@ import { findConfigCode } from '../helpers/download';
             return {
                 loading: false,
                 cancelled: false,
-                format: '',
+                format: {} as BaseOption,
                 formats:formats,
                 videoQualities: videoQualities,
                 audioQualities: audioQualities,
                 filteredQualities:[],
-                qualities:[],
+                qualities:[] as string[],
                 quality: '',
                 items: [
                     {
@@ -135,7 +135,7 @@ import { findConfigCode } from '../helpers/download';
                 this.loadingStore.setDownloadInfo('');
                 this.closeDownloadProgressToast();
             },
-            search(event) {
+            search(event:AutoCompleteCompleteEvent) {
                 if(this.format.name == 'Audio') {
                     console.log("Audio")
                     this.qualities = event.query ? this.audioQualities.filter((quality) => {
@@ -152,11 +152,18 @@ import { findConfigCode } from '../helpers/download';
             },
             download() {
                 this.loading=true
-                const defaultFileName = this.userConfig.getUserConfig.defaultOutput;
+                const defaultFileName = this.userConfig.getUserConfig.defaultFileName;
+                const defaultOutput = this.userConfig.getUserConfig.defaultOutput;
                 const defaultAudioFormat = this.userConfig.getUserConfig.defaultAudioFormat;
                 const defaultVideoFormat = this.userConfig.getUserConfig.defaultVideoFormat;
                 const fileType = this.format.code == "Audio" ? defaultAudioFormat.replace('.','') : defaultVideoFormat.replace('.','');
-                const output = `${this.fsStore.getDefaultOutput}/${defaultFileName}`
+                const output = `${defaultOutput}/${defaultFileName}`
+
+                const enabledAuth = this.userConfig.getUserConfig.authentication.enabled;
+                const cookiesFromBrowser = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesFromBrowser: "";
+                const cookiesTxtFilePath = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesTxtFilePath: "";
+                const username = enabledAuth ? findAccount(this.mediaStore.getUrl)?.username ?? {} as Account : '';
+                const password = enabledAuth ? findAccount(this.mediaStore.getUrl)?.password ?? {} as Account : '';
                 
                 this.getProgressInfo();
                 invoke('download',{
@@ -169,7 +176,11 @@ import { findConfigCode } from '../helpers/download';
                     startSection: "",
                     endSection: "",
                     thumbnailPath: "",
-                }).then((response)=>{
+                    username: username ?? "",
+                    password: password ?? "",
+                    cookiesFromBrowser: cookiesFromBrowser,
+                    cookiesTxtFilePath: cookiesTxtFilePath,
+                }).then((response: any)=>{
                     if(this.cancelled) {
                         this.cancelled =false;
                         return 
@@ -188,7 +199,7 @@ import { findConfigCode } from '../helpers/download';
                     const outputFullPath = response.output.split('\\')
                     const outputName = outputFullPath[outputFullPath.length-1];
 
-                    this.mediaStore.setFormat(this.format.code)
+                    this.mediaStore.setFormat(this.format.code as "Video" | "Audio")
                     this.mediaStore.setQuality(this.quality);
                     this.mediaStore.setTitle(outputName);
                     
@@ -219,7 +230,7 @@ import { findConfigCode } from '../helpers/download';
                 this.downloadProgressToast();
                 const loadProgress = setInterval(()=>{
                     if (this.loading) {
-                        invoke('get_progress_info').then((res)=>{
+                        invoke('get_progress_info').then((res:any)=>{
                             if(res == "") return
 
                             this.loadingStore.setDownloadInfo(res);
@@ -243,9 +254,13 @@ import { findConfigCode } from '../helpers/download';
                 this.$toast.removeGroup("downloadProgress");
             },
             downloadProgressToast() {
-                this.$toast.add({ severity: 'secondary', summary: 'Uploading your files.', group: 'downloadProgress'});
+                console.log("DOWNLOAD TOAST");
+                this.$toast.add({ 
+                    severity: 'secondary', 
+                    summary: 'Uploading your files.', 
+                    group: 'downloadProgress'});
             },
-            newNotification(message, life) {
+            newNotification(message: string, life: number) {
                 this.$toast.add({
                     severity: 'secondary',
                     summary: 'Download log',
@@ -254,7 +269,8 @@ import { findConfigCode } from '../helpers/download';
                     closable: true
                 })
             },
-            toggle(event) {
+            toggle(event: any) {
+                //@ts-ignore
                 this.$refs.menu.toggle(event);
             }
         }

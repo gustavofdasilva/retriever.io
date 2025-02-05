@@ -34,6 +34,8 @@ import { useMediaStore } from '../stores/media';
 import ActiveDownloadCardDetailed from '../components/ActiveDownloadCardDetailed.vue';
 import { invoke } from '@tauri-apps/api/core';
 import { useLoadingStore } from '../stores/loading';
+import { findAccount } from '../helpers/accounts';
+import { useUserConfig } from '../stores/userConfig';
 
     export default {
         components: {
@@ -47,6 +49,7 @@ import { useLoadingStore } from '../stores/loading';
             const mediaStore = useMediaStore();
             const fsStore = useFSStore();
             const loadingStore = useLoadingStore();
+            const userConfig = useUserConfig();
             const readFile = () => readHistFile();
             const createFile = () => createHistFile();
             const addDownload = (newLog: DownloadLog) => addToHist(newLog);
@@ -56,6 +59,7 @@ import { useLoadingStore } from '../stores/loading';
                 mediaStore,
                 fsStore,
                 loadingStore,
+                userConfig,
                 readFile,
                 createFile,
                 addDownload,
@@ -77,7 +81,25 @@ import { useLoadingStore } from '../stores/loading';
                 if(this.loadingStore.loading) return
 
                 this.loadingSearch = true
-                invoke('get_metadata',{url: inputText}).then((res: any)=>{
+
+                const enabledAuth = this.userConfig.getUserConfig.authentication.enabled;
+                const cookiesFromBrowser = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesFromBrowser: "";
+                const cookiesTxtFilePath = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesTxtFilePath: "";
+                let username = enabledAuth ? findAccount(inputText)?.username : '';
+                let password = enabledAuth ? findAccount(inputText)?.password : '';
+
+                if(!username || !password) {
+                    username='';
+                    password='';
+                }
+
+                invoke('get_metadata',{
+                    url: inputText, 
+                    username: username,
+                    password: password,
+                    cookiesFromBrowser: cookiesFromBrowser,
+                    cookiesTxtFilePath: cookiesTxtFilePath,
+                }).then((res: any)=>{
                     if (res.error && res.error != "") {
                         const errorIndex = res.error.indexOf("ERROR:");
                         const errorOnly = res.error.substring(errorIndex);

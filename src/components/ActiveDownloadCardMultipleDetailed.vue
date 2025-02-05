@@ -153,6 +153,7 @@ import FloatLabel from 'primevue/floatlabel';
 import { checkFormat, findConfigCode } from '../helpers/download';
 import Message from 'primevue/message';
 import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/history';
+import { useUserConfig } from '../stores/userConfig';
 
 
     export default {
@@ -221,6 +222,7 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
             const mediaStore = useMediaStore()
             const fsStore = useFSStore()
             const loadingStore = useLoadingStore()
+            const userConfig = useUserConfig();
             const readFile = () => readHistFile();
             const createFile = () => createHistFile();
             const addDownload = (newLog) => addToHist(newLog);
@@ -230,6 +232,7 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
                 mediaStore,
                 fsStore,
                 loadingStore,
+                userConfig,
                 readFile,
                 createFile,
                 addDownload,
@@ -336,9 +339,14 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
                     }
 
                     const fileExt = fileExtCode.includes('any') ? 'any' : fileExtCode
-                    const outputPath = this.outputPath == '' ? this.fsStore.getDefaultOutput : this.outputPath 
-                    const output = `${outputPath}/${this.fileName == '' ? this.mediaStore.getTitle : this.fileName}`
+                    const outputPath = this.outputPath == '' ? this.userConfig.getUserConfig.defaultOutput : this.outputPath 
+                    const output = `${outputPath}/${this.fileName == '' ? this.userConfig.getUserConfig.defaultFileName : this.fileName}`
                     const thumbnailPath = this.thumbnail.download ? `${outputPath}/${this.thumbnail.fileName}` : ""
+                    const enabledAuth = this.userConfig.getUserConfig.authentication.enabled;
+                    const cookiesFromBrowser = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesFromBrowser: "";
+                    const cookiesTxtFilePath = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesTxtFilePath: "";
+                    const username = enabledAuth ? findAccount(this.mediaStore.getUrl)?.username : '';
+                    const password = enabledAuth ? findAccount(this.mediaStore.getUrl)?.password : '';
 
                     this.videoIndex = this.mediaStore.getMultiUrls.indexOf(url);
                     await invoke('download',{
@@ -351,6 +359,10 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
                         startSection: this.trim ? this.range.start : '',
                         endSection: this.trim ? this.range.end : '',
                         thumbnailPath:thumbnailPath,
+                        username: username ?? "",
+                        password: password ?? "",
+                        cookiesFromBrowser: cookiesFromBrowser,
+                        cookiesTxtFilePath: cookiesTxtFilePath,
                     }).then(async(response)=>{
                         if(this.cancelled) {
                             this.cancelled =false;
@@ -425,7 +437,25 @@ import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/h
                 }
             },
             async getMetadata(url) {
-                const res = await invoke('get_metadata',{url: url})
+
+                const enabledAuth = this.userConfig.getUserConfig.authentication.enabled;
+                const cookiesFromBrowser = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesFromBrowser: "";
+                const cookiesTxtFilePath = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesTxtFilePath: "";
+                let username = enabledAuth ? findAccount(url)?.username : '';
+                let password = enabledAuth ? findAccount(url)?.password : '';
+
+                if(!username || !password) {
+                    username='';
+                    password='';
+                }
+
+                const res = await invoke('get_metadata',{
+                    url: url, 
+                    username: username,
+                    password: password,
+                    cookiesFromBrowser: cookiesFromBrowser,
+                    cookiesTxtFilePath: cookiesTxtFilePath,
+                })
                 if (res.error && res.error != "") {
                     const errorIndex = res.error.indexOf("ERROR:");
                     const errorOnly = res.error.substring(errorIndex);

@@ -43,6 +43,8 @@ import { useLoadingStore } from '../stores/loading';
 import { invoke } from '@tauri-apps/api/core';
 import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
 import { useDownloadLogStore } from '../stores/downloadLog';
+import { findAccount } from '../helpers/accounts';
+import { useUserConfig } from '../stores/userConfig';
 
     export default {
         components: {
@@ -58,6 +60,7 @@ import { useDownloadLogStore } from '../stores/downloadLog';
             const fsStore = useFSStore();
             const loadingStore = useLoadingStore();
             const downloadLogStore = useDownloadLogStore();
+            const userConfig = useUserConfig();
             const readFile = () => readHistFile();
             const createFile = () => createHistFile();
             const addDownload = (newLog: DownloadLog) => addToHist(newLog);
@@ -68,6 +71,7 @@ import { useDownloadLogStore } from '../stores/downloadLog';
                 fsStore,
                 loadingStore,
                 downloadLogStore,
+                userConfig,
                 readFile,
                 createFile,
                 addDownload,
@@ -89,7 +93,25 @@ import { useDownloadLogStore } from '../stores/downloadLog';
                 if(this.loadingStore.loading) return
 
                 this.loadingSearch = true
-                invoke('get_metadata',{url: inputText}).then((res: any)=>{
+                const enabledAuth = this.userConfig.getUserConfig.authentication.enabled;
+                const cookiesFromBrowser = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesFromBrowser: "";
+                const cookiesTxtFilePath = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesTxtFilePath: "";
+                let username = enabledAuth ? findAccount(inputText)?.username : '';
+                let password = enabledAuth ? findAccount(inputText)?.password : '';
+
+                if(!username || !password) {
+                    username='';
+                    password='';
+                }
+
+                console.log(username,password);
+                invoke('get_metadata',{
+                    url: inputText, 
+                    username: username,
+                    password: password,
+                    cookiesFromBrowser: cookiesFromBrowser,
+                    cookiesTxtFilePath: cookiesTxtFilePath,
+                }).then((res: any)=>{
 
                     if (res.error && res.error != "") {
                         const errorIndex = res.error.indexOf("ERROR:");

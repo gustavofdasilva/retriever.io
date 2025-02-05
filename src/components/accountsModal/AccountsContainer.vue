@@ -3,19 +3,19 @@
         <div class="crud-content">
             <div class="option">
                 <label for="label">Label:</label>
-                <input  type="text" name="label" id="label" v-model="newAccount.label">
+                <input type="text" name="label" id="label" v-model="newAccount.label">
             </div>
             <div class="option">
                 <label for="website">Website:</label>
-                <input  type="text" name="website" id="website" v-model="newAccount.website">
+                <input v-tooltip="'Website name/domain to match with the URL selected'"  type="text" name="website" id="website" v-model="newAccount.website">
             </div>
             <div class="option">
                 <label for="username">Username:</label>
-                <input  type="text" name="username" id="username" v-model="newAccount.username">
+                <input v-tooltip="'--username'" type="text" name="username" id="username" v-model="newAccount.username">
             </div>
             <div class="option">
                 <label for="password">Password:</label>
-                <input type="password" name="password" id="password" v-model="newAccount.password">
+                <input v-tooltip="'--password'" type="password" name="password" id="password" v-model="newAccount.password">
             </div>
             <Button :disabled="!checkEmptyField()" style="margin-top: 1.5em; " fluid :severity="checkEmptyField() ? 'primary' : 'secondary'"  @click="createAccount"  label="Create account"  />
         </div>

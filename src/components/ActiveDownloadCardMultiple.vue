@@ -173,8 +173,13 @@ import { findConfigCode } from '../helpers/download';
                         return
                     }
                     
-                    const defaultFileName = this.userConfig.getUserConfig.getDefaultFileName;
-                    const output = `${this.fsStore.getDefaultOutput}/${defaultFileName}`
+                    const defaultFileName = this.userConfig.getUserConfig.defaultFileName;
+                    const output = `${this.userConfig.getUserConfig.defaultOutput}/${defaultFileName}`
+                    const enabledAuth = this.userConfig.getUserConfig.authentication.enabled;
+                const cookiesFromBrowser = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesFromBrowser: "";
+                const cookiesTxtFilePath = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesTxtFilePath: "";
+                const username = enabledAuth ? findAccount(this.mediaStore.getUrl)?.username: '';
+                const password = enabledAuth ? findAccount(this.mediaStore.getUrl)?.password: '';
 
                     this.videoIndex = this.mediaStore.getMultiUrls.indexOf(url);
                     await invoke('download',{
@@ -187,6 +192,10 @@ import { findConfigCode } from '../helpers/download';
                         startSection: "",
                         endSection: "",
                         thumbnailPath:"",
+                        username: username ?? "",
+                        password: password ?? "",
+                        cookiesFromBrowser: cookiesFromBrowser,
+                        cookiesTxtFilePath: cookiesTxtFilePath,
                     }).then(async(response)=>{
                         if(this.cancelled) {
                             this.cancelled =false;
@@ -243,7 +252,26 @@ import { findConfigCode } from '../helpers/download';
             },
 
             async getMetadata(url) {
-                const res = await invoke('get_metadata',{url: url})
+
+                
+                const enabledAuth = this.userConfig.getUserConfig.authentication.enabled;
+                const cookiesFromBrowser = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesFromBrowser: "";
+                const cookiesTxtFilePath = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesTxtFilePath: "";
+                let username = enabledAuth ? findAccount(url)?.username : '';
+                let password = enabledAuth ? findAccount(url)?.password : '';
+
+                if(!username || !password) {
+                    username='';
+                    password='';
+                }
+
+                const res = await invoke('get_metadata',{
+                    url: url, 
+                    username: username,
+                    password: password,
+                    cookiesFromBrowser: cookiesFromBrowser,
+                    cookiesTxtFilePath: cookiesTxtFilePath,
+                })
                 if (res.error && res.error != "") {
                     const errorIndex = res.error.indexOf("ERROR:");
                     const errorOnly = res.error.substring(errorIndex);

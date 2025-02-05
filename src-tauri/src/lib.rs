@@ -1,7 +1,7 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+ // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
 use std::{
-    collections::HashMap, fs, io::{ stderr, BufRead, BufReader}, process::{Command, Stdio}, vec
+    collections::HashMap, env::args, fs, io::{ stderr, BufRead, BufReader}, process::{Command, Stdio}, vec
 };
 
 use encoding_rs::WINDOWS_1252;
@@ -10,36 +10,65 @@ static mut DOWNLOAD_STATUS: String = String::new();
 static mut ACTIVE_PROCESS_ID: Option<u32> = None;
 
 #[tauri::command]
-async fn get_metadata(url: String) -> HashMap<String, String> {
+async fn get_metadata(url: String, username: String, password: String, cookies_from_browser: String, cookies_txt_file_path: String) -> HashMap<String, String> {
     use std::process::Command;
 
     println!("Received!, lets start");
 
+    let mut args:Vec<String> = vec![];
+
+    
+    if username != "" && password != "" {
+        args.push("--username".to_string());
+        args.push(username);
+        args.push("--password".to_string());
+        args.push(password);
+    }
+
+    if cookies_from_browser != "" {
+        args.push("--cookies-from-browser".to_string());
+        args.push(cookies_from_browser);
+    } else if cookies_txt_file_path != "" {
+        args.push("--cookies".to_string());
+        args.push(cookies_txt_file_path);
+    }
+
+    args.push("--print".to_string());   
+    args.push("title".to_string());
+    args.push("--print".to_string());
+    args.push("channel".to_string());
+    args.push("--print".to_string());
+    args.push("thumbnail".to_string());
+    args.push("--print".to_string());
+    args.push("view_count".to_string());
+    args.push("--print".to_string());
+    args.push("like_count".to_string());
+    args.push("--print".to_string());
+    args.push("dislike_count".to_string());
+    args.push("--print".to_string());
+    args.push("duration_string".to_string());
+    args.push("--print".to_string());
+    args.push("uploader".to_string());
+    args.push("--print".to_string());
+    args.push("creator".to_string());
+    args.push("--print".to_string());
+
+
+    args.push("--skip-download".to_string());
+    args.push(url);
+
+    println!("{}",args.join(" "));
+
     let output = Command::new("yt-dlp")
-        .arg("--print")
-        .arg("title")
-        .arg("--print")
-        .arg("channel")
-        .arg("--print")
-        .arg("thumbnail")
-        .arg("--print")
-        .arg("view_count")
-        .arg("--print")
-        .arg("like_count")
-        .arg("--print")
-        .arg("dislike_count")
-        .arg("--print")
-        .arg("duration_string")
-        .arg("--print")
-        .arg("uploader")
-        .arg("--print")
-        .arg("creator")
-        .arg("--print")
-        .arg("--skip-download")
-        .arg(url)
+        .args(args)
         .stdout(Stdio::piped())
         .output()
         .unwrap();
+
+    println!(
+        "STDERR {}",
+        String::from_utf8_lossy(&output.stdout).to_string()
+    );
     println!(
         "STDERR {}",
         String::from_utf8_lossy(&output.stderr).to_string()
@@ -108,6 +137,10 @@ async fn download(
     start_section: String,
     end_section: String,
     thumbnail_path: String,
+    username: String,
+    password: String,
+    cookies_from_browser: String, 
+    cookies_txt_file_path: String
 ) -> HashMap<String, String> {
     use std::process::Command;
 
@@ -154,6 +187,23 @@ async fn download(
         args.append(&mut audio_args);
     }
 
+    if username !="" && password !="" {
+        args.push("--username".to_string());
+        args.push(username);
+        args.push("--password".to_string());
+        args.push(password);
+    }
+
+    
+
+    if cookies_from_browser != "" {
+        args.push("--cookies-from-browser".to_string());
+        args.push(cookies_from_browser);
+    } else if cookies_txt_file_path != "" {
+        args.push("--cookies".to_string());
+        args.push(cookies_txt_file_path);
+    }
+
     if thumbnail_path != "" {
         args.push("--write-thumbnail".to_string());
         args.push("-P".to_string());
@@ -189,6 +239,8 @@ async fn download(
         // format!("res:{},ext:{},filesize~{}M",resolution_num,file_ext_default_handle,goalFileSize)
         format_sort_arg.join(","),
     );
+
+    
 
     args.push("--print".to_string());
     args.push("after_move:filepath".to_string());
