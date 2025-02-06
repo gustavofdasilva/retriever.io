@@ -19,6 +19,12 @@ export const audioExtensions: YTDLPOptions = [
     {name:'.wav',code:"wav"},
 ]
 
+export const imageExtensions: YTDLPOptions = [
+    {name:'.png',code:"png"},
+    {name:'.jpg',code:"jpg"},
+    {name:'.webp',code:"webp"},
+]
+
 export const fileExtensions: YTDLPOptions = [
     {name:'Any (Only audio)',code:"anyaudio"},
     {name:'Any',code:"anyvideo"},

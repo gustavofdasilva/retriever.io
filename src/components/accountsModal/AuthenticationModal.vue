@@ -5,9 +5,7 @@
                 <div style="display: flex; flex-direction: column; margin: 1em 0 0 1em">
                     <p >Enable authentication:</p><aside style="color: var(--surface-700);">Include authentication in command</aside>
                 </div>
-                <div style="margin-right: 5em;">
-                    <ToggleSwitch v-model="enableAuth" @change="toggleEnableAuth"/>
-                </div>
+                <ToggleSwitch v-model="enableAuth" @change="toggleEnableAuth"/>
             </div>
         </div>
         <span v-if="userConfigStore.getUserConfig.authentication.enabled"  style="font-size: 1.2em; font-weight: bold;">Cookies</span>
@@ -26,7 +24,7 @@
             </div>
             <div style="display: flex; align-items: center; justify-content: space-between; margin: 2em 0 0 1em">
                 <div style="display: flex; flex-direction: column; justify-content: center; flex: 1;">
-                    <p >Use cookies from .txt file:</p>
+                    <p >Use cookies from .txt file:</p><aside style="color: var(--surface-700);">Access yt-dlp repository for more information</aside>
                 </div>
                 <div style="margin-left: 1em; max-width: 80%;">
                     <BaseFileInput 
@@ -202,6 +200,7 @@ import AccountsContainer from './AccountsContainer.vue';
         width: 100%;
         height: 100%;
         position: relative;
+        padding: 0 1em;
     }
 
         .account-container {

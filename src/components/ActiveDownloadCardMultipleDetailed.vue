@@ -380,17 +380,22 @@ import { useUserConfig } from '../stores/userConfig';
                         const outputFullPath = response.output.split('\\')
                         const outputName = outputFullPath[outputFullPath.length-1];
 
-                        let startTime, endTime;
-                        if(this.range.start.split(":").length == 2) {
-                            startTime = `00:${this.range.start}`
-                        } else if (this.range.start.split(":").length == 1) {
-                            startTime = `00:00:${this.range.start}`
+                        let startTime = "00:00";
+                        let endTime = "00:00";
+                        if(this.range.start != "" && this.range.start) {
+                            if(this.range.start.split(":").length == 2 ) {
+                                startTime = `00:${this.range.start}`
+                            } else if (this.range.start.split(":").length == 1) {
+                                startTime = `00:00:${this.range.start}`
+                            }
                         }
 
-                        if(this.range.end.split(":").length == 2) {
-                            endTime = `00:${this.range.end}`
-                        } else if (this.range.end.split(":").length == 1) {
-                            endTime = `00:00:${this.range.end}`
+                        if(this.range.end != "" && this.range.end) {
+                            if(this.range.end.split(":").length == 2 ) {
+                                endTime = `00:${this.range.end}`
+                            } else if (this.range.end.split(":").length == 1) {
+                                endTime = `00:00:${this.range.end}`
+                            }
                         }
 
                         let length = this.timeDifference(startTime,endTime);

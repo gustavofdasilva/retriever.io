@@ -3,8 +3,10 @@
         <Dialog class="config-modal" v-model:visible="configModalVisible" :draggable="false" modal header="Settings">
             <div class="config-sidebar">
                 <div>
+                    <Button style="width: 100%;" @click="configModalView = 'General'"  label="General" :severity="configModalView == 'General' ? 'primary' : 'secondary'" />
                     <Button style="width: 100%;" @click="configModalView = 'Downloads'"  label="Downloads" :severity="configModalView == 'Downloads' ? 'primary' : 'secondary'" />
-                    <Button style="width: 100%;" @click="configModalView = 'Theme'"  label="Theme" :severity="configModalView == 'Theme' ? 'primary' : 'secondary'" />
+                    <Button style="width: 100%;" @click="configModalView = 'Postprocessing'"  label="Postprocessing" :severity="configModalView == 'Postprocessing' ? 'primary' : 'secondary'" />
+                    <Button style="width: 100%;" @click="configModalView = 'Metadata'"  label="Metadata" :severity="configModalView == 'Metadata' ? 'primary' : 'secondary'" />
                     <Button style="width: 100%;" @click="configModalView = 'About'"  label="About" :severity="configModalView == 'About' ? 'primary' : 'secondary'" />
                 </div>
                 <div>
@@ -13,22 +15,22 @@
                     </p>
                 </div>
             </div>
-            <Tabs v-model:value="configModalView" class="config-content" >
+            <Tabs v-model:value="configModalView" class="config-content" style="overflow-y: scroll;">
                 <TabPanels>
-                    <TabPanel value="Downloads">
-                        <DownloadsTab/>
+                    <TabPanel value="General">
+                        <GeneralTab v-if="configModalView == 'General'" /> <!--v-if to force unmount-->
                     </TabPanel>
-                    <TabPanel value="Theme">
-                        <p>
-                            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim
-                            ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Consectetur, adipisci velit, sed quia non numquam eius modi.
-                        </p>
+                    <TabPanel value="Downloads">
+                        <DownloadsTab v-if="configModalView == 'Downloads'"/>
+                    </TabPanel>
+                    <TabPanel value="Postprocessing">
+                        <PostProcessingTab v-if="configModalView == 'Postprocessing'"/>
+                    </TabPanel>
+                    <TabPanel value="Metadata">
+                        <MetadataTab v-if="configModalView == 'Metadata'"/>
                     </TabPanel>
                     <TabPanel value="About">
-                        <p>
-                            At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa
-                            qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus.
-                        </p>
+                        <AboutTab v-if="configModalView == 'About'"/>
                     </TabPanel>
                 </TabPanels>
             </Tabs>
@@ -78,6 +80,10 @@ import FloatLabel from 'primevue/floatlabel';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { findConfigCode } from '../helpers/download';
 import AuthenticationModal from './accountsModal/AuthenticationModal.vue';
+import GeneralTab from './userConfigModal/GeneralTab.vue';
+import PostProcessingTab from './userConfigModal/PostProcessingTab.vue';
+import MetadataTab from './userConfigModal/MetadataTab.vue';
+import AboutTab from './userConfigModal/AboutTab.vue';
 
     export default {
         name: "TheHeader",
@@ -92,6 +98,10 @@ import AuthenticationModal from './accountsModal/AuthenticationModal.vue';
             TabPanels,
             AutoComplete,
             DownloadsTab,
+            GeneralTab,
+            PostProcessingTab,
+            MetadataTab,
+            AboutTab,
             AccountsContainer,
             FloatLabel,
             ToggleSwitch,
@@ -272,7 +282,6 @@ import AuthenticationModal from './accountsModal/AuthenticationModal.vue';
     .config-content {
         width: 100%;
         height: 100%;
-        position: relative;
     }
 
         .account-container {
