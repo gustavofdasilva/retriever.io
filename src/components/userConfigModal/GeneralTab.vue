@@ -1,6 +1,6 @@
 <template>
-    <div style="width: 85%;">
-        <Button :disabled="!changes" :severity="changes ? 'primary' : 'secondary'"  style="position: absolute; bottom: 0; right: 0;" @click="saveConfig"  label="Save changes"  />
+    <div style="width: 100%;">
+        <Button :disabled="!changes" :severity="changes ? 'primary' : 'secondary'"  style="position: absolute;  bottom: 10px; right: 20px;" @click="saveConfig"  label="Save changes"  />
         <div class="config-options">
             <span>
                 Enable system notification:
@@ -178,8 +178,8 @@ import ToggleSwitch from 'primevue/toggleswitch';
         .config-options {
             display: flex;
             align-items: center;
-            justify-content: flex-start;
-            margin-bottom: 2em;
+            justify-content: space-between;
+            margin-bottom: 3em;
         }
             .config-options span {
                 margin-right: 1em;

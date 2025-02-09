@@ -1,6 +1,6 @@
 <template>
-    <div style="width: 85%;">
-        <Button :disabled="!changes" :severity="changes ? 'primary' : 'secondary'"  style="position: absolute; bottom: 20px; right: 50px;" @click="saveConfig"  label="Save changes"  />
+    <div style="width: 100%; ">
+        <Button :disabled="!changes" :severity="changes ? 'primary' : 'secondary'"  style="position: absolute; bottom: 10px; right: 20px;" @click="saveConfig"  label="Save changes"  />
         <div class="config-options">
             <span>
                 Default download folder:
@@ -14,7 +14,7 @@
             <span style="margin-bottom: .5em;">
                 Default output file name:
             </span>
-            <AutoComplete style="flex:1" class="suggestions-input" v-model="newUserConfig.defaultFileName" :showEmptyMessage="false" :suggestions="filteredVariables" @complete="search" 
+            <AutoComplete forceSelection  style="flex:1" class="suggestions-input" v-model="newUserConfig.defaultFileName" :showEmptyMessage="false" :suggestions="filteredVariables" @complete="search" 
                 :pt="{
                     root(root:any) {
                         root.instance.onOptionSelect = (event: any, option:any) => {
@@ -40,11 +40,11 @@
         </div>
         <div class="config-options">
             <span>Default audio file extension:</span>
-            <AutoComplete fluid inputId="quality_dropdown" v-model="newUserConfig.defaultAudioFormat" dropdown :suggestions="filteredAudioExtensions" @complete="searchAudioExt" />
+            <AutoComplete :forceSelection="true"  fluid inputId="quality_dropdown" v-model="newUserConfig.defaultAudioFormat" dropdown :suggestions="filteredAudioExtensions" @complete="searchAudioExt" />
         </div>
         <div class="config-options">
             <span>Default video file extension:</span>
-            <AutoComplete fluid inputId="quality_dropdown" v-model="newUserConfig.defaultVideoFormat" dropdown :suggestions="filteredVideoExtensions" @complete="searchVideoExt" />
+            <AutoComplete :forceSelection="true" fluid inputId="quality_dropdown" v-model="newUserConfig.defaultVideoFormat" dropdown :suggestions="filteredVideoExtensions" @complete="searchVideoExt" />
         </div>
         <div class="config-options">
             <span class="name-w-label">
@@ -328,8 +328,8 @@ import ToggleSwitch from 'primevue/toggleswitch';
         .config-options {
             display: flex;
             align-items: center;
-            justify-content: flex-start;
-            margin-bottom: 2em;
+            justify-content: space-between;
+            margin-bottom: 3em;
         }
             .config-options span {
                 margin-right: 1em;

@@ -15,7 +15,7 @@
                     </p>
                 </div>
             </div>
-            <Tabs v-model:value="configModalView" class="config-content" style="overflow-y: scroll;">
+            <Tabs v-model:value="configModalView" class="config-content" style="overflow-y: auto;">
                 <TabPanels>
                     <TabPanel value="General">
                         <GeneralTab v-if="configModalView == 'General'" /> <!--v-if to force unmount-->
@@ -281,7 +281,12 @@ import AboutTab from './userConfigModal/AboutTab.vue';
 
     .config-content {
         width: 100%;
-        height: 100%;
+        height: 90%;
+        box-shadow: 0px 10px 15px -3px rgba(0,0,0,0.1);
+    }
+
+    .config-content::-webkit-scrollbar {
+    width: 6px;
     }
 
         .account-container {

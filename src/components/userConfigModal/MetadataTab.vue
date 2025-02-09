@@ -1,176 +1,52 @@
 <template>
-    <div style="width: 85%;">
-        <Button :disabled="!changes" :severity="changes ? 'primary' : 'secondary'"  style="position: absolute; bottom: 20px; right: 50px;" @click="saveConfig"  label="Save changes"  />
+    <div style="width: 100%; ">
+        <Button :disabled="!changes" :severity="changes ? 'primary' : 'secondary'"  style="position: absolute; bottom: 10px; right: 20px;" @click="saveConfig"  label="Save changes"  />
         <div class="config-options">
             <span>
-                Default download folder:
+                Download thumbnail by default:
             </span>
-            <BaseFileInput 
-            style="font-size: 0.93em; width: 100%;"
-            :path="newUserConfig.defaultOutput"
-            @folder-selected="setDefaultFolderUserConfig"/>
+            <AutoComplete v-if="newUserConfig.metadata" :forceSelection="true" fluid v-model="newUserConfig.metadata.downloadThumbnailByDefault" dropdown :suggestions="filteredImageExt" @complete="searchImageExt" />
         </div>
         <div class="config-options">
-            <span style="margin-bottom: .5em;">
-                Default output file name:
-            </span>
-            <AutoComplete style="flex:1" class="suggestions-input" v-model="newUserConfig.defaultFileName" :showEmptyMessage="false" :suggestions="filteredVariables" @complete="search" 
-                :pt="{
-                    root(root:any) {
-                        root.instance.onOptionSelect = (event: any, option:any) => {
-                            let optionArray = Array.from(option)
-                            const varValue = variables.find((el:any)=>el.label==option)
-
-                            for (let i = 0; i < optionArray.length; i++) {
-                                console.log(optionArray.slice(0,i+1).join(''))
-                                const fragmentedString = optionArray.slice(0,i+1).join('').toLowerCase()
-                                if(newUserConfig.defaultFileName.toLowerCase().endsWith(fragmentedString)) {
-                                    newUserConfig.defaultFileName = newUserConfig.defaultFileName.slice(0,-(i+1))
-                                    newUserConfig.defaultFileName += varValue?.value ?? option;
-                                    return
-                                }
-                            }
-
-                            newUserConfig.defaultFileName+=varValue?.value??option;
-                            
-                        }
-                    },
-                }"
-            />
-        </div>
-        <div class="config-options">
-            <span>Default audio file extension:</span>
-            <AutoComplete fluid inputId="quality_dropdown" v-model="newUserConfig.defaultAudioFormat" dropdown :suggestions="filteredAudioExtensions" @complete="searchAudioExt" />
-        </div>
-        <div class="config-options">
-            <span>Default video file extension:</span>
-            <AutoComplete fluid inputId="quality_dropdown" v-model="newUserConfig.defaultVideoFormat" dropdown :suggestions="filteredVideoExtensions" @complete="searchVideoExt" />
-        </div>
-        <div class="config-options">
-            <span class="name-w-label">
-                <p>
-                    Restrict filename:
-                </p>
-                <p>
-                    Restrict filename to only ASCII characters
-                </p>
+            <span>
+                Download description in a .description file by default:
             </span>
             <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
-                <ToggleSwitch v-if="newUserConfig.downloads" v-model="newUserConfig.downloads.restrictFilename" />
+                <ToggleSwitch v-if="newUserConfig.metadata" v-model="newUserConfig.metadata.downloadDescriptionInFileDefault" />
             </div>
         </div>
         <div class="config-options">
-            <span class="name-w-label">
-                <p>
-                    Trim filename:
-                </p>
-                <p>
-                    Set filenames max length (0 = disabled)
-                </p>
+            <span>
+                Download video annotations by default:
             </span>
             <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
-                <input v-if="newUserConfig.downloads" max="100" type="number" name="trimFilename" id="trimFilename" v-model="newUserConfig.downloads.trimFilename" @change="(event)=>{
-                    //@ts-ignore
-                    if(event.target.value > 100) {
-                        newUserConfig.downloads.trimFilename = 100;
-                    }
-                }">
+                <ToggleSwitch v-if="newUserConfig.metadata" v-model="newUserConfig.metadata.downloadVideoAnnotations" />
             </div>
         </div>
         <div class="config-options">
-            <span class="name-w-label">
-                <p>
-                    Disable PART files:
-                </p>
-                <p>
-                    Stop yt-dlp of using .PART files
-                </p>
+            <span>
+                Download Subtitles in a file by default:
             </span>
             <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
-                <ToggleSwitch v-if="newUserConfig.downloads" v-model="newUserConfig.downloads.disablePartFiles" />
+                <ToggleSwitch v-if="newUserConfig.metadata" v-model="newUserConfig.metadata.downloadSubtitlesInFile.enabled" />
             </div>
         </div>
-        <div class="config-options">
-            <span class="name-w-label">
-                <p>
-                    Concurrent downloads:
-                </p>
-                <p>
-                    How many downloads can be done at the same time
-                </p>
+        <div v-if="newUserConfig.metadata.downloadSubtitlesInFile.enabled" class="config-options" style="margin-top: -1em; padding-left: 1em;">
+            <span>
+                Subtitles type:
             </span>
             <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
-                <input v-if="newUserConfig.downloads" max="20" type="number" name="concurrentDownloads" id="concurrentDownloads" v-model="newUserConfig.downloads.concurrentDownloads" @change="(event)=>{
-                    //@ts-ignore
-                    if(event.target.value > 20) {
-                        newUserConfig.downloads.trimFilename = 20;
-                    }
-                }">
+                <AutoComplete v-if="newUserConfig.metadata" :forceSelection="true" fluid v-model="newUserConfig.metadata.downloadSubtitlesInFile.type" dropdown :suggestions="filteredSubTypes" @complete="searchSubTypes" />
             </div>
         </div>
-        <div class="config-options">
-            <span class="name-w-label">
-                <p>
-                    Rate limit:
-                </p>
-                <p>
-                    Minimum download rate in bytes per second (Example: 30k or 30m)
-                </p>
+        <div v-if="newUserConfig.metadata.downloadSubtitlesInFile.enabled" class="config-options" style="margin-top: -1em; padding-left: 1em;">
+            <span>
+                Subtitles language:
             </span>
             <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
-                <input v-if="newUserConfig.downloads" type="text" name="downloadRateLimit" id="downloadRateLimit" v-model="newUserConfig.downloads.downloadRateLimit">
+                <AutoComplete v-if="newUserConfig.metadata" :forceSelection="true" fluid v-model="newUserConfig.metadata.downloadSubtitlesInFile.lang" dropdown :suggestions="filteredLangs" @complete="searchSupportedLangs" />
             </div>
         </div>
-        <div class="config-options">
-            <span class="name-w-label">
-                <p>
-                    Number of retries:
-                </p>
-                <p>
-                    How many times to retry when failed
-                </p>
-            </span>
-            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
-                <input v-if="newUserConfig.downloads" max="10" type="number" name="retries" id="retries" v-model="newUserConfig.downloads.numberOfRetries" @change="(event)=>{
-                    //@ts-ignore
-                    if(event.target.value > 10) {
-                        newUserConfig.downloads.trimFilename = 10;
-                    }
-                }">
-            </div>
-        </div>
-        <div class="config-options">
-            <span class="name-w-label">
-                <p>
-                    File access retries:
-                </p>
-                <p>
-                    How many times to retry when failed to access file
-                </p>
-            </span>
-            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
-                <input v-if="newUserConfig.downloads" max="10" type="number" name="retries" id="retries" v-model="newUserConfig.downloads.fileAccessRetries" @change="(event)=>{
-                    //@ts-ignore
-                    if(event.target.value > 10) {
-                        newUserConfig.downloads.trimFilename = 10;
-                    }
-                }">
-            </div>
-        </div>
-        <div class="config-options">
-            <span class="name-w-label">
-                <p>
-                    Enable SponsorBlock:
-                </p>
-                <p>
-                    Skip sponsored parts of videos
-                </p>
-            </span>
-            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
-                <ToggleSwitch v-if="newUserConfig.downloads" v-model="newUserConfig.downloads.disablePartFiles" />
-            </div>
-        </div>
-        
     </div>
 
 </template>
@@ -178,12 +54,12 @@
 import Button from 'primevue/button';
 import { useFSStore } from '../../stores/fileSystem';
 import { changeConfig, getEmptyUserConfig } from '../../helpers/userConfig';
-import ytdlpVariables from '../../constants/ytdlpVariables';
+import ytdlpVariables, { supportedLangs } from '../../constants/ytdlpVariables';
 import AutoComplete from 'primevue/autocomplete';
 import BaseFileInput from '../BaseFileInput.vue';
 import { useUserConfig } from '../../stores/userConfig';
 import FloatLabel from 'primevue/floatlabel';
-import { audioExtensions, videoExtensions } from '../../constants/fileExtensions';
+import { audioExtensions, imageExtensions, videoExtensions } from '../../constants/fileExtensions';
 import ToggleSwitch from 'primevue/toggleswitch';
 
     export default {
@@ -200,12 +76,24 @@ import ToggleSwitch from 'primevue/toggleswitch';
                 changes: false,
                 userConfig: {} as UserConfig,
                 newUserConfig: getEmptyUserConfig(),
-                variables: ytdlpVariables,
-                filteredVariables: [] as string[],
-                audioExtensions: audioExtensions,
-                filteredAudioExtensions:[] as string[],
-                videoExtensions: videoExtensions,
-                filteredVideoExtensions:[] as string[],
+                filteredImageExt:[] as string[],
+                filteredLangs:[] as string[],
+                filteredSubTypes:[] as string[],
+                thumbnailByDefaultOptions: [] as YTDLPOption[],
+                subtitlesTypes: [
+                    {
+                        name: "Autogenerated",
+                        code: "auto"
+                    },
+                    {
+                        name: "Normal",
+                        code: "normal"
+                    },
+                    {
+                        name: "Both",
+                        code: "both"
+                    },
+                ] as YTDLPOption[]
             }
         },
         setup() {
@@ -228,6 +116,10 @@ import ToggleSwitch from 'primevue/toggleswitch';
             }
         },
         mounted() {
+            this.thumbnailByDefaultOptions = [{
+                name : "Disabled",
+                code : ''
+            },...imageExtensions]
             this.userConfigStore.$subscribe((userConfig) => {
                 //@ts-ignore
                 this.userConfig = JSON.parse(JSON.stringify(userConfig.events.target.userConfig)); 
@@ -238,15 +130,20 @@ import ToggleSwitch from 'primevue/toggleswitch';
             this.newUserConfig = JSON.parse(JSON.stringify(this.userConfig));
         },
         methods: {
-            searchAudioExt(event:any) {
-                this.filteredAudioExtensions = event.query ? this.audioExtensions.filter((quality) => {
-                    return quality.name.toLowerCase().includes(event.query.toLowerCase());
-                }).map((item)=>item.name): this.audioExtensions.map((item)=>item.name);
+            searchImageExt(event:any) {
+                this.filteredImageExt = event.query ? this.thumbnailByDefaultOptions.filter((item) => {
+                    return item.name.toLowerCase().includes(event.query.toLowerCase());
+                }).map((item)=>item.name): this.thumbnailByDefaultOptions.map((item)=>item.name);
             },
-            searchVideoExt(event:any) {
-                this.filteredVideoExtensions = event.query ? this.videoExtensions.filter((quality) => {
-                    return quality.name.toLowerCase().includes(event.query.toLowerCase());
-                }).map((item)=>item.name): this.videoExtensions.map((item)=>item.name);
+            searchSupportedLangs(event:any) {
+                this.filteredLangs = event.query ? supportedLangs.filter((item) => {
+                    return item.name.toLowerCase().includes(event.query.toLowerCase());
+                }).map((item)=>item.name): supportedLangs.map((item)=>item.name);
+            },
+            searchSubTypes(event:any) {
+                this.filteredSubTypes = event.query ? this.subtitlesTypes.filter((item) => {
+                    return item.name.toLowerCase().includes(event.query.toLowerCase());
+                }).map((item)=>item.name): this.subtitlesTypes.map((item)=>item.name);
             },
             compareUserConfigs(obj1: UserConfig, obj2:UserConfig) {
                 const keys1 = Object.keys(obj1);
@@ -271,35 +168,6 @@ import ToggleSwitch from 'primevue/toggleswitch';
                     this.userConfigStore.setUserConfig(this.newUserConfig);
                     this.$emit('setConfigModalVisible', false);
                 }
-            },
-            checkView(view: string) {
-                console.log(this.$route.path);
-                return view == this.$route.path;
-            },
-            changeView(newViewPath: string) {
-                this.$router.push(newViewPath);
-            },
-            setDefaultFolderUserConfig(path: string) {
-                this.newUserConfig.defaultOutput = path;
-
-            },
-            setDefaultFolder(path: string) {
-                this.changeUserConfig('defaultOutput', path);
-                this.fsStore.setDefaultOutput(path);
-                console.log(this.fsStore.getDefaultOutput);
-            },
-            search(event:any) {
-                setTimeout(() => {
-                    const querySplit = event.query.split(/[-._ ]/g)
-                    const queryValue = querySplit[querySplit.length-1]
-                    if (!event.query.trim().length) {
-                        this.filteredVariables = [];
-                    } else {
-                        this.filteredVariables = this.variables.filter((variable) => {
-                            return variable.label.toLowerCase().startsWith(queryValue.toLowerCase()) || variable.value == queryValue;
-                        }).map(val=>val.label);
-                    }
-                }, 250);
             },
         }
     }
@@ -328,8 +196,8 @@ import ToggleSwitch from 'primevue/toggleswitch';
         .config-options {
             display: flex;
             align-items: center;
-            justify-content: flex-start;
-            margin-bottom: 2em;
+            justify-content: space-between;
+            margin-bottom: 3em;
         }
             .config-options span {
                 margin-right: 1em;

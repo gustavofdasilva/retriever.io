@@ -21,4 +21,19 @@ const ytdlpVariables = [
     },
 ]
 
+export const supportedLangs: YTDLPOptions = [
+    {
+        name: "All available",
+        code: "all"
+    },
+    {
+        name: "English",
+        code: "en.*"
+    },
+    {
+        name: "Spanish",
+        code: "es.*"
+    },
+]
+
 export default ytdlpVariables;
