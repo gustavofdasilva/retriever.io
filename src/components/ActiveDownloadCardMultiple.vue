@@ -1,19 +1,5 @@
 <template>
     <div class="active-card-container" :style="style">
-        <div>
-        <Toast position="bottom-right" group="downloadProgress" @close="closeDownloadProgressToast">
-            <template #container="{ message, closeCallback }">
-                <div class="download-toast" style="margin: 1.5em 1.2em;" >
-                    <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" />
-                    <Button style="position: absolute; right: 1em; top: 1em;" icon="pi pi-times" @click="toggle" variant="text" size="medium" severity="secondary" />
-                    <p style="font-weight: 600; font-size: 1.1em;">Download progress</p>
-                    <p v-if="loadingStore.getDownloadInfo != ''" style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; width: 80%;">Video: {{ videoIndex+1 }} / {{ mediaStore.getMultiUrls.length }}</p>
-                    <p v-if="loadingStore.getDownloadInfo != ''" style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; width: 80%;">Info: {{ loadingStore.getDownloadInfo }}</p>
-                    <ProgressBar style="margin-top: .9em; " :mode="loadingStore.getDownloadProgress == '' ? 'indeterminate' : 'determinate'" :value="Number(loadingStore.getDownloadProgress)" />
-                </div>
-            </template>
-        </Toast>
-        </div>
         <div class="thumbnail">
             <p style="font-size: 2em; font-weight: 500;" >{{ mediaStore.getMultiUrls.length }}</p>
         </div>

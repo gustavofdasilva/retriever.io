@@ -1,18 +1,5 @@
 <template>
     <div class="active-card-container" :style="style">
-        <div>
-        <Toast position="bottom-right" group="downloadProgress" @close="closeDownloadProgressToast">
-            <template  #container="">
-                <div class="download-toast" >
-                    <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" />
-                    <Button style="position: absolute; right: 1em; top: 1em;" icon="pi pi-times" @click="toggle" variant="text" severity="secondary" />
-                    <p style="font-weight: 600; font-size: 1.1em;">Download progress</p>
-                    <p v-if="loadingStore.getDownloadInfo != ''" style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; margin-bottom: .9em; width: 80%;">Info: {{ loadingStore.getDownloadInfo }}</p>
-                    <ProgressBar :mode="loadingStore.getDownloadProgress == '' ? 'indeterminate' : 'determinate'" :value="Number(loadingStore.getDownloadProgress)" />
-                </div>
-            </template>
-        </Toast>
-        </div>
         <div class="thumbnail" :style="{backgroundImage: 'url('+mediaStore.getThumbnail+')'}"></div>
         <div class="metadata">
             <div class="button-w-title-container">
@@ -42,7 +29,7 @@
                 </div>
                 
             </div>
-            <Button style="width: 100%; margin-top: .8em;" :disabled="loading" label="Download" severity="primary" @click="()=>{if(!loading){download()}}" />
+            <Button style="width: 100%; margin-top: .8em;" label="Download" severity="primary" @click="()=>{download()}" />
             
         </div>
     </div>
@@ -64,6 +51,8 @@ import AutoComplete, { AutoCompleteCompleteEvent } from 'primevue/autocomplete';
 import FloatLabel from 'primevue/floatlabel';
 import { findConfigCode } from '../helpers/download';
 import { findAccount } from '../helpers/accounts';
+import { addToHist } from '../helpers/history';
+import { useDownloadLogStore } from '../stores/downloadLog';
 
     export default {
         components: {
@@ -89,16 +78,6 @@ import { findAccount } from '../helpers/accounts';
                 filteredQualities:[],
                 qualities:[] as string[],
                 quality: '',
-                items: [
-                    {
-                        label: 'Cancel download',
-                        icon: 'pi pi-undo',
-                        command: () => {
-                            this.killProcess()
-                        },
-                        class: 'alert'
-                    }
-                ]
             }
         },
         setup() {
@@ -106,35 +85,17 @@ import { findAccount } from '../helpers/accounts';
             const fsStore = useFSStore()
             const loadingStore = useLoadingStore()
             const userConfig = useUserConfig();
+            const downloadLog = useDownloadLogStore();
 
             return { 
                 mediaStore,
                 fsStore,
                 loadingStore,
-                userConfig
+                userConfig,
+                downloadLog
             }
         },
         methods: {
-            killProcess() {
-                this.cancelled=true;
-                let intervalCount=0;
-                const intervalId = setInterval(()=>{
-                    intervalCount++;
-
-                    if(intervalCount >= 5) {
-                        clearInterval(intervalId);
-                    }
-
-                    invoke('kill_active_process');
-                },500)
-
-                
-                this.newNotification("Download cancelled",3000);
-                this.loading = false
-                this.loadingStore.setDownloadProgress('');
-                this.loadingStore.setDownloadInfo('');
-                this.closeDownloadProgressToast();
-            },
             search(event:AutoCompleteCompleteEvent) {
                 if(this.format.name == 'Audio') {
                     console.log("Audio")
@@ -151,7 +112,6 @@ import { findAccount } from '../helpers/accounts';
                 console.log(this.qualities)
             },
             download() {
-                this.loading=true
                 const defaultFileName = this.userConfig.getUserConfig.defaultFileName;
                 const defaultOutput = this.userConfig.getUserConfig.defaultOutput;
                 const defaultAudioFormat = this.userConfig.getUserConfig.defaultAudioFormat;
@@ -165,8 +125,26 @@ import { findAccount } from '../helpers/accounts';
                 const username = enabledAuth ? findAccount(this.mediaStore.getUrl)?.username ?? {} as Account : '';
                 const password = enabledAuth ? findAccount(this.mediaStore.getUrl)?.password ?? {} as Account : '';
                 
-                this.getProgressInfo();
+                const downloadId =this.loadingStore.addActiveDownload({
+                    id: '', // id will be overwritten by a autoincremented id when pushing to active downloads array 
+                    thumbnailUrl: this.mediaStore.getThumbnail,
+                    title: this.mediaStore.getTitle,
+                    channel: this.mediaStore.getChannel,
+                    format: this.format.code as "Video" | "Audio",
+                    quality: this.quality,
+                    length: this.mediaStore.getDuration,
+                    path: this.fsStore.getDefaultOutput,
+                    dateCreated: new Date(),
+                    cancelled: false,
+                    info: '',
+                    progress: '',
+                    loading: true
+                })
+                this.loadingStore.setActiveDownloadById(downloadId,
+                ['loading'],[true]);
+                this.getProgressInfo(downloadId);
                 invoke('download',{
+                    id: String(downloadId),
                     url: this.mediaStore.getUrl, 
                     output: output, 
                     format: this.format.code, 
@@ -181,8 +159,11 @@ import { findAccount } from '../helpers/accounts';
                     cookiesFromBrowser: cookiesFromBrowser,
                     cookiesTxtFilePath: cookiesTxtFilePath,
                 }).then((response: any)=>{
-                    if(this.cancelled) {
-                        this.cancelled =false;
+                    if(this.loadingStore.getActiveDownloadById(downloadId)?.cancelled) {
+                        this.loadingStore.setActiveDownloadById(downloadId,
+                            ['cancelled'],
+                            [false],
+                        )
                         return 
                     }
 
@@ -194,70 +175,105 @@ import { findAccount } from '../helpers/accounts';
                         return;
                     }
                     
-                    console.log(response);
-
                     const outputFullPath = response.output.split('\\')
                     const outputName = outputFullPath[outputFullPath.length-1];
 
-                    this.mediaStore.setFormat(this.format.code as "Video" | "Audio")
-                    this.mediaStore.setQuality(this.quality);
-                    this.mediaStore.setTitle(outputName);
+                    this.loadingStore.setActiveDownloadById(
+                        downloadId,
+                        ['format','quality','title'],
+                        [this.format.code as "Video" | "Audio",this.quality,outputName])
+
+                    //Download log add
+                    
+                    const activeDownload = this.loadingStore.getActiveDownloadById(downloadId);
+                    if(!activeDownload){return}
+                    
+                    const activeDownloadLog:DownloadLog = {
+                        thumbnailUrl: activeDownload.thumbnailUrl,
+                        title: activeDownload.title,
+                        channel: activeDownload.channel,
+                        format: activeDownload.format ? activeDownload.format : "Video",
+                        quality: activeDownload.quality,
+                        length: activeDownload.length,
+                        path: this.userConfig.getUserConfig.defaultOutput,
+                        dateCreated: new Date()
+                    } 
+
+                    addToHist(activeDownloadLog);
                     
                     this.newNotification("Download successful!",3000);
-                    this.$emit('download-successful',true,length);
                 }).catch((err)=>{
-                    if(this.cancelled) {
-                        this.cancelled =false;
-                        return 
-                    }
-
-                    this.newNotification("Something went wrong :(",3000);
                     console.log(err)
-                    this.$emit('download-successful',false)
+                    if(this.loadingStore.getActiveDownloadById(downloadId)?.cancelled) {
+                            this.loadingStore.setActiveDownloadById(downloadId,
+                                ['cancelled'],
+                                [false],
+                            )
+                            return 
+                        }
+
+                        this.newNotification("Something went wrong :(",3000);
+                        this.$emit('download-successful',false)
                 }).finally(()=>{
-                    if(this.cancelled) {
-                        this.cancelled =false;
+                    this.closeDownloadProgressToast(downloadId);
+                    if(this.loadingStore.getActiveDownloadById(downloadId)?.cancelled) {
+                        this.loadingStore.setActiveDownloadById(downloadId,
+                            ['cancelled'],
+                            [false],
+                        )
                         return 
                     }
-
-                    this.loading = false
+                    this.loadingStore.setActiveDownloadById(downloadId,
+                    ['loading'],[false]);
+                    this.loadingStore.removeActiveDownloadById(downloadId);
                     this.loadingStore.setDownloadProgress('');
                     this.loadingStore.setDownloadInfo('');
-                    this.closeDownloadProgressToast();
                 })
             },
-            getProgressInfo() {
-                this.downloadProgressToast();
+            getProgressInfo(id: string) {
+                const download = this.loadingStore.getActiveDownloadById(id)
+                if(!download) return
+
+                this.downloadProgressToast(id);
                 const loadProgress = setInterval(()=>{
-                    if (this.loading) {
-                        invoke('get_progress_info').then((res:any)=>{
+                    if (download.loading) {
+                        invoke('get_progress_info',{downloadId: id}).then((res:any)=>{
                             if(res == "") return
 
-                            this.loadingStore.setDownloadInfo(res);
+                            this.loadingStore.setActiveDownloadById(
+                                id,
+                                ['info'],
+                                [res])
+                            ;
                             try {
-                                let progressValue = res.match(/(\d+\.\d+)%/g)[0].replace("%",'');
-                                this.loadingStore.setDownloadProgress(progressValue);
-                            } catch (error) {
-                                
-                            }
+                                let progressValue = res.match(/(\d+\.\d+)%/g)[0].replace("%",'')
+                                this.loadingStore.setActiveDownloadById(
+                                    id,
+                                    ['progress'],
+                                    [progressValue])
+                                ;
+                            } catch (error) {}
                         })
                     } else {
                         clearInterval(loadProgress);
                     }
                 },1000)
-                
             },
             exit() {
                 this.mediaStore.reset();
             },
-            closeDownloadProgressToast() {
-                this.$toast.removeGroup("downloadProgress");
+            closeDownloadProgressToast(id: string) {
+                //Needs refactor
+                const toast = document.getElementById(`DOWNLOAD_TOAST_${id}`) //! Workaround to remove only the toast related to the download
+                if(!toast) return
+                if(!toast.parentElement) return
+
+                toast.parentElement.remove();
             },
-            downloadProgressToast() {
-                console.log("DOWNLOAD TOAST");
+            downloadProgressToast(id: string) {
                 this.$toast.add({ 
                     severity: 'secondary', 
-                    summary: 'Uploading your files.', 
+                    summary: id, 
                     group: 'downloadProgress'});
             },
             newNotification(message: string, life: number) {

@@ -15,6 +15,31 @@
       </button>
     </div>
   </div>
+  <Toast position="bottom-right" group="downloadProgress">
+      <template #container="{message, closeCallback}">
+          <div :id="`DOWNLOAD_TOAST_${message.summary}`" v-if="loadingStore.getActiveDownloadById(message.summary)" class="download-toast" >
+              <Menu 
+                ref="menu" 
+                id="overlay_menu" 
+                :model="[
+                    {
+                        label: 'Cancel download',
+                        icon: 'pi pi-undo',
+                        command: () => {
+                            closeCallback();
+                            killProcess(message.summary);
+                        },
+                        class: 'alert'
+                    }
+                ]" 
+                :popup="true" />
+              <Button style="position: absolute; right: 1em; top: 1em;" icon="pi pi-times" @click="toggle" variant="text" severity="secondary" />
+              <p style="font-weight: 600; font-size: 1.1em;">Download progress: {{ message.summary }}</p>
+              <p v-if="(loadingStore.getActiveDownloadById(message.summary)??{} as DownloadInProgress).info != ''" style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; margin-bottom: .9em; width: 80%;">Info: {{ (loadingStore.getActiveDownloadById(message.summary)??{} as DownloadInProgress).info }}</p>
+              <ProgressBar :mode="(loadingStore.getActiveDownloadById(message.summary)??{} as DownloadInProgress).progress == '' ? 'indeterminate' : 'determinate'" :value="Number((loadingStore.getActiveDownloadById(message.summary)??{} as DownloadInProgress).progress)" />
+          </div>
+      </template>
+  </Toast>
   <Toast position="bottom-right" />
   <div id="main-app">
     <Dialog class="config-modal" v-model:visible="initConfigModalVisible" modal :draggable="false" :closable="false" header="Start app">     
@@ -22,7 +47,7 @@
         <StepList class="steplist">
             <Step value="1">Terms and Conditions</Step>
             <Step :disabled="!termsAccepted" value="2">Default output folder</Step>
-            <Step :disabled="userConfig.getDefaultOutput == ''" value="3">Done!</Step>
+            <Step :disabled="userConfig.getUserConfig.defaultOutput == ''" value="3">Done!</Step>
         </StepList>
         <StepPanels>
             <StepPanel style="width: 100%; height: 100%;" v-slot="{ activateCallback }" value="1">
@@ -48,7 +73,7 @@
                       <p style="color: var(--surface-600); margin-bottom: 2em;" >Set a folder where all downloads (in simple mode) will be downloaded</p>
                       <BaseFileInput 
                         style="margin: 0 1em 0 0; font-size: 0.93em;"
-                        :path="userConfig.getDefaultOutput"
+                        :path="userConfig.getUserConfig.defaultOutput"
                         @folder-selected="setDefaultFolder"/>
                     </div>
                     <div class="steppanel-buttons">    
@@ -80,7 +105,7 @@
     <RouterView/>
   </div>
 </template>
-<script>
+<script lang="ts">
 import { RouterView } from 'vue-router';
 import Home from './views/Home.vue';
 import TheHeader from './components/TheHeader.vue';
@@ -101,6 +126,10 @@ import Step from 'primevue/step';
 import Checkbox from 'primevue/checkbox';
 import BaseFileInput from './components/BaseFileInput.vue';
 import { open } from '@tauri-apps/plugin-shell';
+import { useLoadingStore } from './stores/loading';
+import { invoke } from '@tauri-apps/api/core';
+import ProgressBar from 'primevue/progressbar';
+import Menu from 'primevue/menu';
 
   export default {
     components: {
@@ -117,11 +146,23 @@ import { open } from '@tauri-apps/plugin-shell';
       Button,
       Step,
       Checkbox,
-      BaseFileInput
+      BaseFileInput,
+      ProgressBar,
+      Menu,
     },
     data() {
       return {
         items: titlebarMenuOptions,
+        downloadToastItems: [
+            {
+                label: 'Cancel download',
+                icon: 'pi pi-undo',
+                command: () => {
+                    this.killProcess()
+                },
+                class: 'alert'
+            }
+        ],
         initConfigModalVisible: false,
         termsAccepted:false,
       }
@@ -130,6 +171,7 @@ import { open } from '@tauri-apps/plugin-shell';
 
       const fileSystem = useFSStore();
       const userConfig = useUserConfig();
+      const loadingStore = useLoadingStore();
 
       const appWindow = getCurrentWindow();
 
@@ -146,7 +188,8 @@ import { open } from '@tauri-apps/plugin-shell';
       return {
         appWindow,
         fileSystem,
-        userConfig
+        userConfig,
+        loadingStore
       }
     },
     async mounted() {
@@ -156,17 +199,42 @@ import { open } from '@tauri-apps/plugin-shell';
         }
       });
       await readConfigFile().then((userConfig)=>{
-        console.log(userConfig);
-          this.fileSystem.setDefaultOutput(userConfig.defaultOutput??'');
+        if(userConfig) {
           this.userConfig.setUserConfig(userConfig);
+        }
       });
     },
     methods: {  
-      async setDefaultFolder(path) {
-          this.userConfig.setDefaultOutput(path);
-          changeConfig('defaultOutput',path)
+      killProcess(activeDownloadId: string) {
+          this.loadingStore.setActiveDownloadById(activeDownloadId,
+            ['cancelled'],
+            [true]
+          )
+          let intervalCount=0;
+          const intervalId = setInterval(()=>{
+              intervalCount++;
+
+              if(intervalCount >= 5) {
+                  clearInterval(intervalId);
+              }
+
+              invoke('kill_active_process');
+          },500)
+
+          
+          this.newNotification("Download cancelled",3000);
+          this.loadingStore.setLoading(false); 
+          this.loadingStore.setDownloadProgress('');
+          this.loadingStore.setDownloadInfo('');
       },
-      async openLink(path) {
+      toggle(event: any) {
+          //@ts-ignore
+          this.$refs.menu.toggle(event);
+      },
+      async setDefaultFolder(path:string) {
+          this.userConfig.setUserConfigField('defaultOutput',path);
+      },
+      async openLink(path:string) {
         await open(path)
       },
       minimize() {
@@ -177,13 +245,28 @@ import { open } from '@tauri-apps/plugin-shell';
       },
       close() {
         this.appWindow.close();
-      }
+      },
+      newNotification(message: string, life: number) {
+          this.$toast.add({
+              severity: 'secondary',
+              summary: 'Download log',
+              detail: message,
+              life: life,
+              closable: true
+          })
+      },
+      closeDownloadProgressToast() {
+          this.$toast.removeGroup("downloadProgress");
+      },
     }
           
   }
 </script>
 
 <style scoped> 
+  .download-toast {
+      margin: 1.5em 1.2em;
+  }
   .modal {
     width: 80vw;
     height: 80vh;

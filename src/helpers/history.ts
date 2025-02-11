@@ -1,4 +1,5 @@
 import { Store } from "@tauri-apps/plugin-store";
+import { useDownloadLogStore } from "../stores/downloadLog";
 
 export async function addToHist(newDownload: DownloadLog) {
     const store = await Store.load('download-history.json');
@@ -14,6 +15,7 @@ export async function addToHist(newDownload: DownloadLog) {
     data.push(newDownload);
 
     await store.set('download-history',data);
+    await useDownloadLogStore().loadDownloadHistory();
 }
 
 export async function clearHist() {
@@ -35,11 +37,8 @@ export async function deleteRegister(title: string, timestamp: Date) {
     const data = await store.get<DownloadLog[]>('download-history');
 
     const newData = data?.filter((item)=>{
-        console.log(new Date(item.dateCreated).toISOString()==timestamp.toISOString(), new Date(item.dateCreated).toISOString(),timestamp.toISOString())
         return !(item.title == title && new Date(item.dateCreated).toISOString()==timestamp.toISOString())
     })
-
-    console.log(newData?.length,data?.length)
 
     await store.set('download-history',newData);
 }

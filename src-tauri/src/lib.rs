@@ -1,13 +1,14 @@
  // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
 use std::{
-    collections::HashMap, env::args, fs, io::{ stderr, BufRead, BufReader}, process::{Command, Stdio}, vec
+    collections::HashMap, env::args, fs, hash::Hash, io::{ stderr, BufRead, BufReader}, process::{Command, Stdio}, vec
 };
 
 use encoding_rs::WINDOWS_1252;
 
-static mut DOWNLOAD_STATUS: String = String::new();
-static mut ACTIVE_PROCESS_ID: Option<u32> = None;
+// static mut DOWNLOAD_STATUS: String = String::new();
+static mut DOWNLOAD_STATUS: Vec<HashMap<String,String>> = vec![];
+static mut ACTIVE_PROCESS: Vec<HashMap<String,String>> = vec![];
 
 #[tauri::command]
 async fn get_metadata(url: String, username: String, password: String, cookies_from_browser: String, cookies_txt_file_path: String) -> HashMap<String, String> {
@@ -128,6 +129,7 @@ async fn get_metadata(url: String, username: String, password: String, cookies_f
 
 #[tauri::command]
 async fn download(
+    id: String,
     url: String,
     output: String,
     format: String,
@@ -143,6 +145,36 @@ async fn download(
     cookies_txt_file_path: String
 ) -> HashMap<String, String> {
     use std::process::Command;
+
+    let download_id: String = id.clone();
+    let download_index: usize;
+    let process_index: usize;
+    unsafe {
+        let mut new_download_status: HashMap<String,String> = HashMap::new();
+            new_download_status.insert("id".to_string(),id.clone());
+            new_download_status.insert("download_status".to_string(), "".to_string());
+
+        let mut new_process: HashMap<String,String> = HashMap::new();
+            new_process.insert("id".to_string(), id.clone());
+            new_process.insert("process_id".to_string(), "".to_string());
+
+
+        DOWNLOAD_STATUS.push(new_download_status);
+        ACTIVE_PROCESS.push(new_process);
+
+        
+        download_index = DOWNLOAD_STATUS.iter().position(
+            |download| 
+                download.get(&"id".to_string()).unwrap() == &id
+        ).unwrap();
+        
+        process_index = ACTIVE_PROCESS.iter().position(
+            |process| 
+                process.get(&"id".to_string()).unwrap() == &id
+        ).unwrap();
+    }
+
+    
 
     let mut args: Vec<String> = vec![];
 
@@ -260,7 +292,7 @@ async fn download(
         .unwrap();
 
         unsafe {
-            ACTIVE_PROCESS_ID = Some(child.id());
+            *ACTIVE_PROCESS[process_index].get_mut("process_id").unwrap() = child.id().to_string();
         }
 
     let stdout = child.stdout.take().expect("Failed to get stdout");
@@ -277,7 +309,8 @@ async fn download(
 
             let download_info = String::from_utf8_lossy(&buffer).to_string();
             unsafe {
-                DOWNLOAD_STATUS = download_info;
+    
+                *DOWNLOAD_STATUS[download_index].get_mut("download_status").unwrap() = download_info.clone();
             }
 
             buffer.clear();
@@ -301,6 +334,11 @@ async fn download(
         response.insert("error".to_string(), err_string);
 
         eprintln!("Error while downloading");
+        unsafe {
+                    
+            DOWNLOAD_STATUS.remove(download_index);
+            ACTIVE_PROCESS.remove(process_index);
+        }
         return response;
     }
 
@@ -331,13 +369,37 @@ async fn download(
     let mut response: HashMap<String, String> = HashMap::new();
 
     response.insert("output".to_string(), output_name.to_string());
+    unsafe {
 
+        let download_index = DOWNLOAD_STATUS.iter().position(
+            |download| 
+                download.get(&"id".to_string()).unwrap() == &download_id).unwrap();
+        
+        let process_index = ACTIVE_PROCESS.iter().position(
+            |process| 
+                process.get(&"id".to_string()).unwrap() == &download_id).unwrap();
+                
+        DOWNLOAD_STATUS.remove(download_index);
+        ACTIVE_PROCESS.remove(process_index);
+    }
     return response;
 }
 
 #[tauri::command]
-fn get_progress_info() -> String {
-    unsafe { DOWNLOAD_STATUS.clone() }
+fn get_progress_info(download_id: String) -> String {
+    unsafe { 
+    if DOWNLOAD_STATUS.len() == 0 {
+        return String::new();
+    }
+
+    let download_index = DOWNLOAD_STATUS.iter().position(
+        |download| 
+            download.get(&"id".to_string()).unwrap() == &download_id.clone()
+    ).unwrap();
+
+
+        return DOWNLOAD_STATUS[download_index].get(&"download_status".to_string()).unwrap().clone();
+    }
 }
 
 #[tauri::command]

@@ -17,7 +17,6 @@
                 <template v-if="mediaStore.getTitle != ''" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]" >
                     <ActiveDownloadCard
                         :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]"
-                        @download-successful="(val:boolean)=>{checkDownload(val)}"
                     />
                 </template>
             </div>
@@ -139,30 +138,6 @@ import { useUserConfig } from '../stores/userConfig';
                     this.mediaStore.setUrl(inputText);
                     this.loadingSearch = false;
                 })
-            },
-            async checkDownload(val: boolean){
-                this.downloadResultMsg = val ? 'Download successful!' : 'Could not download'
-                setTimeout(()=>{
-                    this.downloadResultMsg = ''
-                },2000)
-
-                if(val) {
-                    const activeDownloadLog:DownloadLog = {
-                        thumbnailUrl: this.mediaStore.getThumbnail,
-                        title: this.mediaStore.getTitle,
-                        channel: this.mediaStore.getChannel,
-                        format: this.mediaStore.getFormat ? this.mediaStore.getFormat : "Video",
-                        quality: this.mediaStore.getQuality,
-                        length: this.mediaStore.getDuration,
-                        path: this.fsStore.getDefaultOutput,
-                        dateCreated: new Date()
-                    } 
-
-                    await this.addDownload(activeDownloadLog);
-                    await this.downloadLogStore.loadDownloadHistory();
-                    this.$router.push('/downloads')
-                    this.mediaStore.reset();
-                }
             },
             newNotification(message: string, life: number) {
                 this.$toast.add({
