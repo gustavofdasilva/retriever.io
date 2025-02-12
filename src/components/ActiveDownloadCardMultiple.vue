@@ -14,7 +14,7 @@
                     <FloatLabel style="width: 100%;" fluid variant="on">
                         <label style="z-index: 1;" for="format_dropdown">Format</label>    
                         <Select fluid inputId="format_dropdown" style="width: 100%;" v-model="format" :options="formats" optionLabel="name"
-                            @change="(event)=>{
+                            @change="(event:any)=>{
                                 qualities = event.value.name == 'Audio' ? audioQualities : videoQualities;
                                 quality = '';
                             }" />
@@ -33,11 +33,11 @@
         </div>
     </div>
 </template>
-<script>
+<script lang="ts">
 import { invoke } from '@tauri-apps/api/core';
 import { useMediaStore } from '../stores/media';
 import { useFSStore } from '../stores/fileSystem';
-import { addToHist, createHistFile, readHistFile } from '../helpers/history';
+import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/history';
 import Button from 'primevue/button';
 import Select from 'primevue/select';
 import Toast from 'primevue/toast';
@@ -50,6 +50,7 @@ import { formats } from '../constants/fileExtensions';
 import AutoComplete from 'primevue/autocomplete';
 import FloatLabel from 'primevue/floatlabel';
 import { findConfigCode } from '../helpers/download';
+import { findAccount } from '../helpers/accounts';
 
     export default {
         components: {
@@ -68,24 +69,14 @@ import { findConfigCode } from '../helpers/download';
             return {
                 loading: false,
                 cancelled: false,
-                format: '',
+                format: {} as YTDLPOption,
                 formats:formats,
                 videoQualities: videoQualities,
                 audioQualities: audioQualities,
-                qualities:[],
+                qualities:[] as string[],
                 quality: '',
                 videoIndex: 0,
                 toastVisible: false,
-                items: [
-                    {
-                        label: 'Cancel download',
-                        icon: 'pi pi-undo',
-                        command: () => {
-                            this.killProcess()
-                        },
-                        class: 'alert'
-                    }
-                ]
             }
         },
         setup() {
@@ -95,7 +86,7 @@ import { findConfigCode } from '../helpers/download';
             const userConfig = useUserConfig();
             const readFile = () => readHistFile();
             const createFile = () => createHistFile();
-            const addDownload = (newLog) => addToHist(newLog);
+            const addDownload = (newLog:any) => addToHist(newLog);
             const clearInfo = () => clearHist();
 
             return {
@@ -110,27 +101,7 @@ import { findConfigCode } from '../helpers/download';
             }
         },
         methods: {
-            killProcess() {
-                this.cancelled=true;
-                let intervalCount=0;
-                const intervalId = setInterval(()=>{
-                    intervalCount++;
-
-                    if(intervalCount >= 10) {
-                        clearInterval(intervalId);
-                    }
-
-                    invoke('kill_active_process');
-                },500)
-
-                
-                this.newNotification("Download cancelled",3000);
-                this.loading = false
-                this.loadingStore.setDownloadProgress('');
-                this.loadingStore.setDownloadInfo('');
-                this.closeDownloadProgressToast();
-            },
-            search(event) {
+            search(event:any) {
                 if(this.format.name == 'Audio') {
                     console.log("Audio")
                     this.qualities = event.query ? this.audioQualities.filter((quality) => {
@@ -146,11 +117,9 @@ import { findConfigCode } from '../helpers/download';
                 console.log(this.qualities)
             },
             async download() {
-                this.loading=true
-
                 const fileType = this.format.code == "Audio" ? 'mp3' : 'mp4';
-                
-                this.getProgressInfo();
+                this.loading=true
+                this.newNotification('URLs added to queue',3000);
                 for (const url of this.mediaStore.getMultiUrls) {
                     
                     const videoData = await this.getMetadata(url)
@@ -158,20 +127,33 @@ import { findConfigCode } from '../helpers/download';
                     if(!videoData) {
                         return
                     }
+                    this.loading = false
                     
                     const defaultFileName = this.userConfig.getUserConfig.defaultFileName;
                     const output = `${this.userConfig.getUserConfig.defaultOutput}/${defaultFileName}`
                     const enabledAuth = this.userConfig.getUserConfig.authentication.enabled;
-                const cookiesFromBrowser = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesFromBrowser: "";
-                const cookiesTxtFilePath = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesTxtFilePath: "";
-                const username = enabledAuth ? findAccount(this.mediaStore.getUrl)?.username: '';
-                const password = enabledAuth ? findAccount(this.mediaStore.getUrl)?.password: '';
+                    const cookiesFromBrowser = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesFromBrowser: "";
+                    const cookiesTxtFilePath = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesTxtFilePath: "";
+                    const username = enabledAuth ? findAccount(this.mediaStore.getUrl)?.username: '';
+                    const password = enabledAuth ? findAccount(this.mediaStore.getUrl)?.password: '';
 
-                    this.videoIndex = this.mediaStore.getMultiUrls.indexOf(url);
-                    await invoke('download',{
+                    this.loadingStore.addActiveDownload({
+                        id: '', // id will be overwritten by a autoincremented id when pushing to active downloads array 
+                        thumbnailUrl: videoData.thumbnail,
+                        title: videoData.title,
+                        channel: videoData.channel,
+                        format: this.format.code as "Video" | "Audio",
+                        quality: this.quality,
+                        length: videoData.duration,
+                        path: this.fsStore.getDefaultOutput,
+                        dateCreated: new Date(),
+                        cancelled: false,
+                        info: '',
+                        progress: '',
+                        loading: false,
+
                         url: url, 
                         output: output, 
-                        format: this.format.code, 
                         fileExt: fileType,
                         resolution: this.format.code == "Video" ? findConfigCode(this.quality, videoQualities) : "",
                         bitrate: this.format.code == "Audio" ? findConfigCode(this.quality, audioQualities) : "",
@@ -182,64 +164,12 @@ import { findConfigCode } from '../helpers/download';
                         password: password ?? "",
                         cookiesFromBrowser: cookiesFromBrowser,
                         cookiesTxtFilePath: cookiesTxtFilePath,
-                    }).then(async(response)=>{
-                        if(this.cancelled) {
-                            this.cancelled =false;
-                            return 
-                        }
-
-                        if (response.error && response.error != "") {
-                            const errorIndex = response.error.indexOf("ERROR:");
-                            const errorOnly = response.error.substring(errorIndex);
-                            this.newNotification(`${errorOnly}`,10000);
-                            this.loading = false;
-                            return;
-                        }
-                    
-                    
-                        const outputFullPath = response.output.split('\\')
-                        const outputName = outputFullPath[outputFullPath.length-1];
-
-                        const activeDownloadLog = {
-                            thumbnailUrl: videoData.thumbnail,
-                            title: outputName,
-                            channel: videoData.channel,
-                            format: this.format.code,
-                            quality: this.quality,
-                            length: videoData.duration,
-                            path: this.fsStore.getDefaultOutput,
-                            dateCreated: new Date()
-                        } 
-    
-                        await this.addDownload(activeDownloadLog);
-
-                        this.newNotification("Download successful!",3000);
-                        console.log(`VIDEO ${this.mediaStore.getMultiUrls.indexOf(url)+1} DOWNLOAD LOG SUCCESSFUL`)
-                    }).finally(()=>{
-                    if(this.cancelled) {
-                        this.cancelled =false;
-                        return 
-                    }
-                        this.$emit('download-successful',true);
-                        const index = this.mediaStore.getMultiUrls.indexOf(url);
-                        const length = this.mediaStore.getMultiUrls.length;
-
-                        this.loadingStore.setDownloadProgress('');
-                        this.loadingStore.setDownloadInfo('');
-
-                        if (index+1 == length) {
-                            this.loading = false;
-                            this.closeDownloadProgressToast();
-                            this.$router.push('/downloads')
-                            this.mediaStore.reset()
-                        }
                     })
                 }
+                this.mediaStore.reset();
             },
 
-            async getMetadata(url) {
-
-                
+            async getMetadata(url: string) {
                 const enabledAuth = this.userConfig.getUserConfig.authentication.enabled;
                 const cookiesFromBrowser = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesFromBrowser: "";
                 const cookiesTxtFilePath = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesTxtFilePath: "";
@@ -251,7 +181,7 @@ import { findConfigCode } from '../helpers/download';
                     password='';
                 }
 
-                const res = await invoke('get_metadata',{
+                const res: any = await invoke('get_metadata',{
                     url: url, 
                     username: username,
                     password: password,
@@ -273,34 +203,6 @@ import { findConfigCode } from '../helpers/download';
                     duration: res.duration,
                 }
             },
-
-            getProgressInfo() {
-                this.downloadProgressToast();
-                const loadProgress = setInterval(()=>{
-                    if (this.loading) {
-                        invoke('get_progress_info').then((res)=>{
-                            if(res == "") return
-
-                            this.loadingStore.setDownloadInfo(res);
-                            try {
-                                let progressValue = res.match(/(\d+\.\d+)%/g)[0].replace("%",'');
-                                this.loadingStore.setDownloadProgress(progressValue);
-                            } catch (error) {
-                                
-                            }
-                        })
-                    } else {
-                        clearInterval(loadProgress);
-                    }
-                },1000)
-                
-            },
-            downloadProgressToast() {
-                if(!this.toastVisible) {
-                    this.$toast.add({ severity: 'secondary', summary: 'Uploading your files.', group: 'downloadProgress'});
-                    this.toastVisible = true;
-                } 
-            },
             closeDownloadProgressToast() {
                 this.$toast.removeGroup("downloadProgress");
                 this.toastVisible=false;
@@ -308,7 +210,7 @@ import { findConfigCode } from '../helpers/download';
             exit() {
                 this.mediaStore.reset();
             },
-            newNotification(message,life) {
+            newNotification(message:string,life:number) {
                 this.$toast.add({
                     severity: 'secondary',
                     summary: 'Download log',
@@ -317,7 +219,8 @@ import { findConfigCode } from '../helpers/download';
                     closable: true
                 })
             },
-            toggle(event) {
+            toggle(event:any) {
+                //@ts-ignore
                 this.$refs.menu.toggle(event);
             }
         }

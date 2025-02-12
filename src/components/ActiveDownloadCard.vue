@@ -122,10 +122,10 @@ import { useDownloadLogStore } from '../stores/downloadLog';
                 const enabledAuth = this.userConfig.getUserConfig.authentication.enabled;
                 const cookiesFromBrowser = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesFromBrowser: "";
                 const cookiesTxtFilePath = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesTxtFilePath: "";
-                const username = enabledAuth ? findAccount(this.mediaStore.getUrl)?.username ?? {} as Account : '';
-                const password = enabledAuth ? findAccount(this.mediaStore.getUrl)?.password ?? {} as Account : '';
+                const username = enabledAuth ? findAccount(this.mediaStore.getUrl)?.username : '';
+                const password = enabledAuth ? findAccount(this.mediaStore.getUrl)?.password : '';
                 
-                const downloadId =this.loadingStore.addActiveDownload({
+                this.loadingStore.addActiveDownload({
                     id: '', // id will be overwritten by a autoincremented id when pushing to active downloads array 
                     thumbnailUrl: this.mediaStore.getThumbnail,
                     title: this.mediaStore.getTitle,
@@ -133,21 +133,14 @@ import { useDownloadLogStore } from '../stores/downloadLog';
                     format: this.format.code as "Video" | "Audio",
                     quality: this.quality,
                     length: this.mediaStore.getDuration,
-                    path: this.fsStore.getDefaultOutput,
+                    path: this.userConfig.getUserConfig.defaultOutput,
                     dateCreated: new Date(),
                     cancelled: false,
                     info: '',
                     progress: '',
-                    loading: true
-                })
-                this.loadingStore.setActiveDownloadById(downloadId,
-                ['loading'],[true]);
-                this.getProgressInfo(downloadId);
-                invoke('download',{
-                    id: String(downloadId),
+                    loading: false,
                     url: this.mediaStore.getUrl, 
                     output: output, 
-                    format: this.format.code, 
                     fileExt: fileType,
                     resolution: this.format.code == "Video" ? findConfigCode(this.quality, videoQualities) : "",
                     bitrate: this.format.code == "Audio" ? findConfigCode(this.quality, audioQualities) : "",
@@ -158,106 +151,9 @@ import { useDownloadLogStore } from '../stores/downloadLog';
                     password: password ?? "",
                     cookiesFromBrowser: cookiesFromBrowser,
                     cookiesTxtFilePath: cookiesTxtFilePath,
-                }).then((response: any)=>{
-                    if(this.loadingStore.getActiveDownloadById(downloadId)?.cancelled) {
-                        this.loadingStore.setActiveDownloadById(downloadId,
-                            ['cancelled'],
-                            [false],
-                        )
-                        return 
-                    }
-
-                    if (response.error && response.error != "") {
-                        const errorIndex = response.error.indexOf("ERROR:");
-                        const errorOnly = response.error.substring(errorIndex);
-                        this.newNotification(`${errorOnly}`,10000);
-                        this.loading = false;
-                        return;
-                    }
-                    
-                    const outputFullPath = response.output.split('\\')
-                    const outputName = outputFullPath[outputFullPath.length-1];
-
-                    this.loadingStore.setActiveDownloadById(
-                        downloadId,
-                        ['format','quality','title'],
-                        [this.format.code as "Video" | "Audio",this.quality,outputName])
-
-                    //Download log add
-                    
-                    const activeDownload = this.loadingStore.getActiveDownloadById(downloadId);
-                    if(!activeDownload){return}
-                    
-                    const activeDownloadLog:DownloadLog = {
-                        thumbnailUrl: activeDownload.thumbnailUrl,
-                        title: activeDownload.title,
-                        channel: activeDownload.channel,
-                        format: activeDownload.format ? activeDownload.format : "Video",
-                        quality: activeDownload.quality,
-                        length: activeDownload.length,
-                        path: this.userConfig.getUserConfig.defaultOutput,
-                        dateCreated: new Date()
-                    } 
-
-                    addToHist(activeDownloadLog);
-                    
-                    this.newNotification("Download successful!",3000);
-                }).catch((err)=>{
-                    console.log(err)
-                    if(this.loadingStore.getActiveDownloadById(downloadId)?.cancelled) {
-                            this.loadingStore.setActiveDownloadById(downloadId,
-                                ['cancelled'],
-                                [false],
-                            )
-                            return 
-                        }
-
-                        this.newNotification("Something went wrong :(",3000);
-                        this.$emit('download-successful',false)
-                }).finally(()=>{
-                    this.closeDownloadProgressToast(downloadId);
-                    if(this.loadingStore.getActiveDownloadById(downloadId)?.cancelled) {
-                        this.loadingStore.setActiveDownloadById(downloadId,
-                            ['cancelled'],
-                            [false],
-                        )
-                        return 
-                    }
-                    this.loadingStore.setActiveDownloadById(downloadId,
-                    ['loading'],[false]);
-                    this.loadingStore.removeActiveDownloadById(downloadId);
-                    this.loadingStore.setDownloadProgress('');
-                    this.loadingStore.setDownloadInfo('');
                 })
-            },
-            getProgressInfo(id: string) {
-                const download = this.loadingStore.getActiveDownloadById(id)
-                if(!download) return
-
-                this.downloadProgressToast(id);
-                const loadProgress = setInterval(()=>{
-                    if (download.loading) {
-                        invoke('get_progress_info',{downloadId: id}).then((res:any)=>{
-                            if(res == "") return
-
-                            this.loadingStore.setActiveDownloadById(
-                                id,
-                                ['info'],
-                                [res])
-                            ;
-                            try {
-                                let progressValue = res.match(/(\d+\.\d+)%/g)[0].replace("%",'')
-                                this.loadingStore.setActiveDownloadById(
-                                    id,
-                                    ['progress'],
-                                    [progressValue])
-                                ;
-                            } catch (error) {}
-                        })
-                    } else {
-                        clearInterval(loadProgress);
-                    }
-                },1000)
+                this.mediaStore.reset();
+                this.newNotification('URL added to queue',3000);
             },
             exit() {
                 this.mediaStore.reset();
@@ -269,12 +165,6 @@ import { useDownloadLogStore } from '../stores/downloadLog';
                 if(!toast.parentElement) return
 
                 toast.parentElement.remove();
-            },
-            downloadProgressToast(id: string) {
-                this.$toast.add({ 
-                    severity: 'secondary', 
-                    summary: id, 
-                    group: 'downloadProgress'});
             },
             newNotification(message: string, life: number) {
                 this.$toast.add({

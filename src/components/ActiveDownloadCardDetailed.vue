@@ -1,18 +1,5 @@
 <template>
     <div class="active-card-container" :style="style">
-        <div>
-        <Toast position="bottom-right" group="downloadProgress" @close="closeDownloadProgressToast">
-            <template #container="{ message, closeCallback }">
-                <div class="download-toast" style="margin: 1.5em 1.2em;" >
-                    <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" />
-                    <Button style="position: absolute; right: 1em; top: 1em;" icon="pi pi-times" @click="toggle" variant="text" size="medium" severity="secondary" />
-                    <p style="font-weight: 600; font-size: 1.1em;">Download progress</p>
-                    <p v-if="loadingStore.getDownloadInfo != ''" style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; width: 80%;">Info: {{ loadingStore.getDownloadInfo }}</p>
-                    <ProgressBar style=" margin-top: .9em; " :mode="loadingStore.getDownloadProgress == '' ? 'indeterminate' : 'determinate'" :value="Number(loadingStore.getDownloadProgress)" />
-                </div>
-            </template>
-        </Toast>
-        </div>
         <div class="thumbnail" :style="{backgroundImage: 'url('+mediaStore.getThumbnail+')'}"></div>
         <div class="metadata">
             <div class="button-w-title-container">
@@ -77,10 +64,10 @@
                 <aside style="z-index: 100; margin-right: 1em;">{{ fileExt }}</aside>
                 <AutoComplete class="suggestions-input" v-model="fileName" :showEmptyMessage="false" :suggestions="filteredVariables" @complete="search" 
                     :pt="{
-                        root(root) {
-                            root.instance.onOptionSelect = (event, option) => {
+                        root(root:any) {
+                            root.instance.onOptionSelect = (event:any, option:any) => {
                                 let optionArray = Array.from(option)
-                                const varValue = variables.find(el=>el.label==option)
+                                const varValue = variables.find((el:any)=>el.label==option)
 
                                 for (let i = 0; i < optionArray.length; i++) {
                                     const fragmentedString = optionArray.slice(0,i+1).join('').toLowerCase()
@@ -115,7 +102,7 @@
                             <p style="margin-right: .8em;">Start</p>
                             <input placeholder="Start" type="text" name="start" id="start" v-model="range.start">
                             <p style="margin-right: .8em; margin-left: 1em;">Finish</p>
-                            <input placeholder="Finish" type="text" name="finish" id="finish" v-model="range.end">
+                            <input placeholder="Finish" type="text" name="finish" id="finish" v-model="range.finish">
                         </div>
                     </div>
                 </template>
@@ -136,11 +123,11 @@
                 </template>
             </div>
 
-            <Button icon="pi pi-download" style="width: 100%;" :disabled="loading" label="Download" severity="primary" @click="()=>{if(!loading){download()}}" />
+            <Button icon="pi pi-download" style="width: 100%;" label="Download" severity="primary" @click="()=>{if(!loading){download()}}" />
         </div>
     </div>
 </template>
-<script>
+<script lang="ts">
 import { invoke } from '@tauri-apps/api/core';
 import { useMediaStore } from '../stores/media';
 import { useFSStore } from '../stores/fileSystem';
@@ -161,6 +148,9 @@ import { fileExtensions } from '../constants/fileExtensions';
 import FloatLabel from 'primevue/floatlabel';
 import { checkFormat, findConfigCode } from '../helpers/download';
 import { useUserConfig } from '../stores/userConfig';
+import { useDownloadLogStore } from '../stores/downloadLog';
+import { findAccount } from '../helpers/accounts';
+import { addToHist } from '../helpers/history';
 
 
     export default {
@@ -190,11 +180,11 @@ import { useUserConfig } from '../stores/userConfig';
                 //     {label:"Video (mp4)",value:"Video"},
                 // ],
                 audioQualities: audioQualities,
-                filteredAudioQualities: [],
+                filteredAudioQualities: [] as string[],
                 videoQualities: videoQualities,
-                filteredVideoQualities: [],
+                filteredVideoQualities: [] as string[],
                 fileExts: fileExtensions,
-                filteredFileExts: [],
+                filteredFileExts: [] as string[],
                 range: {
                     start: '00:00',
                     finish: '0',
@@ -204,23 +194,13 @@ import { useUserConfig } from '../stores/userConfig';
                 fileExt:'',
                 fileName:'',
                 variables: ytdlpVariables,
-                filteredVariables: [],
+                filteredVariables: [] as string[],
                 outputPath: '',
                 thumbnail: {
                     download: false,
                     fileName: 'thumbnail',
                 },
                 trim: false,
-                items: [
-                    {
-                        label: 'Cancel download',
-                        icon: 'pi pi-undo',
-                        command: () => {
-                            this.killProcess()
-                        },
-                        class: 'alert'
-                    }
-                ]
             }
         },
         setup() {
@@ -228,55 +208,37 @@ import { useUserConfig } from '../stores/userConfig';
             const fsStore = useFSStore()
             const loadingStore = useLoadingStore()
             const userConfig = useUserConfig();
+            const downloadLog = useDownloadLogStore();
 
             return { 
                 mediaStore,
                 fsStore,
                 loadingStore,
-                userConfig
+                userConfig,
+                downloadLog
             }
         },
         mounted() {
-            this.range.end = this.mediaStore.getDuration
+            this.range.finish = this.mediaStore.getDuration
         },
         methods: {
-            killProcess() {
-                this.cancelled=true;
-                let intervalCount=0;
-                const intervalId = setInterval(()=>{
-                    intervalCount++;
-
-                    if(intervalCount >= 5) {
-                        clearInterval(intervalId);
-                    }
-
-                    invoke('kill_active_process');
-                },500)
-
-                
-                this.newNotification("Download cancelled",3000);
-                this.loading = false
-                this.loadingStore.setDownloadProgress('');
-                this.loadingStore.setDownloadInfo('');
-                this.closeDownloadProgressToast();
-            },
-            searchResolution(event) {
+            searchResolution(event: any) {
                 this.filteredVideoQualities = event.query ? this.videoQualities.filter((resolution) => {
                     return resolution.name.toLowerCase().includes(event.query.toLowerCase());
                 }).map((item)=>item.name): this.videoQualities.map((item)=>item.name);
             },
-            searchBitrate(event) {
+            searchBitrate(event: any) {
                 this.filteredAudioQualities = event.query ? this.audioQualities.filter((bitrate) => {
                     return bitrate.name.toLowerCase().includes(event.query.toLowerCase());
                 }).map((item)=>item.name): this.audioQualities.map((item)=>item.name);
             },
-            searchFileExt(event) {
+            searchFileExt(event: any) {
                 this.filteredFileExts = event.query ? this.fileExts.filter((exts) => {
                     return exts.name.toLowerCase().includes(event.query.toLowerCase());
                 }).map((item)=>item.name): this.fileExts.map((item)=>item.name);
             },
-            timeDifference(start, end) {
-                function timeInSeconds(time) {
+            timeDifference(start:string, end:string) {
+                function timeInSeconds(time:string) {
                     const [hours, minutes, seconds] = time.split(':').map(Number);
                     return hours * 3600 + minutes * 60 + seconds;
                 }
@@ -293,7 +255,7 @@ import { useUserConfig } from '../stores/userConfig';
 
                 return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
             },
-            formatNumber(num) {
+            formatNumber(num: number) {
                 if (num >= 1000000000) {
                     return (num / 1000000000).toFixed(1) + 'b';  // Para números acima de 1 bilhão
                 } else if (num >= 1000000) {
@@ -304,7 +266,7 @@ import { useUserConfig } from '../stores/userConfig';
                     return num.toString();                     // Para números abaixo de 1 mil
                 }
             },
-            search(event) {
+            search(event: any) {
                 setTimeout(() => {
                     const querySplit = event.query.split(/[-._ ]/g)
                     const queryValue = querySplit[querySplit.length-1]
@@ -317,14 +279,10 @@ import { useUserConfig } from '../stores/userConfig';
                     }
                 }, 250);
             },
-            setOutputPath(path) {
+            setOutputPath(path:string) {
                 this.outputPath = path;
             },
-            closeDownloadProgressToast() {
-                this.$toast.removeGroup("downloadProgress");
-            },
             download() {
-                this.loading=true
                 const fileExtCode = findConfigCode(this.fileExt, fileExtensions)
                 
                 let fileType = checkFormat(fileExtCode);
@@ -340,114 +298,84 @@ import { useUserConfig } from '../stores/userConfig';
                 const username = enabledAuth ? findAccount(this.mediaStore.getUrl)?.username : '';
                 const password = enabledAuth ? findAccount(this.mediaStore.getUrl)?.password : '';
   
-                this.getProgressInfo();
-                invoke('download',{
+                console.log(this.range)
+                this.loadingStore.addActiveDownload({
+                    id: '', // id will be overwritten by a autoincremented id when pushing to active downloads array 
+                    thumbnailUrl: this.mediaStore.getThumbnail,
+                    title: this.mediaStore.getTitle,
+                    channel: this.mediaStore.getChannel,
+                    format: fileType as "Video" | "Audio",
+                    quality: `${this.resolution}/${this.bitrate}`,
+                    length: this.mediaStore.getDuration,
+                    path: outputPath,
+                    dateCreated: new Date(),
+                    cancelled: false,
+                    info: '',
+                progress: '',
+                    loading: false,
                     url: this.mediaStore.getUrl, 
                     output: output, 
-                    format: fileType, 
                     fileExt: fileExt,
                     resolution: findConfigCode(this.resolution, videoQualities),
                     bitrate: findConfigCode(this.bitrate, audioQualities),
                     startSection: this.trim ? this.range.start : '',
-                    endSection: this.trim ? this.range.end : '',
+                    endSection: this.trim ? this.range.finish : '',
                     thumbnailPath: thumbnailPath,
                     username: username ?? "",
                     password: password ?? "",
                     cookiesFromBrowser: cookiesFromBrowser,
                     cookiesTxtFilePath: cookiesTxtFilePath,
-                }).then((response)=>{
-                    if(this.cancelled) {
-                        this.cancelled =false;
-                        return 
-                    }
-
-                    
-                    if (response.error && response.error != "") {
-                        const errorIndex = response.error.indexOf("ERROR:");
-                        const errorOnly = response.error.substring(errorIndex);
-                        this.newNotification(`${errorOnly}`,10000);
-                        this.loading = false;
-                        return;
-                    }
-
-                    const outputFullPath = response.output.split('\\')
-                    const outputName = outputFullPath[outputFullPath.length-1];
-
-                    let startTime, endTime;
-                    if(this.range.start.split(":").length == 2) {
-                        startTime = `00:${this.range.start}`
-                    } else if (this.range.start.split(":").length == 1) {
-                        startTime = `00:00:${this.range.start}`
-                    }
-
-                    if(this.range.end.split(":").length == 2) {
-                        endTime = `00:${this.range.end}`
-                    } else if (this.range.end.split(":").length == 1) {
-                        endTime = `00:00:${this.range.end}`
-                    }
-
-                    let length = this.timeDifference(startTime,endTime);
-                    let lengthSplitted = length.split(":");
-
-                    if(lengthSplitted[0]=="00") {
-                        lengthSplitted.shift();
-                        length = lengthSplitted.join(':');
-                    }
-
-                    this.mediaStore.setFormat(fileType)
-                    this.mediaStore.setQuality(`${this.resolution}/${this.bitrate}`);
-                    
-                    this.newNotification("Download successful!",3000);
-                    this.$emit('download-successful',true,outputName,outputPath,length);
-                }).catch((err)=>{
-                    if(this.cancelled) {
-                        this.cancelled =false;
-                        return 
-                    }
-
-                    this.newNotification("Something went wrong :(",3000);
-                    console.log(err)
-                    this.$emit('download-successful',false)
-                }).finally(()=>{
-                    if(this.cancelled) {
-                        this.cancelled =false;
-                        return 
-                    }
-
-                    this.loading = false
-                    this.loadingStore.setDownloadProgress('');
-                    this.loadingStore.setDownloadInfo('');
-                    this.closeDownloadProgressToast();
                 })
+                this.mediaStore.reset();
+                this.newNotification('URL added to queue',3000);
             },
-            getProgressInfo() {
-                this.downloadProgressToast();
+            getProgressInfo(id: string) {
+                const download = this.loadingStore.getActiveDownloadById(id)
+                if(!download) return
+
+                this.downloadProgressToast(id);
                 const loadProgress = setInterval(()=>{
-                    if (this.loading) {
-                        invoke('get_progress_info').then((res)=>{
+                    if (download.loading) {
+                        invoke('get_progress_info',{downloadId: id}).then((res:any)=>{
                             if(res == "") return
 
-                            this.loadingStore.setDownloadInfo(res);
+                            this.loadingStore.setActiveDownloadById(
+                                id,
+                                ['info'],
+                                [res])
+                            ;
                             try {
-                                let progressValue = res.match(/(\d+\.\d+)%/g)[0].replace("%",'');
-                                this.loadingStore.setDownloadProgress(progressValue);
-                            } catch (error) {
-                                
-                            }
+                                let progressValue = res.match(/(\d+\.\d+)%/g)[0].replace("%",'')
+                                this.loadingStore.setActiveDownloadById(
+                                    id,
+                                    ['progress'],
+                                    [progressValue])
+                                ;
+                            } catch (error) {}
                         })
                     } else {
                         clearInterval(loadProgress);
                     }
                 },1000)
-                
             },
             exit() {
                 this.mediaStore.reset();
             },
-            downloadProgressToast() {
-                this.$toast.add({ severity: 'secondary', summary: 'Uploading your files.', group: 'downloadProgress'});
+            closeDownloadProgressToast(id: string) {
+                //Needs refactor
+                const toast = document.getElementById(`DOWNLOAD_TOAST_${id}`) //! Workaround to remove only the toast related to the download
+                if(!toast) return
+                if(!toast.parentElement) return
+
+                toast.parentElement.remove();
             },
-            newNotification(message,life) {
+            downloadProgressToast(id: string) {
+                this.$toast.add({ 
+                    severity: 'secondary', 
+                    summary: id, 
+                    group: 'downloadProgress'});
+            },
+            newNotification(message: string,life:number) {
                 this.$toast.add({
                     severity: 'secondary',
                     summary: 'Download log',
@@ -456,7 +384,8 @@ import { useUserConfig } from '../stores/userConfig';
                     closable: true
                 })
             },
-            toggle(event) {
+            toggle(event:any) {
+                //@ts-ignore
                 this.$refs.menu.toggle(event);
             }
 

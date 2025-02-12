@@ -35,7 +35,10 @@
             <p>Actions</p>
         </div>
         </div>
-        <DownloadInProgressCard v-for="download in activeDownloads"
+        <DownloadPendingCard v-for="download in loadingStore.getPendingDownloads"
+                :downloadId="download.id"
+            />
+        <DownloadInProgressCard v-for="download in loadingStore.getActiveDownloads"
                 :downloadId="download.id"
             />
         <RecentDownloadCard v-for="download in filteredLogs"
@@ -60,18 +63,21 @@ import RecentDownloadCard from './RecentDownloadCard.vue';
 import { useDownloadLogStore } from '../stores/downloadLog';
 import DownloadInProgressCard from './DownloadInProgressCard.vue';
 import { useLoadingStore } from '../stores/loading';
+import DownloadPendingCard from './DownloadPendingCard.vue';
 
     export default {
         name: "RecentDownloadContainer",
         components: {
             RecentDownloadCard,
             DownloadInProgressCard,
+            DownloadPendingCard,
             Paginator
         },
         data() {
             return {
                 filteredLogs: [] as DownloadLog[],
                 activeDownloads: [] as DownloadInProgress[],
+                pendingDownloads: [] as DownloadInProgress[],
                 first: 0,
             }
         },
@@ -87,6 +93,7 @@ import { useLoadingStore } from '../stores/loading';
         async mounted() {
             this.loadingStore.$subscribe((mutation, state)=> {
                 this.activeDownloads = state.activeDownloads;
+                this.pendingDownloads = state.pendingDownloads;
             })
             
             this.downloadLogStore.$subscribe((mutation, state) => {
@@ -96,6 +103,7 @@ import { useLoadingStore } from '../stores/loading';
             await this.downloadLogStore.loadDownloadHistory();
             this.filteredLogs = this.downloadLogStore.getDownloadLog.slice(0,10);
             this.activeDownloads = this.loadingStore.getActiveDownloads;
+            this.activeDownloads = this.loadingStore.getPendingDownloads;
         },
         methods: {
             filterLogs(event:any) {

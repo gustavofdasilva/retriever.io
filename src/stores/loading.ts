@@ -1,4 +1,6 @@
 import { defineStore } from "pinia";
+import { useUserConfig } from "./userConfig";
+import { download } from "../helpers/download";
 
 export const useLoadingStore = defineStore("loading", {
     state: () =>({
@@ -6,6 +8,7 @@ export const useLoadingStore = defineStore("loading", {
         activeDownloadProgress: '',
         activeDownloadInfo: '',
         activeDownloads: [] as DownloadInProgress[],
+        pendingDownloads: [] as DownloadInProgress[],
         autoIncrementId: 0,
     }),
     getters: {
@@ -13,9 +16,13 @@ export const useLoadingStore = defineStore("loading", {
         getDownloadProgress: (state)=>state.activeDownloadProgress,
         getDownloadInfo: (state)=>state.activeDownloadInfo,
         getActiveDownloads: (state)=>state.activeDownloads,
+        getPendingDownloads: (state)=>state.pendingDownloads,
         getActiveDownloadsCount: (state)=>state.activeDownloads.length,
         getActiveDownloadById: (state) => {
             return (id:string)=>state.activeDownloads.find((download)=>download.id===id);
+        },
+        getPendingDownloadById: (state) => {
+            return (id:string)=>state.pendingDownloads.find((download)=>download.id===id);
         },
         getAutoincrementId: (state) => state.autoIncrementId
     },
@@ -30,12 +37,26 @@ export const useLoadingStore = defineStore("loading", {
             this.activeDownloadInfo = newDownloadInfo
         },
         addActiveDownload(newActiveDownload: DownloadInProgress): string { // return index
-            this.autoIncrementId++;
-            const id = String(this.autoIncrementId);
+            let id: string;
             const newDownload = {...newActiveDownload};
-            newDownload.id = id;
 
-            this.activeDownloads.push(newDownload);
+            if(newActiveDownload.id == '') {
+                this.autoIncrementId++;
+                id = String(this.autoIncrementId)
+
+                newDownload.id = id;
+            } else {
+                id = newActiveDownload.id;
+            }
+            
+
+            if( this.activeDownloads.length >= (useUserConfig().getUserConfig.downloads.concurrentDownloads??-1)) {
+                this.pendingDownloads.push(newDownload);
+            } else {
+                this.activeDownloads.push(newDownload);
+                download(newDownload);
+            }
+
             return id;
         },
         setActiveDownloadById<K extends keyof DownloadInProgress>(id: string, keys: K[], values: DownloadInProgress[K][]) {
@@ -51,6 +72,19 @@ export const useLoadingStore = defineStore("loading", {
         },
         removeActiveDownloadById(id: string) {
             this.activeDownloads = this.activeDownloads.filter((download)=>{
+                return download.id != id;
+            })
+
+            if( this.activeDownloads.length < (useUserConfig().getUserConfig.downloads.concurrentDownloads??-1)) {
+                const newDownload = this.pendingDownloads.shift();
+
+                if(!newDownload) return
+
+                this.addActiveDownload(newDownload)
+            }
+        },
+        removePendingDownloadById(id: string) {
+            this.pendingDownloads = this.pendingDownloads.filter((download)=>{
                 return download.id != id;
             })
         }

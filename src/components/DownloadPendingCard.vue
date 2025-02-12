@@ -1,30 +1,30 @@
 <template>
-    <div class="card-container" :style="{'opacity': loadingStore.getActiveDownloadById(downloadId)?.loading ? 0.6 : 1}" > <!-- -->
+    <div class="card-container" :style="{'opacity':  0.6 }" > <!-- -->
         <div class="card-sub-container recent-download-card-size">
-            <div :style="{'background-image': 'url('+loadingStore.getActiveDownloadById(downloadId)?.thumbnailUrl+')'}" class="thumbnail"></div>
+            <div :style="{'background-image': 'url('+loadingStore.getPendingDownloadById(downloadId)?.thumbnailUrl+')'}" class="thumbnail"></div>
             <div>
                 <p style="font-weight: bold;">
-                    {{ loadingStore.getActiveDownloadById(downloadId)?.title }}
+                    {{ loadingStore.getPendingDownloadById(downloadId)?.title }}
                 </p>
             </div>
             <div>
                 <p>
-                    {{ loadingStore.getActiveDownloadById(downloadId)?.channel }}
+                    {{ loadingStore.getPendingDownloadById(downloadId)?.channel }}
                 </p>
             </div>
             <div>
                 <p >
-                   {{ loadingStore.getActiveDownloadById(downloadId)?.quality }}
+                   {{ loadingStore.getPendingDownloadById(downloadId)?.quality }}
                 </p>
             </div>
             <div>
                 <p>
-                    {{loadingStore.getActiveDownloadById(downloadId)?.format}}
+                    {{loadingStore.getPendingDownloadById(downloadId)?.format}}
                 </p>
             </div>
             <div>
                 <p>
-                    {{ formatLength(loadingStore.getActiveDownloadById(downloadId)?.length??"") }}
+                    {{ formatLength(loadingStore.getPendingDownloadById(downloadId)?.length??"") }}
                 </p>
             </div>
             <div >
@@ -33,8 +33,8 @@
             </div>
         </div>
         <div class="progress-info-container" >
-            <ProgressBar v-if="loadingStore.getActiveDownloadById(downloadId)?.loading" style="height: 10px;" :mode="(loadingStore.getActiveDownloadById(downloadId)??{} as DownloadInProgress).progress == '' ? 'indeterminate' : 'determinate'" :value="Number((loadingStore.getActiveDownloadById(downloadId)??{} as DownloadInProgress).progress)" />
-            <p v-else>Pending...</p>
+            <ProgressBar style="height: 10px;" :mode="(loadingStore.getPendingDownloadById(downloadId)??{} as DownloadInProgress).progress == '' ? 'indeterminate' : 'determinate'" :value="Number((loadingStore.getPendingDownloadById(downloadId)??{} as DownloadInProgress).progress)" />
+            <p>Pending...</p>
         </div>
     </div>
 </template>
@@ -42,7 +42,6 @@
 import Button from 'primevue/button';
 import BaseIconButton from './BaseIconButton.vue';
 import Menu from 'primevue/menu';
-import { invoke } from '@tauri-apps/api/core';
 import { deleteRegister } from '../helpers/history';
 import { useDownloadLogStore } from '../stores/downloadLog';
 import { useLoadingStore } from '../stores/loading';
@@ -82,7 +81,7 @@ import ProgressBar from 'primevue/progressbar';
                         label: 'Cancel download',
                         icon: 'pi pi-close',
                         command: () => {
-                            this.killProcess(this.downloadId);
+                            this.cancelDownloadPending(this.downloadId);
                             this.closeDownloadProgressToast(this.downloadId);
                         },
                         class: 'alert'
@@ -99,27 +98,8 @@ import ProgressBar from 'primevue/progressbar';
 
                 toast.parentElement.remove();
             },
-            killProcess(activeDownloadId: string) {
-                this.loadingStore.setActiveDownloadById(activeDownloadId,
-                    ['cancelled'],
-                    [true]
-                )
-                let intervalCount=0;
-                const intervalId = setInterval(()=>{
-                    intervalCount++;
-
-                    if(intervalCount >= 5) {
-                        clearInterval(intervalId);
-                    }
-
-                    invoke('kill_active_process');
-                },500)
-
-                
-                this.newNotification("Download cancelled",3000);
-                this.loadingStore.setLoading(false); 
-                this.loadingStore.setDownloadProgress('');
-                this.loadingStore.setDownloadInfo('');
+            cancelDownloadPending(activeDownloadId: string) {
+                this.loadingStore.removePendingDownloadById(activeDownloadId);
             },
             formatLength(length: string) {
                 if(length == "" || length == "NA" || !length){
@@ -166,6 +146,7 @@ import ProgressBar from 'primevue/progressbar';
         align-items: center;
         justify-content: center;
         padding: 0.5em .8em;
+        margin: .5em 0;
     }
 
     .card-sub-container {

@@ -10,7 +10,7 @@ export const videoQualities: YTDLPOptions = [
 ];
 
 export const audioQualities: YTDLPOptions = [
-    {name:'Any',code:"best"},
+    {name:'Any',code:"any"},
     {name:'Best',code:"best"},
     {name:'Worst',code:"worst"},
     {name:'128kbps',code:"128"},

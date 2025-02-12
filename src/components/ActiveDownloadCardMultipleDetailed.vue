@@ -1,19 +1,5 @@
 <template>
     <div class="active-card-container" :style="style">
-        <div>
-        <Toast position="bottom-right" group="downloadProgress" @close="closeDownloadProgressToast">
-            <template #container="{ message, closeCallback }">
-                <div class="download-toast" style="margin: 1.5em 1.2em;" >
-                    <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" />
-                    <Button style="position: absolute; right: 1em; top: 1em;" icon="pi pi-times" @click="toggle" variant="text" size="medium" severity="secondary" />
-                    <p style="font-weight: 600; font-size: 1.1em;">Download progress</p>
-                    <p v-if="loadingStore.getDownloadInfo != ''" style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; width: 80%;">Video: {{ videoIndex+1 }} / {{ mediaStore.getMultiUrls.length }}</p>
-                    <p v-if="loadingStore.getDownloadInfo != ''" style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; width: 80%;">Info: {{ loadingStore.getDownloadInfo }}</p>
-                    <ProgressBar style="margin-top: .9em; " :mode="loadingStore.getDownloadProgress == '' ? 'indeterminate' : 'determinate'" :value="Number(loadingStore.getDownloadProgress)" />
-                </div>
-            </template>
-        </Toast>
-        </div>
         <div class="thumbnail">
             <p style="font-size: 2em; font-weight: 500;" >{{ mediaStore.getMultiUrls.length }}</p>
         </div>
@@ -67,10 +53,10 @@
                 <aside style="z-index: 100; margin-right: 1em;">{{ fileExt }}</aside>
                 <AutoComplete class="suggestions-input" v-model="fileName" :showEmptyMessage="false" :suggestions="filteredVariables" @complete="search" 
                     :pt="{
-                        root(root) {
-                            root.instance.onOptionSelect = (event, option) => {
+                        root(root:any) {
+                            root.instance.onOptionSelect = (event:any, option:any) => {
                                 let optionArray = Array.from(option)
-                                const varValue = variables.find(el=>el.label==option)
+                                const varValue = variables.find((el:any)=>el.label==option)
 
                                 for (let i = 0; i < optionArray.length; i++) {
                                     const fragmentedString = optionArray.slice(0,i+1).join('').toLowerCase()
@@ -106,7 +92,7 @@
                             <p style="margin-right: .8em;">Start</p>
                             <input placeholder="Start" type="text" name="start" id="start" v-model="range.start">
                             <p style="margin-right: .8em; margin-left: 1em;">Finish</p>
-                            <input placeholder="Finish" type="text" name="finish" id="finish" v-model="range.end">
+                            <input placeholder="Finish" type="text" name="finish" id="finish" v-model="range.finish">
                         </div>
                     </div>
                 </template>
@@ -131,7 +117,7 @@
         </div>
     </div>
 </template>
-<script>
+<script lang="ts">
 import { invoke } from '@tauri-apps/api/core';
 import { useMediaStore } from '../stores/media';
 import { useFSStore } from '../stores/fileSystem';
@@ -154,6 +140,7 @@ import { checkFormat, findConfigCode } from '../helpers/download';
 import Message from 'primevue/message';
 import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/history';
 import { useUserConfig } from '../stores/userConfig';
+import { findAccount } from '../helpers/accounts';
 
 
     export default {
@@ -184,11 +171,11 @@ import { useUserConfig } from '../stores/userConfig';
                 //     {label:"Video (mp4)",value:"Video"},
                 // ],
                 audioQualities: audioQualities,
-                filteredAudioQualities: [],
+                filteredAudioQualities: [] as string[],
                 videoQualities: videoQualities,
-                filteredVideoQualities: [],
+                filteredVideoQualities: [] as string[],
                 fileExts: fileExtensions,
-                filteredFileExts: [],
+                filteredFileExts: [] as string[],
                 range: {
                     start: '00:00',
                     finish: '0',
@@ -199,7 +186,7 @@ import { useUserConfig } from '../stores/userConfig';
                 fileName:'',
                 variables: ytdlpVariables,
                 toastVisible: false,
-                filteredVariables: [],
+                filteredVariables: [] as string[],
                 outputPath: '',
                 thumbnail: {
                     download: false,
@@ -225,7 +212,7 @@ import { useUserConfig } from '../stores/userConfig';
             const userConfig = useUserConfig();
             const readFile = () => readHistFile();
             const createFile = () => createHistFile();
-            const addDownload = (newLog) => addToHist(newLog);
+            const addDownload = (newLog:any) => addToHist(newLog);
             const clearInfo = () => clearHist();
 
             return { 
@@ -260,23 +247,23 @@ import { useUserConfig } from '../stores/userConfig';
                 this.loadingStore.setDownloadInfo('');
                 this.closeDownloadProgressToast();
             },
-            searchResolution(event) {
+            searchResolution(event:any) {
                 this.filteredVideoQualities = event.query ? this.videoQualities.filter((resolution) => {
                     return resolution.name.toLowerCase().includes(event.query.toLowerCase());
                 }).map((item)=>item.name): this.videoQualities.map((item)=>item.name);
             },
-            searchBitrate(event) {
+            searchBitrate(event:any) {
                 this.filteredAudioQualities = event.query ? this.audioQualities.filter((bitrate) => {
                     return bitrate.name.toLowerCase().includes(event.query.toLowerCase());
                 }).map((item)=>item.name): this.audioQualities.map((item)=>item.name);
             },
-            searchFileExt(event) {
+            searchFileExt(event:any) {
                 this.filteredFileExts = event.query ? this.fileExts.filter((exts) => {
                     return exts.name.toLowerCase().includes(event.query.toLowerCase());
                 }).map((item)=>item.name): this.fileExts.map((item)=>item.name);
             },
-            timeDifference(start, end) {
-                function timeInSeconds(time) {
+            timeDifference(start:string, end:string) {
+                function timeInSeconds(time:string) {
                     const [hours, minutes, seconds] = time.split(':').map(Number);
                     return hours * 3600 + minutes * 60 + seconds;
                 }
@@ -293,7 +280,7 @@ import { useUserConfig } from '../stores/userConfig';
 
                 return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
             },
-            formatNumber(num) {
+            formatNumber(num: number) {
                 if (num >= 1000000000) {
                     return (num / 1000000000).toFixed(1) + 'b';  // Para números acima de 1 bilhão
                 } else if (num >= 1000000) {
@@ -304,7 +291,7 @@ import { useUserConfig } from '../stores/userConfig';
                     return num.toString();                     // Para números abaixo de 1 mil
                 }
             },
-            search(event) {
+            search(event:any) {
                 setTimeout(() => {
                     const querySplit = event.query.split(/[-._ ]/g)
                     const queryValue = querySplit[querySplit.length-1]
@@ -317,7 +304,7 @@ import { useUserConfig } from '../stores/userConfig';
                     }
                 }, 250);
             },
-            setOutputPath(path) {
+            setOutputPath(path:string) {
                 this.outputPath = path;
             },
             closeDownloadProgressToast() {
@@ -325,18 +312,19 @@ import { useUserConfig } from '../stores/userConfig';
                 this.toastVisible=false;
             },
             async download() {
-                this.loading=true
                 const fileExtCode = findConfigCode(this.fileExt, fileExtensions)
-                
-                let fileType = checkFormat(fileExtCode);
 
-                this.getProgressInfo();
+                let fileType = checkFormat(fileExtCode);
+                
+                this.loading=true
+                this.newNotification('URLs added to queue',3000);
                 for (const url of this.mediaStore.getMultiUrls) {
                     
                     const videoData = await this.getMetadata(url)
                     if(!videoData) {
                         return
                     }
+                    this.loading=false;
 
                     const fileExt = fileExtCode.includes('any') ? 'any' : fileExtCode
                     const outputPath = this.outputPath == '' ? this.userConfig.getUserConfig.defaultOutput : this.outputPath 
@@ -348,100 +336,38 @@ import { useUserConfig } from '../stores/userConfig';
                     const username = enabledAuth ? findAccount(this.mediaStore.getUrl)?.username : '';
                     const password = enabledAuth ? findAccount(this.mediaStore.getUrl)?.password : '';
 
-                    this.videoIndex = this.mediaStore.getMultiUrls.indexOf(url);
-                    await invoke('download',{
+                    this.loadingStore.addActiveDownload({
+                        id: '', // id will be overwritten by a autoincremented id when pushing to active downloads array 
+                        thumbnailUrl: videoData.thumbnail,
+                        title: videoData.title,
+                        channel: videoData.channel,
+                        format: fileType as "Video" | "Audio",
+                        quality: `${this.resolution}/${this.bitrate}`,
+                        length: videoData.duration,
+                        path: outputPath,
+                        dateCreated: new Date(),
+                        cancelled: false,
+                        info: '',
+                        progress: '',
+                        loading: false,
+
                         url: url, 
                         output: output, 
-                        format: fileType, 
                         fileExt: fileExt,
                         resolution: findConfigCode(this.resolution, videoQualities),
                         bitrate:  findConfigCode(this.bitrate, audioQualities),
                         startSection: this.trim ? this.range.start : '',
-                        endSection: this.trim ? this.range.end : '',
+                        endSection: this.trim ? this.range.finish : '',
                         thumbnailPath:thumbnailPath,
                         username: username ?? "",
                         password: password ?? "",
                         cookiesFromBrowser: cookiesFromBrowser,
                         cookiesTxtFilePath: cookiesTxtFilePath,
-                    }).then(async(response)=>{
-                        if(this.cancelled) {
-                            this.cancelled =false;
-                            return 
-                        }
-
-                        if (response.error && response.error != "") {
-                            const errorIndex = response.error.indexOf("ERROR:");
-                            const errorOnly = response.error.substring(errorIndex);
-                            this.newNotification(`${errorOnly}`,10000);
-                            this.loading = false;
-                            return;
-                        }
-
-                        const outputFullPath = response.output.split('\\')
-                        const outputName = outputFullPath[outputFullPath.length-1];
-
-                        let startTime = "00:00";
-                        let endTime = "00:00";
-                        if(this.range.start != "" && this.range.start) {
-                            if(this.range.start.split(":").length == 2 ) {
-                                startTime = `00:${this.range.start}`
-                            } else if (this.range.start.split(":").length == 1) {
-                                startTime = `00:00:${this.range.start}`
-                            }
-                        }
-
-                        if(this.range.end != "" && this.range.end) {
-                            if(this.range.end.split(":").length == 2 ) {
-                                endTime = `00:${this.range.end}`
-                            } else if (this.range.end.split(":").length == 1) {
-                                endTime = `00:00:${this.range.end}`
-                            }
-                        }
-
-                        let length = this.timeDifference(startTime,endTime);
-                        let lengthSplitted = length.split(":");
-
-                        if(lengthSplitted[0]=="00") {
-                            lengthSplitted.shift();
-                            length = lengthSplitted.join(':');
-                        }
-                    
-                        const activeDownloadLog = {
-                            thumbnailUrl: videoData.thumbnail,
-                            title: outputName,
-                            channel: videoData.channel,
-                            format: fileType,
-                            quality: `${this.resolution}/${this.bitrate}`,
-                            length: length == "00:00" ? videoData.duration : length,
-                            path: outputPath,
-                            dateCreated: new Date()
-                        } 
-    
-                        await this.addDownload(activeDownloadLog);
-
-                        this.newNotification("Download successful!",3000);
-                    }).finally(()=>{
-                        if(this.cancelled) {
-                            this.cancelled =false;
-                            return 
-                        }
-                        this.$emit('download-successful',true);
-                        const index = this.mediaStore.getMultiUrls.indexOf(url);
-                        const length = this.mediaStore.getMultiUrls.length;
-
-                        this.loadingStore.setDownloadProgress('');
-                        this.loadingStore.setDownloadInfo('');
-
-                        if (index+1 == length) {
-                            this.loading = false;
-                            this.closeDownloadProgressToast();
-                            this.$router.push('/downloads')
-                            this.mediaStore.reset()
-                        }
                     })
                 }
+                this.mediaStore.reset();
             },
-            async getMetadata(url) {
+            async getMetadata(url:string) {
 
                 const enabledAuth = this.userConfig.getUserConfig.authentication.enabled;
                 const cookiesFromBrowser = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesFromBrowser: "";
@@ -454,7 +380,7 @@ import { useUserConfig } from '../stores/userConfig';
                     password='';
                 }
 
-                const res = await invoke('get_metadata',{
+                const res:any = await invoke('get_metadata',{
                     url: url, 
                     username: username,
                     password: password,
@@ -480,7 +406,7 @@ import { useUserConfig } from '../stores/userConfig';
                 this.downloadProgressToast();
                 const loadProgress = setInterval(()=>{
                     if (this.loading) {
-                        invoke('get_progress_info').then((res)=>{
+                        invoke('get_progress_info').then((res:any)=>{
                             if(res == "") return
 
                             this.loadingStore.setDownloadInfo(res);
@@ -509,7 +435,7 @@ import { useUserConfig } from '../stores/userConfig';
                     this.toastVisible = true;
                 } 
             },
-            newNotification(message,life) {
+            newNotification(message:string,life:number) {
                 this.$toast.add({
                     severity: 'secondary',
                     summary: 'Download log',
@@ -518,7 +444,8 @@ import { useUserConfig } from '../stores/userConfig';
                     closable: true
                 })
             },
-            toggle(event) {
+            toggle(event:any) {
+                //@ts-ignore
                 this.$refs.menu.toggle(event);
             }
 

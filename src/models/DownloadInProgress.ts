@@ -1,5 +1,6 @@
 type DownloadInProgress = {
-    id: string,
+    id: string
+
     cancelled:boolean,
     loading:boolean,
     thumbnailUrl: string,
@@ -11,5 +12,18 @@ type DownloadInProgress = {
     format: 'Video' | 'Audio',
     length: string,
     path: string,
-    dateCreated: Date
+    dateCreated: Date,
+
+    url: string, 
+    output: string, 
+    fileExt: string,
+    resolution: string,
+    bitrate: string,
+    startSection: string,
+    endSection: string,
+    thumbnailPath: string,
+    username: string,
+    password: string,
+    cookiesFromBrowser: string,
+    cookiesTxtFilePath: string,
 }
