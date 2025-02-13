@@ -1,4 +1,7 @@
 import { exit } from '@tauri-apps/plugin-process';
+import { useLoadingStore } from '../stores/loading';
+import { invoke } from '@tauri-apps/api/core';
+import toasteventbus from 'primevue/toasteventbus';
 
 const titlebarMenuOptions = [
     {
@@ -35,17 +38,30 @@ const titlebarMenuOptions = [
         label: 'Downloads',
         items: [
             {
-                label: 'Cancel All Downloads',
+                label: 'Cancel all downloads',
                 command: () => {
-
+                    killAllProcess();
+                    cancelAllDownloadsPending();
                 },
             },
             {
-                label: 'Clear all recent downloads',
+                label: 'Cancel all pending downloads',
                 command: () => {
-
+                    cancelAllDownloadsPending();
                 },
             },
+            {
+                label: 'Cancel all in progress downloads',
+                command: () => {
+                    killAllProcess();
+                },
+            },
+            // {
+            //     label: 'Clear all recent downloads',
+            //     command: () => {
+
+            //     },
+            // },
         ],
     },
     {
@@ -97,9 +113,60 @@ const titlebarMenuOptions = [
             },
         ],
     },
-    {
-        label: 'Contact',
-    }
 ]
 
 export default titlebarMenuOptions;
+
+function killAllProcess() {
+    const loadingStore = useLoadingStore();
+
+    if(loadingStore.getActiveDownloads.length == 0) {
+        return
+    }
+
+    loadingStore.getActiveDownloads.forEach((download)=>{
+      loadingStore.setActiveDownloadById(download.id,
+        ['cancelled'],
+        [true]
+      )
+    });
+    
+    let intervalCount=0;
+    const intervalId = setInterval(()=>{
+        intervalCount++;
+
+        if(intervalCount >= 5) {
+            clearInterval(intervalId);
+        }
+
+        invoke('kill_active_process');
+    },500)
+
+    
+    newNotification("Downloads cancelled",3000);
+    loadingStore.setLoading(false); 
+}
+
+function cancelAllDownloadsPending() {
+    const loadingStore = useLoadingStore();
+
+    if(loadingStore.getPendingDownloads.length == 0) {
+        return
+    }
+
+    loadingStore.getPendingDownloads.forEach((download)=>{
+        loadingStore.removePendingDownloadById(download.id);
+    })
+    
+    newNotification("Pending downloads cancelled",3000);
+}
+
+function newNotification(message: string, life: number) {
+    toasteventbus.emit('add', {
+        severity: 'secondary',
+        summary: 'Download log',
+        detail: message,
+        life: life,
+        closable: true
+    })
+}

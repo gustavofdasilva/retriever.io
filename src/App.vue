@@ -23,11 +23,11 @@
                 id="overlay_menu" 
                 :model="[
                     {
-                        label: 'Cancel download',
+                        label: 'Cancel all downloads',
                         icon: 'pi pi-undo',
                         command: () => {
                             closeCallback();
-                            killProcess(message.summary);
+                            killAllProcess();
                         },
                         class: 'alert'
                     }
@@ -248,6 +248,29 @@ import { download } from './helpers/download';
         return result;
 
       },
+      killAllProcess() {
+          this.loadingStore.getActiveDownloads.forEach((download)=>{
+            this.loadingStore.setActiveDownloadById(download.id,
+              ['cancelled'],
+              [true]
+            )
+          });
+          
+          let intervalCount=0;
+          const intervalId = setInterval(()=>{
+              intervalCount++;
+
+              if(intervalCount >= 5) {
+                  clearInterval(intervalId);
+              }
+
+              invoke('kill_active_process');
+          },500)
+
+          
+          this.newNotification("Downloads cancelled",3000);
+          this.loadingStore.setLoading(false); 
+      },
       killProcess(activeDownloadId: string) {
           this.loadingStore.setActiveDownloadById(activeDownloadId,
             ['cancelled'],
@@ -261,14 +284,13 @@ import { download } from './helpers/download';
                   clearInterval(intervalId);
               }
 
-              invoke('kill_active_process');
+              invoke('kill_active_process_by_download_id', {
+                downloadId: activeDownloadId
+              });
           },500)
 
           
           this.newNotification("Download cancelled",3000);
-          this.loadingStore.setLoading(false); 
-          this.loadingStore.setDownloadProgress('');
-          this.loadingStore.setDownloadInfo('');
       },
       toggle(event: any) {
           //@ts-ignore

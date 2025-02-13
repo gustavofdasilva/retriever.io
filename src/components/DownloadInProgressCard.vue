@@ -112,14 +112,13 @@ import ProgressBar from 'primevue/progressbar';
                         clearInterval(intervalId);
                     }
 
-                    invoke('kill_active_process');
+                    invoke('kill_active_process_by_download_id', {
+                        downloadId: activeDownloadId
+                    });
                 },500)
 
                 
                 this.newNotification("Download cancelled",3000);
-                this.loadingStore.setLoading(false); 
-                this.loadingStore.setDownloadProgress('');
-                this.loadingStore.setDownloadInfo('');
             },
             formatLength(length: string) {
                 if(length == "" || length == "NA" || !length){

@@ -1,7 +1,7 @@
  // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
 use std::{
-    collections::HashMap, env::args, fs, hash::Hash, io::{ stderr, BufRead, BufReader}, process::{Command, Stdio}, vec
+    collections::HashMap, env::args, fs, hash::Hash, io::{ stderr, BufRead, BufReader}, os::windows::process, process::{Command, Stdio}, vec
 };
 
 use encoding_rs::WINDOWS_1252;
@@ -486,11 +486,58 @@ async fn kill_active_process()  {
        }
    }
 
+#[tauri::command]
+async fn kill_active_process_by_download_id(download_id: String)  {
+
+    unsafe { 
+        if ACTIVE_PROCESS.len() == 0 {
+            return 
+        }
+    
+        let process_index = ACTIVE_PROCESS.iter().position(
+            |download| 
+                download.get(&"id".to_string()).unwrap() == &download_id.clone()
+        );
+            match process_index {
+                Some(index)=>{
+                    let id = ACTIVE_PROCESS[index].get(&"process_id".to_string()).unwrap().clone().parse::<u32>().unwrap_or(0);
+                    if id == 0 {
+                        return
+                    }
+                    
+                    #[cfg(target_os = "windows")]
+                    {
+                        kill_process_windows_by_id(id);
+                    }
+                    
+                    #[cfg(target_os = "linux")]
+                    {
+                        //Kill process command in linux
+                    }
+                    
+                    #[cfg(target_os = "macos")]
+                    {
+                        //Kill process command in macos
+                    }
+                },
+                None=>{}
+            }
+    
+    }
+}
+
 fn kill_process_windows() {
         // Additional check to ensure all child processes are killed
         let _ = Command::new("wmic")
             .args(&["process", "where", &format!("name='yt-dlp.exe'"), "delete"])
             .output().unwrap();
+   }
+
+   fn kill_process_windows_by_id(id: u32) {
+        println!("KILLING PROCESS {}, IN WINDOWS",id);
+        let _ = Command::new("taskkill")
+                .args(&["/pid", &id.to_string().as_str(), "/f", "/t"])
+                .output().unwrap();
    }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -510,7 +557,8 @@ pub fn run() {
             get_progress_info,
             show_in_folder,
             delete_file,
-            kill_active_process
+            kill_active_process,
+            kill_active_process_by_download_id,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

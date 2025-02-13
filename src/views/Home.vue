@@ -89,7 +89,6 @@ import { useUserConfig } from '../stores/userConfig';
         },
         methods: {
             getMetadata(inputText: string) {
-                if(this.loadingStore.loading) return
 
                 this.loadingSearch = true
                 const enabledAuth = this.userConfig.getUserConfig.authentication.enabled;
