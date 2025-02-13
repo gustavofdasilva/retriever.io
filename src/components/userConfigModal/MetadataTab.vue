@@ -5,7 +5,10 @@
             <span>
                 Download thumbnail by default:
             </span>
-            <AutoComplete v-if="newUserConfig.metadata" :forceSelection="true" fluid v-model="newUserConfig.metadata.downloadThumbnailByDefault" dropdown :suggestions="filteredImageExt" @complete="searchImageExt" />
+            <div style="width: 100%;">
+                <AutoComplete v-if="newUserConfig.metadata" :forceSelection="true" fluid v-model="newUserConfig.metadata.downloadThumbnailByDefault" dropdown :suggestions="filteredImageExt" @complete="searchImageExt" />
+                <Message style="margin-left: 1em;" v-if="(missingInfo && newUserConfig.metadata.downloadThumbnailByDefault ==null)" severity="error" size="small" variant="simple">Select a valid value</Message>
+            </div>
         </div>
         <div class="config-options">
             <span>
@@ -61,6 +64,7 @@ import { useUserConfig } from '../../stores/userConfig';
 import FloatLabel from 'primevue/floatlabel';
 import { audioExtensions, imageExtensions, videoExtensions } from '../../constants/fileExtensions';
 import ToggleSwitch from 'primevue/toggleswitch';
+import Message from 'primevue/message';
 
     export default {
         name: "TheHeader",
@@ -69,7 +73,8 @@ import ToggleSwitch from 'primevue/toggleswitch';
             Button,
             AutoComplete,
             FloatLabel,
-            ToggleSwitch
+            ToggleSwitch,
+            Message
         },
         data() {
             return {
@@ -93,7 +98,8 @@ import ToggleSwitch from 'primevue/toggleswitch';
                         name: "Both",
                         code: "both"
                     },
-                ] as YTDLPOption[]
+                ] as YTDLPOption[],
+                missingInfo: false,
             }
         },
         setup() {
@@ -163,12 +169,33 @@ import ToggleSwitch from 'primevue/toggleswitch';
 
                 return false;
             },
+            checkInputsCompleted():boolean {
+                if(this.newUserConfig.metadata.downloadThumbnailByDefault == null) {
+                    return false
+                }
+                return true
+            },
             async saveConfig() {
-                if(this.changes) {
-                    this.userConfigStore.setUserConfig(this.newUserConfig);
-                    this.$emit('setConfigModalVisible', false);
+                if(this.checkInputsCompleted()) {
+                    if(this.changes) {
+                        this.userConfigStore.setUserConfig(this.newUserConfig);
+                        this.$emit('setConfigModalVisible', false);
+                    }
+                    this.missingInfo = false;
+                } else {
+                    this.newNotification("Missing user information",3000);
+                    this.missingInfo = true;
                 }
             },
+            newNotification(message: string, life: number) {
+                this.$toast.add({
+                    severity: 'secondary',
+                    summary: 'Alert',
+                    detail: message,
+                    life: life,
+                    closable: true
+                })
+            }
         }
     }
 </script>

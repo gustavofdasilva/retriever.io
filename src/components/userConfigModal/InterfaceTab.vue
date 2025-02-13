@@ -12,13 +12,19 @@
                     Summarized: Display only one notification, showing the progress to complete all downloads
                 </p>
             </span>
-            <AutoComplete v-if="newUserConfig.interface" :forceSelection="true" fluid v-model="newUserConfig.interface.showDownloadProgressNotification" dropdown :suggestions="filteredNotificationOption" @complete="searchNotificationOption" />
+            <div style="width: 100%;">
+                <AutoComplete v-if="newUserConfig.interface" :forceSelection="true" fluid v-model="newUserConfig.interface.showDownloadProgressNotification" dropdown :suggestions="filteredNotificationOption" @complete="searchNotificationOption" />
+                <Message style="margin-left: 1em;" v-if="(missingInfo && (newUserConfig.interface.showDownloadProgressNotification == null))" severity="error" size="small" variant="simple">Select a valid value</Message>
+            </div>
         </div>
         <div class="config-options">
             <span>
                 Notifications position:
             </span>
-            <AutoComplete v-if="newUserConfig.interface" :forceSelection="true" fluid v-model="newUserConfig.interface.notificationPosition" dropdown :suggestions="filteredNotificationPosition" @complete="searchNotificationPosition" />
+            <div style="width: 100%;">
+                <AutoComplete v-if="newUserConfig.interface" :forceSelection="true" fluid v-model="newUserConfig.interface.notificationPosition" dropdown :suggestions="filteredNotificationPosition" @complete="searchNotificationPosition" />
+                <Message style="margin-left: 1em;" v-if="(missingInfo && (newUserConfig.interface.notificationPosition == null))" severity="error" size="small" variant="simple">Select a valid value</Message>
+            </div>
         </div>
     </div>
 
@@ -34,6 +40,7 @@ import { useUserConfig } from '../../stores/userConfig';
 import FloatLabel from 'primevue/floatlabel';
 import { audioExtensions, imageExtensions, videoExtensions } from '../../constants/fileExtensions';
 import ToggleSwitch from 'primevue/toggleswitch';
+import Message from 'primevue/message';
 
     export default {
         name: "TheHeader",
@@ -42,7 +49,8 @@ import ToggleSwitch from 'primevue/toggleswitch';
             Button,
             AutoComplete,
             FloatLabel,
-            ToggleSwitch
+            ToggleSwitch,
+            Message
         },
         data() {
             return {
@@ -66,7 +74,8 @@ import ToggleSwitch from 'primevue/toggleswitch';
                         name: "Both",
                         code: "both"
                     },
-                ] as YTDLPOption[]
+                ] as YTDLPOption[],
+                missingInfo: false,
             }
         },
         setup() {
@@ -113,6 +122,16 @@ import ToggleSwitch from 'primevue/toggleswitch';
             this.newUserConfig = JSON.parse(JSON.stringify(this.userConfig));
         },
         methods: {
+            checkInputsCompleted():boolean {
+                if(this.newUserConfig.interface.notificationPosition == null ||
+                this.newUserConfig.interface.showDownloadProgressNotification == null 
+                ){
+                    console.log(this.newUserConfig)
+                    return false
+                }
+                console.log(this.newUserConfig)
+                return true
+            },
             searchNotificationOption(event:any) {
                 this.filteredNotificationOption = event.query ? this.notificationOptions.filter((item) => {
                     return item.name.toLowerCase().includes(event.query.toLowerCase());
@@ -142,11 +161,26 @@ import ToggleSwitch from 'primevue/toggleswitch';
                 return false;
             },
             async saveConfig() {
-                if(this.changes) {
-                    this.userConfigStore.setUserConfig(this.newUserConfig);
-                    this.$emit('setConfigModalVisible', false);
+                if(this.checkInputsCompleted()) {
+                    if(this.changes) {
+                        this.userConfigStore.setUserConfig(this.newUserConfig);
+                        this.$emit('setConfigModalVisible', false);
+                    }
+                    this.missingInfo = false;
+                } else {
+                    this.newNotification("Missing user information",3000);
+                    this.missingInfo = true;
                 }
             },
+            newNotification(message: string, life: number) {
+                this.$toast.add({
+                    severity: 'secondary',
+                    summary: 'Alert',
+                    detail: message,
+                    life: life,
+                    closable: true
+                })
+            }
         }
     }
 </script>

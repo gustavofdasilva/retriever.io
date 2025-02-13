@@ -57,6 +57,7 @@
                     @folder-selected="setOutputPath"
                     style="width: 100%; justify-content: flex-start; font-size: .9em;"
                 />
+                <Message style="margin-left: 1em;" v-if="(missingInfo && outputPath == '')" severity="error" size="small" variant="simple">Select output path</Message>
             </div>
 
             <h2>File name</h2>
@@ -84,6 +85,7 @@
                         },
                     }"
                 />
+                <Message style="margin-left: 1em;" v-if="(missingInfo && fileName == '')" severity="error" size="small" variant="simple">Select file name</Message>
             </div>
 
             <!--Div Var connected to some input-->
@@ -100,9 +102,15 @@
                         <div class="double-input" style="justify-content: center;">
                             <p style="margin-right: 1.2em; font-weight: 600;">Range:</p>
                             <p style="margin-right: .8em;">Start</p>
-                            <input placeholder="Start" type="text" name="start" id="start" v-model="range.start">
+                            <div style="flex: 1;">
+                                <input placeholder="Start" type="text" name="start" id="start" v-model="range.start">
+                                <Message style="margin-left: 1em;" v-if="(missingInfo && range.start == '') || !/^(?:(\d{2}):)?(\d{2}):(\d{2})(?::(\d{2}))?$/g.test(range.start)" severity="error" size="small" variant="simple">Select a valid value (MM:SS)</Message>
+                            </div>
                             <p style="margin-right: .8em; margin-left: 1em;">Finish</p>
-                            <input placeholder="Finish" type="text" name="finish" id="finish" v-model="range.finish">
+                            <div style="flex: 1">
+                                <input placeholder="Finish" type="text" name="finish" id="finish" v-model="range.finish">
+                                <Message style="margin-left: 1em;" v-if="(missingInfo && range.finish == '') || !/^(?:(\d{2}):)?(\d{2}):(\d{2})(?::(\d{2}))?$/g.test(range.finish)" severity="error" size="small" variant="simple">Select a valid value (MM:SS)</Message>
+                            </div>
                         </div>
                     </div>
                 </template>
@@ -118,6 +126,7 @@
                         <h2 style="margin-top: .5em;">File name</h2>
                         <div style="width: 100%; padding: 0 1em;">
                             <InputText v-model="thumbnail.fileName" type="text" name="thumbfilename" id="thumbfilename" style="width: 100%;"/>
+                            <Message style="margin-left: 1em;" v-if="(missingInfo && thumbnail.fileName == '') " severity="error" size="small" variant="simple">Select file name</Message>
                         </div>
                     </div>
                 </template>
@@ -151,6 +160,7 @@ import { useUserConfig } from '../stores/userConfig';
 import { useDownloadLogStore } from '../stores/downloadLog';
 import { findAccount } from '../helpers/accounts';
 import { addToHist } from '../helpers/history';
+import Message from 'primevue/message';
 
 
     export default {
@@ -165,7 +175,8 @@ import { addToHist } from '../helpers/history';
             ProgressBar,
             Toast,
             Menu,
-            FloatLabel
+            FloatLabel,
+            Message
         },
         props: {
             style: Object
@@ -201,6 +212,7 @@ import { addToHist } from '../helpers/history';
                     fileName: 'thumbnail',
                 },
                 trim: false,
+                missingInfo: false,
             }
         },
         setup() {
@@ -222,6 +234,16 @@ import { addToHist } from '../helpers/history';
             this.range.finish = this.mediaStore.getDuration
         },
         methods: {
+            checkInputsCompleted():boolean {
+                if(this.outputPath == '' || 
+                this.fileName == '' || 
+                (this.trim && (this.range.start == '' || this.range.finish == '')) ||
+                (this.thumbnail.download && this.thumbnail.fileName == '')
+                ) {
+                    return false
+                }
+                return true
+            },
             searchResolution(event: any) {
                 this.filteredVideoQualities = event.query ? this.videoQualities.filter((resolution) => {
                     return resolution.name.toLowerCase().includes(event.query.toLowerCase());
@@ -287,7 +309,14 @@ import { addToHist } from '../helpers/history';
                 this.outputPath = path;
             },
             download() {
-                const fileExtCode = findConfigCode(this.fileExt, fileExtensions)
+                if(!this.checkInputsCompleted()) {
+                    this.missingInfo = true
+                    this.newNotification('Alert','Missing video information',3000)
+                    return
+                }
+                
+                this.missingInfo = false
+                const fileExtCode = this.fileExt ? findConfigCode(this.fileExt, fileExtensions) : 'any'
                 
                 let fileType = checkFormat(fileExtCode);
 
@@ -320,8 +349,8 @@ import { addToHist } from '../helpers/history';
                     url: this.mediaStore.getUrl, 
                     output: output, 
                     fileExt: fileExt,
-                    resolution: findConfigCode(this.resolution, videoQualities),
-                    bitrate: findConfigCode(this.bitrate, audioQualities),
+                    resolution: this.resolution ? findConfigCode(this.resolution, videoQualities) : 'any',
+                    bitrate: this.bitrate ? findConfigCode(this.bitrate, audioQualities) : 'any',
                     startSection: this.trim ? this.range.start : '',
                     endSection: this.trim ? this.range.finish : '',
                     thumbnailPath: thumbnailPath,
@@ -331,7 +360,7 @@ import { addToHist } from '../helpers/history';
                     cookiesTxtFilePath: cookiesTxtFilePath,
                 })
                 this.mediaStore.reset();
-                this.newNotification('URL added to queue',3000);
+                this.newNotification('Download Log','URL added to queue',3000);
             },
             getProgressInfo(id: string) {
                 const download = this.loadingStore.getActiveDownloadById(id)
@@ -379,10 +408,10 @@ import { addToHist } from '../helpers/history';
                     summary: id, 
                     group: 'downloadProgress'});
             },
-            newNotification(message: string,life:number) {
+            newNotification(summary: string, message: string,life:number) {
                 this.$toast.add({
                     severity: 'secondary',
-                    summary: 'Download log',
+                    summary: summary,
                     detail: message,
                     life: life,
                     closable: true

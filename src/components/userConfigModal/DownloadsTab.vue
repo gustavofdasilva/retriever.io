@@ -5,46 +5,58 @@
             <span>
                 Default download folder:
             </span>
-            <BaseFileInput 
-            style="font-size: 0.93em; width: 100%;"
-            :path="newUserConfig.defaultOutput"
-            @folder-selected="setDefaultFolderUserConfig"/>
+
+            <div style="flex: 1;">
+                <BaseFileInput
+                style="font-size: 0.93em; width: 100%;"
+                :path="newUserConfig.defaultOutput"
+                @folder-selected="setDefaultFolderUserConfig"/>
+                <Message style="margin-left: 1em;" v-if="missingInfo && newUserConfig.defaultOutput == ''" severity="error" size="small" variant="simple">The file name needs to contain variables to prevent files with same name</Message>
+            </div>
         </div>
         <div class="config-options">
             <span style="margin-bottom: .5em;">
                 Default output file name:
             </span>
-            <AutoComplete forceSelection  style="flex:1" class="suggestions-input" v-model="newUserConfig.defaultFileName" :showEmptyMessage="false" :suggestions="filteredVariables" @complete="search" 
-                :pt="{
-                    root(root:any) {
-                        root.instance.onOptionSelect = (event: any, option:any) => {
-                            let optionArray = Array.from(option)
-                            const varValue = variables.find((el:any)=>el.label==option)
-
-                            for (let i = 0; i < optionArray.length; i++) {
-                                console.log(optionArray.slice(0,i+1).join(''))
-                                const fragmentedString = optionArray.slice(0,i+1).join('').toLowerCase()
-                                if(newUserConfig.defaultFileName.toLowerCase().endsWith(fragmentedString)) {
-                                    newUserConfig.defaultFileName = newUserConfig.defaultFileName.slice(0,-(i+1))
-                                    newUserConfig.defaultFileName += varValue?.value ?? option;
-                                    return
+            <div style="flex: 1;">
+                <AutoComplete style="flex:1" class="suggestions-input" v-model="newUserConfig.defaultFileName" :showEmptyMessage="false" :suggestions="filteredVariables" @complete="search"
+                    :pt="{
+                        root(root:any) {
+                            root.instance.onOptionSelect = (event: any, option:any) => {
+                                let optionArray = Array.from(option)
+                                const varValue = variables.find((el:any)=>el.label==option)
+                                for (let i = 0; i < optionArray.length; i++) {
+                                    console.log(optionArray.slice(0,i+1).join(''))
+                                    const fragmentedString = optionArray.slice(0,i+1).join('').toLowerCase()
+                                    if(newUserConfig.defaultFileName.toLowerCase().endsWith(fragmentedString)) {
+                                        newUserConfig.defaultFileName = newUserConfig.defaultFileName.slice(0,-(i+1))
+                                        newUserConfig.defaultFileName += varValue?.value ?? option;
+                                        return
+                                    }
                                 }
+                                newUserConfig.defaultFileName+=varValue?.value??option;
+                
                             }
-
-                            newUserConfig.defaultFileName+=varValue?.value??option;
-                            
-                        }
-                    },
-                }"
-            />
+                        },
+                    }"
+                />
+                <Message style="margin-left: 1em;" v-if="(missingInfo && newUserConfig.defaultFileName == '')" severity="error" size="small" variant="simple">The file name cannot be empty</Message>
+                <Message style="margin-left: 1em;" v-if="(!newUserConfig.defaultFileName.match(/%\([^)]+\)/g) && newUserConfig.defaultFileName != '')" severity="error" size="small" variant="simple">The file name needs to contain variables to prevent files with same name</Message>
+            </div>
         </div>
         <div class="config-options">
             <span>Default audio file extension:</span>
-            <AutoComplete :forceSelection="true"  fluid inputId="quality_dropdown" v-model="newUserConfig.defaultAudioFormat" dropdown :suggestions="filteredAudioExtensions" @complete="searchAudioExt" />
+            <div style="width: 100%;">
+                <AutoComplete :forceSelection="true"  fluid inputId="quality_dropdown" v-model="newUserConfig.defaultAudioFormat" dropdown :suggestions="filteredAudioExtensions" @complete="searchAudioExt" />
+                <Message style="margin-left: 1em;" v-if="(missingInfo && newUserConfig.defaultAudioFormat == null)" severity="error" size="small" variant="simple">Select a default format</Message>
+            </div>
         </div>
         <div class="config-options">
             <span>Default video file extension:</span>
-            <AutoComplete :forceSelection="true" fluid inputId="quality_dropdown" v-model="newUserConfig.defaultVideoFormat" dropdown :suggestions="filteredVideoExtensions" @complete="searchVideoExt" />
+            <div style="width: 100%;">
+                <AutoComplete :forceSelection="true" fluid inputId="quality_dropdown" v-model="newUserConfig.defaultVideoFormat" dropdown :suggestions="filteredVideoExtensions" @complete="searchVideoExt" />
+                <Message style="margin-left: 1em;" v-if="(missingInfo && newUserConfig.defaultVideoFormat == null)" severity="error" size="small" variant="simple">Select a default format</Message>
+            </div>
         </div>
         <div class="config-options">
             <span class="name-w-label">
@@ -68,11 +80,14 @@
                     Set filenames max length (0 = disabled)
                 </p>
             </span>
-            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
-                <input v-if="newUserConfig.downloads" max="100" type="number" name="trimFilename" id="trimFilename" v-model="newUserConfig.downloads.trimFilename" @change="(event)=>{
+            <div style="flex: 1; display: flex; align-items: end; justify-content: center; flex-direction: column;">
+                <input v-if="newUserConfig.downloads" min="0" max="100" type="number" name="trimFilename" id="trimFilename" v-model="newUserConfig.downloads.trimFilename" @change="(event)=>{
                     //@ts-ignore
                     if(event.target.value > 100) {
                         newUserConfig.downloads.trimFilename = 100;
+                        //@ts-ignore
+                    } else if (event.target.value < 0) {
+                        newUserConfig.downloads.trimFilename = 0;
                     }
                 }">
             </div>
@@ -99,13 +114,20 @@
                     How many downloads can be done at the same time
                 </p>
             </span>
-            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
-                <input v-if="newUserConfig.downloads" max="20" type="number" name="concurrentDownloads" id="concurrentDownloads" v-model="newUserConfig.downloads.concurrentDownloads" @change="(event)=>{
+            <div style="flex: 1; display: flex; align-items: flex-end; justify-content: center; flex-direction: column;">
+                <input v-if="newUserConfig.downloads" min="0" max="20" type="number" name="concurrentDownloads" id="concurrentDownloads" v-model="newUserConfig.downloads.concurrentDownloads" @change="(event)=>{
                     //@ts-ignore
                     if(event.target.value > 20) {
-                        newUserConfig.downloads.trimFilename = 20;
+                        newUserConfig.downloads.concurrentDownloads = 20;
+                        //@ts-ignore
+                    } else if(event.target.value <0) {
+                        newUserConfig.downloads.concurrentDownloads = 0;
                     }
                 }">
+                <Message style="margin-left: 1em;" v-if="(
+                    //@ts-ignore
+                    missingInfo && (newUserConfig.downloads.concurrentDownloads == null || newUserConfig.downloads.concurrentDownloads == '' || newUserConfig.downloads.concurrentDownloads < 0)
+                )" severity="error" size="small" variant="simple">Select a valid value</Message>
             </div>
         </div>
         <div class="config-options">
@@ -114,7 +136,7 @@
                     Rate limit:
                 </p>
                 <p>
-                    Minimum download rate in bytes per second (Example: 30k or 30m)
+                    Minimum download rate in bytes per second (Example: 30k or 30m). Empty = disabled
                 </p>
             </span>
             <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
@@ -130,13 +152,21 @@
                     How many times to retry when failed
                 </p>
             </span>
-            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
-                <input v-if="newUserConfig.downloads" max="10" type="number" name="retries" id="retries" v-model="newUserConfig.downloads.numberOfRetries" @change="(event)=>{
+            <div style="flex: 1; display: flex; align-items: flex-end; justify-content: center; flex-direction: column;">
+                <input v-if="newUserConfig.downloads" min="0" max="10" type="number" name="retries" id="retries" v-model="newUserConfig.downloads.numberOfRetries" @change="(event)=>{
                     //@ts-ignore
                     if(event.target.value > 10) {
-                        newUserConfig.downloads.trimFilename = 10;
+                        newUserConfig.downloads.numberOfRetries = 10;
+                        //@ts-ignore
+                    } else if (event.target.value < 0) {
+                        newUserConfig.downloads.numberOfRetries = 0;
                     }
                 }">
+                
+                <Message style="margin-left: 1em;" v-if="(
+                    //@ts-ignore
+                    missingInfo && (newUserConfig.downloads.numberOfRetries == null || String(newUserConfig.downloads.numberOfRetries) == '' || newUserConfig.downloads.numberOfRetries < 0)
+                )" severity="error" size="small" variant="simple">Select a valid value</Message>
             </div>
         </div>
         <div class="config-options">
@@ -148,13 +178,21 @@
                     How many times to retry when failed to access file
                 </p>
             </span>
-            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
-                <input v-if="newUserConfig.downloads" max="10" type="number" name="retries" id="retries" v-model="newUserConfig.downloads.fileAccessRetries" @change="(event)=>{
+            <div style="flex: 1; display: flex; align-items: flex-end; justify-content: center; flex-direction: column;">
+                <input v-if="newUserConfig.downloads" min="0" max="10" type="number" name="retries" id="retries" v-model="newUserConfig.downloads.fileAccessRetries" @change="(event)=>{
                     //@ts-ignore
                     if(event.target.value > 10) {
-                        newUserConfig.downloads.trimFilename = 10;
+                        newUserConfig.downloads.fileAccessRetries = 10;
+                    //@ts-ignore
+                    } else if(event.target.value < 0) {
+                        newUserConfig.downloads.fileAccessRetries = 0;
                     }
                 }">
+                
+                <Message style="margin-left: 1em;" v-if="(
+                    //@ts-ignore
+                    missingInfo && (newUserConfig.downloads.fileAccessRetries == null || String(newUserConfig.downloads.fileAccessRetries) == '' || newUserConfig.downloads.fileAccessRetries < 0)
+                )" severity="error" size="small" variant="simple">Select a valid value</Message>
             </div>
         </div>
         <div class="config-options">
@@ -185,6 +223,7 @@ import { useUserConfig } from '../../stores/userConfig';
 import FloatLabel from 'primevue/floatlabel';
 import { audioExtensions, videoExtensions } from '../../constants/fileExtensions';
 import ToggleSwitch from 'primevue/toggleswitch';
+import Message from 'primevue/message';
 
     export default {
         name: "TheHeader",
@@ -193,7 +232,8 @@ import ToggleSwitch from 'primevue/toggleswitch';
             Button,
             AutoComplete,
             FloatLabel,
-            ToggleSwitch
+            ToggleSwitch,
+            Message
         },
         data() {
             return {
@@ -206,6 +246,7 @@ import ToggleSwitch from 'primevue/toggleswitch';
                 filteredAudioExtensions:[] as string[],
                 videoExtensions: videoExtensions,
                 filteredVideoExtensions:[] as string[],
+                missingInfo: false,
             }
         },
         setup() {
@@ -238,6 +279,26 @@ import ToggleSwitch from 'primevue/toggleswitch';
             this.newUserConfig = JSON.parse(JSON.stringify(this.userConfig));
         },
         methods: {
+            checkInputsCompleted():boolean {
+                if(this.newUserConfig.defaultOutput == '' ||
+                this.newUserConfig.defaultFileName == '' ||
+                this.newUserConfig.defaultAudioFormat == null ||
+                this.newUserConfig.defaultVideoFormat == null ||
+                //@ts-ignore
+                (this.newUserConfig.downloads.trimFilename == null || this.newUserConfig.downloads.trimFilename < 0)||
+                //@ts)-ignore
+                (this.newUserConfig.downloads.concurrentDownloads==null || String(this.newUserConfig.downloads.concurrentDownloads)=='' || this.newUserConfig.downloads.concurrentDownloads < 0) ||
+                //@ts-ignore
+                (this.newUserConfig.downloads.numberOfRetries==null || String(this.newUserConfig.downloads.numberOfRetries)=='' || this.newUserConfig.downloads.numberOfRetries < 0) ||
+                //@ts-ignore
+                (this.newUserConfig.downloads.fileAccessRetries==null || String(this.newUserConfig.downloads.fileAccessRetries)=='' || this.newUserConfig.downloads.fileAccessRetries < 0) 
+                ) {
+                    console.log(this.newUserConfig)
+                    return false
+                }
+                console.log(this.newUserConfig)
+                return true
+            },
             searchAudioExt(event:any) {
                 this.filteredAudioExtensions = event.query ? this.audioExtensions.filter((quality) => {
                     return quality.name.toLowerCase().includes(event.query.toLowerCase());
@@ -267,9 +328,15 @@ import ToggleSwitch from 'primevue/toggleswitch';
                 return false;
             },
             async saveConfig() {
-                if(this.changes) {
-                    this.userConfigStore.setUserConfig(this.newUserConfig);
-                    this.$emit('setConfigModalVisible', false);
+                if(this.checkInputsCompleted()) {
+                    if(this.changes) {
+                        this.userConfigStore.setUserConfig(this.newUserConfig);
+                        this.$emit('setConfigModalVisible', false);
+                    }
+                    this.missingInfo = false;
+                } else {
+                    this.newNotification("Missing user information",3000);
+                    this.missingInfo = true;
                 }
             },
             checkView(view: string) {
@@ -301,6 +368,15 @@ import ToggleSwitch from 'primevue/toggleswitch';
                     }
                 }, 250);
             },
+            newNotification(message: string, life: number) {
+                this.$toast.add({
+                    severity: 'secondary',
+                    summary: 'Alert',
+                    detail: message,
+                    life: life,
+                    closable: true
+                })
+            }
         }
     }
 </script>
