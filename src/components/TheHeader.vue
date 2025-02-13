@@ -4,6 +4,7 @@
             <div class="config-sidebar">
                 <div>
                     <Button style="width: 100%;" @click="configModalView = 'General'"  label="General" :severity="configModalView == 'General' ? 'primary' : 'secondary'" />
+                    <Button style="width: 100%;" @click="configModalView = 'Interface'"  label="Interface" :severity="configModalView == 'Interface' ? 'primary' : 'secondary'" />
                     <Button style="width: 100%;" @click="configModalView = 'Downloads'"  label="Downloads" :severity="configModalView == 'Downloads' ? 'primary' : 'secondary'" />
                     <Button style="width: 100%;" @click="configModalView = 'Postprocessing'"  label="Postprocessing" :severity="configModalView == 'Postprocessing' ? 'primary' : 'secondary'" />
                     <Button style="width: 100%;" @click="configModalView = 'Metadata'"  label="Metadata" :severity="configModalView == 'Metadata' ? 'primary' : 'secondary'" />
@@ -31,6 +32,9 @@
                     </TabPanel>
                     <TabPanel value="About">
                         <AboutTab v-if="configModalView == 'About'"/>
+                    </TabPanel>
+                    <TabPanel value="Interface">
+                        <InterfaceTab v-if="configModalView == 'Interface'"/>
                     </TabPanel>
                 </TabPanels>
             </Tabs>
@@ -84,6 +88,7 @@ import GeneralTab from './userConfigModal/GeneralTab.vue';
 import PostProcessingTab from './userConfigModal/PostProcessingTab.vue';
 import MetadataTab from './userConfigModal/MetadataTab.vue';
 import AboutTab from './userConfigModal/AboutTab.vue';
+import InterfaceTab from './userConfigModal/InterfaceTab.vue';
 
     export default {
         name: "TheHeader",
@@ -105,7 +110,8 @@ import AboutTab from './userConfigModal/AboutTab.vue';
             AccountsContainer,
             FloatLabel,
             ToggleSwitch,
-            AuthenticationModal
+            AuthenticationModal,
+            InterfaceTab
         },
         data() {
             return {

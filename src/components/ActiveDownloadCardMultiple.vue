@@ -15,7 +15,7 @@
                         <label style="z-index: 1;" for="format_dropdown">Format</label>    
                         <Select fluid inputId="format_dropdown" style="width: 100%;" v-model="format" :options="formats" optionLabel="name"
                             @change="(event:any)=>{
-                                qualities = event.value.name == 'Audio' ? audioQualities : videoQualities;
+                                qualities = event.value.name == 'Audio' ? audioQualities.map(q => q.name) : videoQualities.map(q => q.name);
                                 quality = '';
                             }" />
                     </FloatLabel>
@@ -24,7 +24,7 @@
                 <div class="options-subcontainer">
                     <FloatLabel variant="on">
                         <label style="z-index: 1;" for="quality_dropdown">Quality</label>
-                        <AutoComplete :key="format" fluid inputId="quality_dropdown" v-model="quality" dropdown :suggestions="qualities" @complete="search" />
+                        <AutoComplete fluid inputId="quality_dropdown" v-model="quality" dropdown :suggestions="qualities" @complete="search" />
                     </FloatLabel>
                 </div>
                 

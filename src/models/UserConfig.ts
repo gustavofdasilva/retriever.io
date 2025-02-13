@@ -7,12 +7,18 @@ type UserConfig = {
     keepUpToDate: {
         ytDlp: boolean,
         ffmpeg: boolean
-    }
+    },
+    interface: UserInterface,
     authentication: UserAuthentication,
     downloads: UserDownloads,
     postProcessing: UserPostprocessing,
     metadata: UserMetadata,
     accounts?: Account[]
+}
+
+type UserInterface = {
+    showDownloadProgressNotification: "Detailed" | "Summarized" | "Disabled",
+    notificationPosition: "center" | "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right"
 }
 
 type UserDownloads = {

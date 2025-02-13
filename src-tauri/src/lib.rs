@@ -309,8 +309,20 @@ async fn download(
 
             let download_info = String::from_utf8_lossy(&buffer).to_string();
             unsafe {
-    
-                *DOWNLOAD_STATUS[download_index].get_mut("download_status").unwrap() = download_info.clone();
+                let download_index = DOWNLOAD_STATUS.iter().position(
+                    |download| 
+                        download.get(&"id".to_string()).unwrap() == &id
+                );
+
+                match download_index {
+                    Some(index) => {
+                        if index < DOWNLOAD_STATUS.len() {
+                            *DOWNLOAD_STATUS[index].get_mut("download_status").unwrap() = download_info.clone();
+                        }       
+                    },
+
+                    None=>{}
+                }        
             }
 
             buffer.clear();
@@ -395,10 +407,16 @@ fn get_progress_info(download_id: String) -> String {
     let download_index = DOWNLOAD_STATUS.iter().position(
         |download| 
             download.get(&"id".to_string()).unwrap() == &download_id.clone()
-    ).unwrap();
+    );
+        match download_index {
+            Some(index)=>{
+                return DOWNLOAD_STATUS[index].get(&"download_status".to_string()).unwrap().clone();
+            },
+            None=>{
+                return "".to_string()
+            }
+        }
 
-
-        return DOWNLOAD_STATUS[download_index].get(&"download_status".to_string()).unwrap().clone();
     }
 }
 

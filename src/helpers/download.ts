@@ -5,6 +5,8 @@ import { useLoadingStore } from "../stores/loading";
 import { addToHist } from "./history";
 import toasteventbus from "primevue/toasteventbus";
 import { audioQualities, videoQualities } from "../constants/qualities";
+import { useUserConfig } from "../stores/userConfig";
+import { inject } from "vue";
 
 // The findConfigCode function is used to send the selected info formatted to the backend
 export const findConfigCode = (name: string, arr: YTDLPOptions): string => {
@@ -33,6 +35,7 @@ export const checkFormat = (value: string): string => {
 
 export const download = (download: DownloadInProgress) => {
     const loadingStore = useLoadingStore();
+    const userStore = useUserConfig();
     loadingStore.setActiveDownloadById(download.id,
         ['loading'],[true]
     )
@@ -117,7 +120,9 @@ export const download = (download: DownloadInProgress) => {
 
         newNotification("Something went wrong :(",3000);
     }).finally(()=>{
-        closeDownloadProgressToast(download.id);
+        if(userStore.getUserConfig.interface.showDownloadProgressNotification == "Detailed") {
+            closeDownloadProgressToast(download.id);
+        }
         if(loadingStore.getActiveDownloadById(download.id)?.cancelled) {
             loadingStore.setActiveDownloadById(download.id,
                 ['cancelled'],
@@ -204,9 +209,23 @@ function getProgressInfo(id: string) {
 }
 
 function downloadProgressToast(id: string) {
-    console.log("TOAST EMIT DOWNLOAD TOAST")
-    toasteventbus.emit('add', { 
-        severity: 'secondary', 
-        summary: id, 
-        group: 'downloadProgress'});
+    const userConfig = useUserConfig().getUserConfig.interface.showDownloadProgressNotification
+    if(userConfig == "Detailed") {
+        toasteventbus.emit('add', { 
+            severity: 'secondary', 
+            summary: id, 
+            group: 'downloadProgress'
+        });
+    } else if (userConfig == "Summarized") {
+        if(!useLoadingStore().getSummarizedToastVisible) {
+            toasteventbus.emit('add', { 
+                severity: 'secondary', 
+                summary: 'summarized', 
+                group: 'downloadProgressSummarized'
+            });
+
+            useLoadingStore().setSummarizedToastVisible(true);
+        }
+    }
+
 }

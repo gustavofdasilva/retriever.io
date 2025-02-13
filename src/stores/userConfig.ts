@@ -43,8 +43,12 @@ const emptyUser = {
             lang: ''
         },
         embedThumbnailCoverArt: false,
+    },
+    interface: {
+        showDownloadProgressNotification: "Summarized",
+        notificationPosition: "bottom-right"
     }
-}
+} as UserConfig
 
 export const useUserConfig = defineStore("userConfig", {
     state: () =>({

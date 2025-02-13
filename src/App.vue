@@ -15,6 +15,32 @@
       </button>
     </div>
   </div>
+  <Toast position="bottom-right" group="downloadProgressSummarized">
+      <template #container="{message, closeCallback}">
+          <div id="DOWNLOAD_TOAST_SUMMARIZED" class="download-toast" >
+              <Menu 
+                ref="menu" 
+                id="overlay_menu" 
+                :model="[
+                    {
+                        label: 'Cancel download',
+                        icon: 'pi pi-undo',
+                        command: () => {
+                            closeCallback();
+                            killProcess(message.summary);
+                        },
+                        class: 'alert'
+                    }
+                ]" 
+                :popup="true" />
+              <Button style="position: absolute; right: 1em; top: 1em;" icon="pi pi-times" @click="toggle" variant="text" severity="secondary" />
+              <p style="font-weight: 600; font-size: 1.1em;">Download progress:</p>
+              <p v-if="loadingStore.getPendingDownloads.length != 0" >Downloads pending: {{ loadingStore.getPendingDownloads.length }}</p>
+              <p>Downloads remaining: {{ loadingStore.getActiveDownloads.length }}</p>
+              <ProgressBar :mode="calcSummarizedProgress(loadingStore.getActiveDownloads) == 0 ? 'indeterminate' : 'determinate'" :value="calcSummarizedProgress(loadingStore.getActiveDownloads)??0" />
+          </div>
+      </template>
+  </Toast>
   <Toast position="bottom-right" group="downloadProgress">
       <template #container="{message, closeCallback}">
           <div :id="`DOWNLOAD_TOAST_${message.summary}`" v-if="loadingStore.getActiveDownloadById(message.summary)" class="download-toast" >
@@ -34,7 +60,7 @@
                 ]" 
                 :popup="true" />
               <Button style="position: absolute; right: 1em; top: 1em;" icon="pi pi-times" @click="toggle" variant="text" severity="secondary" />
-              <p style="font-weight: 600; font-size: 1.1em;">Download progress: {{ message.summary }}</p>
+              <p style="font-weight: 600; font-size: 1.1em;">Download progress:</p>
               <p v-if="(loadingStore.getActiveDownloadById(message.summary)??{} as DownloadInProgress).info != ''" style="font-weight: 400; font-size: .8em; color: var(--surface-500) ; margin-bottom: .9em; width: 80%;">Info: {{ (loadingStore.getActiveDownloadById(message.summary)??{} as DownloadInProgress).info }}</p>
               <ProgressBar :mode="(loadingStore.getActiveDownloadById(message.summary)??{} as DownloadInProgress).progress == '' ? 'indeterminate' : 'determinate'" :value="Number((loadingStore.getActiveDownloadById(message.summary)??{} as DownloadInProgress).progress)" />
           </div>
@@ -130,6 +156,7 @@ import { useLoadingStore } from './stores/loading';
 import { invoke } from '@tauri-apps/api/core';
 import ProgressBar from 'primevue/progressbar';
 import Menu from 'primevue/menu';
+import { download } from './helpers/download';
 
   export default {
     components: {
@@ -184,6 +211,7 @@ import Menu from 'primevue/menu';
       document
         .getElementById('titlebar-close')
         ?.addEventListener('click', () => appWindow.close());
+        
 
       return {
         appWindow,
@@ -205,6 +233,21 @@ import Menu from 'primevue/menu';
       });
     },
     methods: {  
+      calcSummarizedProgress(downloads: DownloadInProgress[]): number | null {
+        let actualProgress = 0;
+
+        downloads.forEach((download: DownloadInProgress)=>{
+          if(download.progress == '') {
+            return null
+          }
+          actualProgress += Number(download.progress??0)
+        })
+
+        const result = Number(((actualProgress / (downloads.length * 100))*100).toFixed(1));
+
+        return result;
+
+      },
       killProcess(activeDownloadId: string) {
           this.loadingStore.setActiveDownloadById(activeDownloadId,
             ['cancelled'],

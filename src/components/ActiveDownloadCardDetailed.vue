@@ -10,15 +10,15 @@
             <div class="options-container media-info">
                 <div>
                     <VueFeather type="eye" size="16" />
-                    <p > {{ formatNumber(mediaStore.getViews) }}</p>
+                    <p > {{ formatNumber(mediaStore.getViews??"NA") }}</p>
                 </div>
                 <div>
                     <VueFeather type="thumbs-up" size="16" />
-                    <p > {{ formatNumber(mediaStore.getLikes) }} </p>
+                    <p > {{ formatNumber(mediaStore.getLikes??"NA") }} </p>
                 </div>
                 <div>
                     <VueFeather type="thumbs-down" size="16" />
-                    <p >{{ formatNumber(mediaStore.getDislikes) }} </p>
+                    <p >{{ formatNumber(mediaStore.getDislikes??"NA") }} </p>
                 </div>
             </div>
             <h2>Output file</h2>
@@ -255,7 +255,11 @@ import { addToHist } from '../helpers/history';
 
                 return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
             },
-            formatNumber(num: number) {
+            formatNumber(num: number | string) {
+                if(typeof num == 'string') {
+                    return num
+                }
+
                 if (num >= 1000000000) {
                     return (num / 1000000000).toFixed(1) + 'b';  // Para números acima de 1 bilhão
                 } else if (num >= 1000000) {

@@ -1,12 +1,14 @@
 import { defineStore } from "pinia";
 import { useUserConfig } from "./userConfig";
 import { download } from "../helpers/download";
+import toasteventbus from "primevue/toasteventbus";
 
 export const useLoadingStore = defineStore("loading", {
     state: () =>({
         loading: false, 
         activeDownloadProgress: '',
         activeDownloadInfo: '',
+        summarizedToastVisible: false,
         activeDownloads: [] as DownloadInProgress[],
         pendingDownloads: [] as DownloadInProgress[],
         autoIncrementId: 0,
@@ -17,6 +19,7 @@ export const useLoadingStore = defineStore("loading", {
         getDownloadInfo: (state)=>state.activeDownloadInfo,
         getActiveDownloads: (state)=>state.activeDownloads,
         getPendingDownloads: (state)=>state.pendingDownloads,
+        getSummarizedToastVisible: (state)=>state.summarizedToastVisible,
         getActiveDownloadsCount: (state)=>state.activeDownloads.length,
         getActiveDownloadById: (state) => {
             return (id:string)=>state.activeDownloads.find((download)=>download.id===id);
@@ -30,6 +33,9 @@ export const useLoadingStore = defineStore("loading", {
         setLoading(newLoading: boolean) {
             this.loading = newLoading
         },
+        setSummarizedToastVisible(newSummarizedToastVisible: boolean) {
+            this.summarizedToastVisible = newSummarizedToastVisible;
+        },
         setDownloadProgress(newDownloadProgress: string) {
             this.activeDownloadProgress = newDownloadProgress
         },
@@ -37,6 +43,7 @@ export const useLoadingStore = defineStore("loading", {
             this.activeDownloadInfo = newDownloadInfo
         },
         addActiveDownload(newActiveDownload: DownloadInProgress): string { // return index
+            const concurrentDownloads = (useUserConfig().getUserConfig.downloads.concurrentDownloads??0) <= 0 ? 1 : (useUserConfig().getUserConfig.downloads.concurrentDownloads??0)
             let id: string;
             const newDownload = {...newActiveDownload};
 
@@ -50,7 +57,11 @@ export const useLoadingStore = defineStore("loading", {
             }
             
 
-            if( this.activeDownloads.length >= (useUserConfig().getUserConfig.downloads.concurrentDownloads??-1)) {
+            if(!this.loading) {
+                this.loading = true;
+            }
+
+            if( this.activeDownloads.length >= concurrentDownloads) {
                 this.pendingDownloads.push(newDownload);
             } else {
                 this.activeDownloads.push(newDownload);
@@ -71,11 +82,20 @@ export const useLoadingStore = defineStore("loading", {
             })            
         },
         removeActiveDownloadById(id: string) {
+            const concurrentDownloads = (useUserConfig().getUserConfig.downloads.concurrentDownloads??0) <= 0 ? 1 : (useUserConfig().getUserConfig.downloads.concurrentDownloads??0)
             this.activeDownloads = this.activeDownloads.filter((download)=>{
                 return download.id != id;
             })
 
-            if( this.activeDownloads.length < (useUserConfig().getUserConfig.downloads.concurrentDownloads??-1)) {
+            if(this.activeDownloads.length == 0 && this.pendingDownloads.length == 0) {
+                this.loading = false;
+                if(useUserConfig().getUserConfig.interface.showDownloadProgressNotification == "Summarized") {
+                    closeDownloadProgressToastSummarized();
+                    this.summarizedToastVisible = false;
+                }
+            }
+
+            if( this.activeDownloads.length < concurrentDownloads) {
                 const newDownload = this.pendingDownloads.shift();
 
                 if(!newDownload) return
@@ -90,3 +110,12 @@ export const useLoadingStore = defineStore("loading", {
         }
     }
 })
+
+function closeDownloadProgressToastSummarized() {
+    //!Needs refactor
+    const toast = document.getElementById(`DOWNLOAD_TOAST_SUMMARIZED`) //! Workaround to remove only the toast related to the download
+    if(!toast) return
+    if(!toast.parentElement) return
+
+    toast.parentElement.remove();
+}

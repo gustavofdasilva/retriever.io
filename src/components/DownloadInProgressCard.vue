@@ -1,5 +1,5 @@
 <template>
-    <div class="card-container" :style="{'opacity': loadingStore.getActiveDownloadById(downloadId)?.loading ? 0.6 : 1}" > <!-- -->
+    <div class="card-container" :style="{'opacity': loadingStore.getActiveDownloadById(downloadId)?.loading ? 0.7 : 1}" > <!-- -->
         <div class="card-sub-container recent-download-card-size">
             <div :style="{'background-image': 'url('+loadingStore.getActiveDownloadById(downloadId)?.thumbnailUrl+')'}" class="thumbnail"></div>
             <div>
