@@ -57,10 +57,29 @@ export default {
             showCrudModal: false,
             showHiddenInfo: false,
             newAccount: {} as Account,
+            labelAlreadyExists: false,
         }
     },
     methods: {
+        newNotification(summary: string, message:string,life:number) {
+            this.$toast.add({
+                severity: 'secondary',
+                summary: summary,
+                detail: message,
+                life: life,
+                closable: true
+            })
+        },
         async createAccount() {
+            if(this.userConfig.getUserConfig.accounts?.find(account=>{
+              return account.label === this.newAccount.label
+            })) {
+                this.labelAlreadyExists = true;
+                this.newNotification('Alert','This label is already in use',3000);
+                return
+            }
+
+            this.labelAlreadyExists = false;
             const accounts = this.userConfig.userConfig.accounts ?? []
             accounts.push({
                 label: this.newAccount.label,

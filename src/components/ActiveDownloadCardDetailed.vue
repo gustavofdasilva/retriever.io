@@ -53,7 +53,7 @@
 
                 <BaseFileInput
                     :key="outputPath"
-                    :path="outputPath == '' ? fsStore.getDefaultOutput : outputPath"
+                    :path="outputPath"
                     @folder-selected="setOutputPath"
                     style="width: 100%; justify-content: flex-start; font-size: .9em;"
                 />
@@ -200,8 +200,8 @@ import Message from 'primevue/message';
                     start: '00:00',
                     finish: '0',
                 },
-                resolution: '1080p',
-                bitrate: '128kbps',
+                resolution: '',
+                bitrate: '',
                 fileExt:'',
                 fileName:'',
                 variables: ytdlpVariables,
@@ -231,7 +231,10 @@ import Message from 'primevue/message';
             }
         },
         mounted() {
-            this.range.finish = this.mediaStore.getDuration
+            this.outputPath = this.userConfig.getUserConfig.defaultOutput;
+            this.fileName = this.mediaStore.title;
+            this.fileExt = this.userConfig.getUserConfig.defaultVideoFormat;
+            this.range.finish = this.mediaStore.getDuration;
         },
         methods: {
             checkInputsCompleted():boolean {
@@ -359,7 +362,7 @@ import Message from 'primevue/message';
                     cookiesFromBrowser: cookiesFromBrowser,
                     cookiesTxtFilePath: cookiesTxtFilePath,
                 })
-                this.mediaStore.reset();
+                this.$router.push('/downloads');
                 this.newNotification('Download Log','URL added to queue',3000);
             },
             getProgressInfo(id: string) {

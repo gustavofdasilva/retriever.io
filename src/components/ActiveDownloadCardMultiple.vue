@@ -120,6 +120,7 @@ import { findAccount } from '../helpers/accounts';
                 const fileType = this.format.code == "Audio" ? 'mp3' : 'mp4';
                 this.loading=true
                 this.newNotification('URLs added to queue',3000);
+                this.$router.push('/downloads');
                 for (const url of this.mediaStore.getMultiUrls) {
                     
                     const videoData = await this.getMetadata(url)
@@ -167,6 +168,7 @@ import { findAccount } from '../helpers/accounts';
                     })
                 }
                 this.mediaStore.reset();
+                
             },
 
             async getMetadata(url: string) {

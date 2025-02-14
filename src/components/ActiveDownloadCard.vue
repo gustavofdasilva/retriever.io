@@ -152,7 +152,7 @@ import { useDownloadLogStore } from '../stores/downloadLog';
                     cookiesFromBrowser: cookiesFromBrowser,
                     cookiesTxtFilePath: cookiesTxtFilePath,
                 })
-                this.mediaStore.reset();
+                this.$router.push('/downloads');
                 this.newNotification('URL added to queue',3000);
             },
             exit() {

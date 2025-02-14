@@ -40,7 +40,7 @@
 
                 <BaseFileInput
                     :key="outputPath"
-                    :path="outputPath == '' ? fsStore.getDefaultOutput : outputPath"
+                    :path="outputPath"
                     @folder-selected="setOutputPath"
                     style="width: 100%; justify-content: flex-start; font-size: .9em;"
                 />
@@ -189,8 +189,8 @@ import { findAccount } from '../helpers/accounts';
                     start: '00:00',
                     finish: '0',
                 },
-                resolution: '1080p',
-                bitrate: '128kbps',
+                resolution: '',
+                bitrate: '',
                 fileExt:'',
                 fileName:'',
                 variables: ytdlpVariables,
@@ -225,6 +225,11 @@ import { findAccount } from '../helpers/accounts';
                 addDownload,
                 clearInfo
             }
+        },
+        mounted() {
+            this.outputPath = this.userConfig.getUserConfig.defaultOutput;
+            this.fileName = '%(title)s';
+            this.fileExt = this.userConfig.getUserConfig.defaultVideoFormat;
         },
         methods: {
             checkInputsCompleted():boolean {
@@ -316,6 +321,8 @@ import { findAccount } from '../helpers/accounts';
                 let fileType = checkFormat(fileExtCode);
                 
                 this.loading=true
+                
+                this.$router.push('/downloads');
                 this.newNotification('Download Log','URLs added to queue',3000);
                 for (const url of this.mediaStore.getMultiUrls) {
                     
@@ -364,6 +371,7 @@ import { findAccount } from '../helpers/accounts';
                         cookiesTxtFilePath: cookiesTxtFilePath,
                     })
                 }
+                
                 this.mediaStore.reset();
             },
             async getMetadata(url:string) {

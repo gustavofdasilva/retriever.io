@@ -35,6 +35,12 @@
             <p>Actions</p>
         </div>
         </div>
+        <DownloadPendingCard v-for="download in loadingStore.getPendingDownloads"
+                :downloadId="download.id"
+            />
+        <DownloadInProgressCard v-for="download in loadingStore.getActiveDownloads"
+                :downloadId="download.id"
+            />
         <RecentDownloadCard style="margin-left: 0;" v-for="download in filteredLogs"
                     :thumbnail-url="download.thumbnailUrl"
                     :title="download.title" 
@@ -51,41 +57,57 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import Paginator from 'primevue/paginator';
 import RecentDownloadCard from './RecentDownloadCard.vue';
 import { toRefs, watch } from 'vue';
 import { useDownloadLogStore } from '../stores/downloadLog';
+import { useLoadingStore } from '../stores/loading';
+import DownloadInProgressCard from './DownloadInProgressCard.vue';
+import DownloadPendingCard from './DownloadPendingCard.vue';
 
     export default {
         name: "RecentDownloadContainer",
         components: {
             RecentDownloadCard,
-            Paginator
+            Paginator,
+            DownloadInProgressCard,
+            DownloadPendingCard
         },
         data() {
             return {
-                filteredLogs: [],
+                filteredLogs: [] as DownloadLog[],
+                activeDownloads: [] as DownloadInProgress[],
+                pendingDownloads: [] as DownloadInProgress[],
                 first: 0,
             }
         },
         setup() {
             const downloadLogStore = useDownloadLogStore();
+            const loadingStore = useLoadingStore();
 
             return {
+                loadingStore,
                 downloadLogStore,
             }
         },
         async mounted() {
+            this.loadingStore.$subscribe((mutation, state)=> {
+                this.activeDownloads = state.activeDownloads;
+                this.pendingDownloads = state.pendingDownloads;
+            })
+            
             this.downloadLogStore.$subscribe((mutation, state) => {
                 this.filteredLogs = state.downloadLog.slice(this.first,this.first+10>=state.downloadLog.length?state.downloadLog.length:this.first+10);
             })
 
             await this.downloadLogStore.loadDownloadHistory();
             this.filteredLogs = this.downloadLogStore.getDownloadLog.slice(0,10);
+            this.activeDownloads = this.loadingStore.getActiveDownloads;
+            this.activeDownloads = this.loadingStore.getPendingDownloads;
         },
         methods: {
-            filterLogs(event) {
+            filterLogs(event:any) {
                 this.first = event.first
                 const start = event.first
                 const end = event.first + event.rows;

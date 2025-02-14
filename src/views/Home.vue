@@ -2,7 +2,23 @@
     <div class="container" >
         <main>
             <div class="main-sub-container">
-                <div class="loader" :style="[ loadingSearch ? {opacity: '1'} : {opacity:'0'}]" ></div>
+                <div class="loader-container" :style="[ loadingSearch ? {display: 'block'} : {display:'none'}]" >
+                    <div style="position: relative;">
+                        <div class="loader" ></div>
+                        
+                        <Button 
+                            v-tooltip="'Cancel loading'" 
+                            style="position: absolute; top: 50%; left: 110%; transform: translate(0,-50%);" 
+                            @click="()=>{
+                                cancelledLoading=true;
+                                loadingSearch=false;
+                            }" 
+                            icon="pi pi-times" 
+                            class="btn-cancel-loading"
+                            :severity="'primary'" 
+                            rounded />
+                    </div>
+                </div>
                 <div class="search-sub-container" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]">
                     <BaseSearchBar
                         :disabled="loadingSearch"
@@ -44,6 +60,7 @@ import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
 import { useDownloadLogStore } from '../stores/downloadLog';
 import { findAccount } from '../helpers/accounts';
 import { useUserConfig } from '../stores/userConfig';
+import Button from 'primevue/button';
 
     export default {
         components: {
@@ -53,6 +70,7 @@ import { useUserConfig } from '../stores/userConfig';
             RecentDownloadContainer,
             ActiveDownloadCard,
             RouterLink,
+            Button
         },
         setup() {
             const mediaStore = useMediaStore();
@@ -82,6 +100,7 @@ import { useUserConfig } from '../stores/userConfig';
                 loadingSearch: false,
                 downloadResultMsg: '',
                 downloadLog: [] as DownloadLog[],
+                cancelledLoading: false,
             }
         },
         mounted() {
@@ -89,7 +108,6 @@ import { useUserConfig } from '../stores/userConfig';
         },
         methods: {
             getMetadata(inputText: string) {
-
                 this.loadingSearch = true
                 const enabledAuth = this.userConfig.getUserConfig.authentication.enabled;
                 const cookiesFromBrowser = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesFromBrowser: "";
@@ -110,6 +128,11 @@ import { useUserConfig } from '../stores/userConfig';
                     cookiesFromBrowser: cookiesFromBrowser,
                     cookiesTxtFilePath: cookiesTxtFilePath,
                 }).then((res: any)=>{
+                    if(this.cancelledLoading) {
+                        this.cancelledLoading = false
+                        this.loadingSearch = false;
+                        return;
+                    }
 
                     if (res.error && res.error != "") {
                         const errorIndex = res.error.indexOf("ERROR:");
@@ -169,6 +192,7 @@ import { useUserConfig } from '../stores/userConfig';
     }
 
     .main-sub-container {
+        position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -187,12 +211,23 @@ import { useUserConfig } from '../stores/userConfig';
         transition: all .2s ease;
     }
 
-
-    .loader {
+    .loader-container {
         position: absolute;
         z-index: 1;
         top: 50%;
         width: 50px;
+    }
+
+    .btn-cancel-loading {
+        opacity: 0.4;
+        transition: .3s ease all;
+    }
+        .btn-cancel-loading:hover {
+            opacity: 1;
+            transition: .3s ease all;
+        }
+
+    .loader {
         aspect-ratio: 1;
         border-radius: 50%;
         background: 
