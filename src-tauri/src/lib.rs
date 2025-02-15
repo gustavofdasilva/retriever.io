@@ -1,7 +1,7 @@
  // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
 use std::{
-    collections::HashMap, env::args, fs, hash::Hash, io::{ stderr, BufRead, BufReader}, os::windows::process, process::{Command, Stdio}, vec
+    collections::HashMap, env::args, fs, hash::Hash, io::{ stderr, BufRead, BufReader}, os::windows::process, path::Path, process::{Command, Stdio}, vec
 };
 
 use encoding_rs::WINDOWS_1252;
@@ -9,6 +9,11 @@ use encoding_rs::WINDOWS_1252;
 // static mut DOWNLOAD_STATUS: String = String::new();
 static mut DOWNLOAD_STATUS: Vec<HashMap<String,String>> = vec![];
 static mut ACTIVE_PROCESS: Vec<HashMap<String,String>> = vec![];
+
+#[tauri::command]
+async fn check_path_exists(path: String) -> bool {
+    return Path::new(&path).exists();
+}
 
 #[tauri::command]
 async fn get_metadata(url: String, username: String, password: String, cookies_from_browser: String, cookies_txt_file_path: String) -> HashMap<String, String> {
@@ -559,6 +564,7 @@ pub fn run() {
             delete_file,
             kill_active_process,
             kill_active_process_by_download_id,
+            check_path_exists
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

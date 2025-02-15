@@ -35,8 +35,8 @@
                 :popup="true" />
               <Button style="position: absolute; right: 1em; top: 1em;" icon="pi pi-times" @click="toggle" variant="text" severity="secondary" />
               <p style="font-weight: 600; font-size: 1.1em;">Download progress:</p>
-              <p v-if="loadingStore.getPendingDownloads.length != 0" >Downloads pending: {{ loadingStore.getPendingDownloads.length }}</p>
-              <p>Downloads remaining: {{ loadingStore.getActiveDownloads.length }}</p>
+              <p v-if="loadingStore.getPendingDownloads.length != 0">Downloads pending: {{ loadingStore.getPendingDownloads.length }}</p>
+              <p style="margin-bottom: .5em;" >Downloads remaining: {{ loadingStore.getActiveDownloads.length }}</p>
               <ProgressBar :mode="calcSummarizedProgress(loadingStore.getActiveDownloads) == 0 ? 'indeterminate' : 'determinate'" :value="calcSummarizedProgress(loadingStore.getActiveDownloads)??0" />
           </div>
       </template>

@@ -60,7 +60,6 @@
 <script lang="ts">
 import Paginator from 'primevue/paginator';
 import RecentDownloadCard from './RecentDownloadCard.vue';
-import { toRefs, watch } from 'vue';
 import { useDownloadLogStore } from '../stores/downloadLog';
 import { useLoadingStore } from '../stores/loading';
 import DownloadInProgressCard from './DownloadInProgressCard.vue';

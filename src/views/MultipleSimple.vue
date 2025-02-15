@@ -83,9 +83,28 @@ import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
         methods: {
 
             prepareDownload(inputText: string) {
-                const urlsArray = inputText.split("\n");
+                if(inputText=='') return;
+                const arr = inputText.split("\n");
+                
+                const urlsArray = arr.filter((link)=>{
+                    console.log(/^https:\/\/www\.[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+/g.test(link))
+                    return /^https:\/\/.[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+/g.test(link)
+                })
+
+                if (urlsArray.length == 0) {
+                    this.newNotification('Error', 'No valid urls selected',3000);
+                }
                 
                 this.mediaStore.setMultiUrls(urlsArray.filter(item=>item!=""))
+            },
+            newNotification(summary: string, message: string, life: number) {
+                this.$toast.add({
+                    severity: 'secondary',
+                    summary: summary,
+                    detail: message,
+                    life: life,
+                    closable: true
+                })
             },
 
             async checkDownload(val: boolean){

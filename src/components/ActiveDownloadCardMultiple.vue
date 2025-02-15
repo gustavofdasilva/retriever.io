@@ -146,7 +146,7 @@ import { findAccount } from '../helpers/accounts';
                         format: this.format.code as "Video" | "Audio",
                         quality: this.quality,
                         length: videoData.duration,
-                        path: this.fsStore.getDefaultOutput,
+                        path: this.userConfig.getUserConfig.defaultOutput,
                         dateCreated: new Date(),
                         cancelled: false,
                         info: '',
