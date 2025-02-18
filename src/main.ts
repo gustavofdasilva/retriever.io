@@ -27,17 +27,17 @@ const pinia = createPinia()
 const themePreset = definePreset(Aura, {
     semantic: {
         primary: {
-            50: '#feeaf0',
-            100: '#feeaf0',
-            200: '#fdcbd6',
-            300: '#ef95a1',
-            400: '#e56a7c',
-            500: '#f2425d',
-            600: '#f92246',
-            700: '#e91444',
-            800: '#d7003d',
-            900: '#ca0035',
-            950: '#bc0029'
+            50: '#e4f7ed',
+            100: '#bdead3',
+            200: '#91dcb7',
+            300: '#5dcf9b',
+            400: '#26c485',
+            500: '#00b96f',
+            600: '#00a964',
+            700: '#009757',
+            800: '#00854a',
+            900: '#006634',
+            950: '#006634'
         },
         colorScheme: {
             light: {

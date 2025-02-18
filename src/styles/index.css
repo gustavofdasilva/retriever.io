@@ -27,15 +27,13 @@
     --black-background-850: #1E1E1E;
     --black-background-900: #1B1B1B;
   
-    --red-stroke: #D7003D;
-    --red-stroke-hover: #ec1e59;
-    --red-fill: #371720;
+    --red-stroke: #26c485;
+    --red-stroke-hover: #5dcf9b;
+    --red-fill: #155c40;
 
     --close-app-hover: #bd29537e; 
   
     --white-text: #e9e9e9;
-
-    --oruga-focus: #3d3d3d15;
 
     --sb-track-color: #272727;
     --sb-thumb-color: #494949;
@@ -43,7 +41,7 @@
 
     --titlebar-height: 42px;
 
-    --primary-50: #feeaf0;
+    /* --primary-50: #feeaf0;
     --primary-100: #feeaf0;
     --primary-200: #fdcbd6;
     --primary-300: #ef95a1;
@@ -53,9 +51,21 @@
     --primary-700: #e91444;
     --primary-800: #d7003d;
     --primary-900: #ca0035;
-    --primary-950: #bc0029;
+    --primary-950: #bc0029; */
 
-    --primary-dark-900: #240e13;
+    --primary-50: #e4f7ed;
+    --primary-100: #bdead3;
+    --primary-200: #91dcb7;
+    --primary-300: #5dcf9b;
+    --primary-400: #26c485;
+    --primary-500: #00b96f;
+    --primary-600: #00a964;
+    --primary-700: #009757;
+    --primary-800: #00854a;
+    --primary-900: #006634;
+    --primary-950: #006634;
+
+    --primary-dark-900: #1d1a20;
 
     --surface-0: #f9f9f9;
     --surface-50: #f9f9f9;
