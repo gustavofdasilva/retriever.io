@@ -30,7 +30,7 @@ export function getEmptyUserConfig(): UserConfig {
             downloadDescriptionInFileDefault: false,
             downloadSubtitlesInFile: {
                 enabled: false,
-                lang: '',
+                lang: [],
                 type: 'Normal'
             },
             downloadThumbnailByDefault: null,
@@ -40,9 +40,13 @@ export function getEmptyUserConfig(): UserConfig {
             embedChaptersInVideo: false,
             embedSubtitles: {
                 enabled: false,
-                lang: ''
+                lang: []
             },
             embedThumbnailCoverArt: false,
+        },
+        interface: {
+            showDownloadProgressNotification: 'Summarized',
+            notificationPosition: 'bottom-right'
         }
     }
 }
@@ -52,50 +56,7 @@ export async function initConfigFile(): Promise<boolean> { //Return true if alre
 
     if(userConfig == null) {
         console.log("Criando arquivo")
-        await createConfigFile({
-            defaultOutput: '',
-            defaultFileName: '%(title)s',
-            defaultAudioFormat: '.mp3',
-            defaultVideoFormat: '.mp4',
-            authentication: {
-                enabled: false,
-                cookiesFromBrowser: '',
-                cookiesTxtFilePath: '',
-            },
-            keepUpToDate: {
-                ytDlp: true,
-                ffmpeg: true,
-            },
-            downloads: {
-                concurrentDownloads: 1,
-                disablePartFiles: false,
-                downloadRateLimit: null,
-                enableSponsorBlock: null,
-                fileAccessRetries: null,
-                numberOfRetries: null,
-                restrictFilename: false,
-                trimFilename: null
-            },
-            enableSystemNotification: false,
-            metadata: {
-                downloadDescriptionInFileDefault: false,
-                downloadSubtitlesInFile: {
-                    enabled: false,
-                    lang: '',
-                    type: 'Normal'
-                },
-                downloadThumbnailByDefault: null,
-                downloadVideoAnnotations: false,
-            },
-            postProcessing: {
-                embedChaptersInVideo: false,
-                embedSubtitles: {
-                    enabled: false,
-                    lang: ''
-                },
-                embedThumbnailCoverArt: false,
-            }
-        });
+        await createConfigFile(getEmptyUserConfig());
         return false
     }
 

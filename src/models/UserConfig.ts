@@ -47,10 +47,7 @@ type UserMetadata = {
     downloadVideoAnnotations: boolean,
     downloadSubtitlesInFile: {
         enabled: boolean,
-        type: {
-            name:string,
-            code:string
-        },
+        type: string,
         lang: string[],
     },
 }

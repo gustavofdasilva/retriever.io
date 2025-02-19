@@ -258,18 +258,17 @@ async fn download(
         args.push(cookies_txt_file_path);
     }
 
-    if thumbnail_path != "" {
-        args.push("--write-thumbnail".to_string());
-        args.push("-P".to_string());
-        args.push(format!("{thumbnail_path}"));
-    }
-
     // if goalFileSize != "" {
     //     goalFileSize = "10".to_string();
     // }
 
     args.push("-o".to_string());
     args.push(format!("{output}.%(ext)s"));
+    if thumbnail_path != "" {
+        args.push("--write-thumbnail".to_string());
+        args.push("-o".to_string());
+        args.push(format!("thumbnail:{thumbnail_path}"));
+    }
 
     args.push("-S".to_string());
     let mut format_sort_arg: Vec<String> = vec![];

@@ -144,6 +144,7 @@ import Message from 'primevue/message';
                 const cookiesTxtFilePath = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesTxtFilePath: "";
                 const username = enabledAuth ? findAccount(this.mediaStore.getUrl)?.username : '';
                 const password = enabledAuth ? findAccount(this.mediaStore.getUrl)?.password : '';
+                const thumbnailPath = (this.userConfig.getUserConfig.metadata.downloadThumbnailByDefault) ? `${this.userConfig.getUserConfig.defaultOutput}/%(title)s_thumbnail` : '';
                 
                 this.loadingStore.addActiveDownload({
                     id: '', // id will be overwritten by a autoincremented id when pushing to active downloads array 
@@ -166,7 +167,7 @@ import Message from 'primevue/message';
                     bitrate: this.format.code == "Audio" ? findConfigCode(this.quality, audioQualities) : "",
                     startSection: "",
                     endSection: "",
-                    thumbnailPath: "",
+                    thumbnailPath,
                     username: username ?? "",
                     password: password ?? "",
                     cookiesFromBrowser: cookiesFromBrowser,
