@@ -47,7 +47,7 @@
                 Subtitles language:
             </span>
             <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
-                <AutoComplete v-if="newUserConfig.metadata" :forceSelection="true" fluid v-model="newUserConfig.metadata.downloadSubtitlesInFile.lang" dropdown :suggestions="filteredLangs" @complete="searchSupportedLangs" />
+                <AutoComplete v-if="newUserConfig.metadata" multiple :forceSelection="true" fluid v-model="newUserConfig.postProcessing.embedSubtitles.lang" dropdown :suggestions="filteredLangs" @complete="searchSupportedLangs" />
             </div>
         </div>
     </div>

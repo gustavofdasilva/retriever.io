@@ -19,6 +19,7 @@
                                 quality = '';
                             }" />
                     </FloatLabel>
+                    <Message v-if="(missingInfo && !format.code)" style="align-self: flex-start;" severity="error" size="small" variant="simple">Select format</Message>
                 </div>
 
                 <div class="options-subcontainer">
@@ -26,6 +27,7 @@
                         <label style="z-index: 1;" for="quality_dropdown">Quality</label>
                         <AutoComplete fluid inputId="quality_dropdown" v-model="quality" dropdown :suggestions="qualities" @complete="search" />
                     </FloatLabel>
+                    <Message v-if="(missingInfo && quality == '')"  style="align-self: flex-start;" severity="error" size="small" variant="simple">Select quality</Message>
                 </div>
                 
             </div>
@@ -51,6 +53,7 @@ import AutoComplete from 'primevue/autocomplete';
 import FloatLabel from 'primevue/floatlabel';
 import { findConfigCode } from '../helpers/download';
 import { findAccount } from '../helpers/accounts';
+import Message from 'primevue/message';
 
     export default {
         components: {
@@ -60,7 +63,8 @@ import { findAccount } from '../helpers/accounts';
             ProgressBar,
             Menu,
             AutoComplete,
-            FloatLabel
+            FloatLabel,
+            Message
         },
         props: {
             style: Object
@@ -77,6 +81,7 @@ import { findAccount } from '../helpers/accounts';
                 quality: '',
                 videoIndex: 0,
                 toastVisible: false,
+                missingInfo: false,
             }
         },
         setup() {
@@ -101,6 +106,13 @@ import { findAccount } from '../helpers/accounts';
             }
         },
         methods: {
+            checkInputsCompleted():boolean {
+                if(!this.format.code || this.quality == '' 
+                ){
+                    return false
+                }
+                return true
+            },
             search(event:any) {
                 if(this.format.name == 'Audio') {
                     console.log("Audio")
@@ -117,9 +129,17 @@ import { findAccount } from '../helpers/accounts';
                 console.log(this.qualities)
             },
             async download() {
+                if(!this.checkInputsCompleted()) {
+                    this.missingInfo = true
+                    this.newNotification('Alert','Missing video information',3000)
+                    return
+                }
+
+                this.missingInfo = false;
+
                 const fileType = this.format.code == "Audio" ? 'mp3' : 'mp4';
                 this.loading=true
-                this.newNotification('URLs added to queue',3000);
+                this.newNotification('Download log', 'URL added to queue',3000);
                 this.$router.push('/downloads');
                 for (const url of this.mediaStore.getMultiUrls) {
                     
@@ -193,7 +213,7 @@ import { findAccount } from '../helpers/accounts';
                 if (res.error && res.error != "") {
                     const errorIndex = res.error.indexOf("ERROR:");
                     const errorOnly = res.error.substring(errorIndex);
-                    this.newNotification(`${errorOnly}`,10000);
+                    this.newNotification('Error',`${errorOnly}`,10000);
                     this.loading = false;
                     return null;
                 }
@@ -212,10 +232,10 @@ import { findAccount } from '../helpers/accounts';
             exit() {
                 this.mediaStore.reset();
             },
-            newNotification(message:string,life:number) {
+            newNotification(summary: string, message: string, life: number) {
                 this.$toast.add({
                     severity: 'secondary',
-                    summary: 'Download log',
+                    summary,
                     detail: message,
                     life: life,
                     closable: true
@@ -284,6 +304,7 @@ import { findAccount } from '../helpers/accounts';
         display: flex; 
         align-items: center; 
         justify-content: space-between; 
+        flex-direction: column;
     }
     
     .button-w-title-container {

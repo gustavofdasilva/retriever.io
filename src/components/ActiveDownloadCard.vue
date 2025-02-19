@@ -17,6 +17,7 @@
                                 quality = '';
                             }" />
                     </FloatLabel>
+                    <Message v-if="(missingInfo && !format.code)" style="align-self: flex-start;" severity="error" size="small" variant="simple">Select format</Message>
                 </div>
 
                 <div class="options-subcontainer">
@@ -25,6 +26,7 @@
                             <label style="z-index: 1;" for="quality_dropdown">Quality</label>
                             <AutoComplete fluid inputId="quality_dropdown" v-model="quality" dropdown :suggestions="qualities" @complete="search" />
                         </FloatLabel>
+                        <Message v-if="(missingInfo && quality == '')"  style="align-self: flex-start;" severity="error" size="small" variant="simple">Select quality</Message>
                     </div>
                 </div>
                 
@@ -53,6 +55,7 @@ import { findConfigCode } from '../helpers/download';
 import { findAccount } from '../helpers/accounts';
 import { addToHist } from '../helpers/history';
 import { useDownloadLogStore } from '../stores/downloadLog';
+import Message from 'primevue/message';
 
     export default {
         components: {
@@ -62,7 +65,8 @@ import { useDownloadLogStore } from '../stores/downloadLog';
             Button,
             Menu,
             AutoComplete,
-            FloatLabel
+            FloatLabel,
+            Message
         },
         props: {
             style: Object
@@ -78,6 +82,7 @@ import { useDownloadLogStore } from '../stores/downloadLog';
                 filteredQualities:[],
                 qualities:[] as string[],
                 quality: '',
+                missingInfo: false,
             }
         },
         setup() {
@@ -96,6 +101,13 @@ import { useDownloadLogStore } from '../stores/downloadLog';
             }
         },
         methods: {
+            checkInputsCompleted():boolean {
+                if(!this.format.code || this.quality == '' 
+                ){
+                    return false
+                }
+                return true
+            },
             search(event:AutoCompleteCompleteEvent) {
                 if(this.format.name == 'Audio') {
                     console.log("Audio")
@@ -112,6 +124,14 @@ import { useDownloadLogStore } from '../stores/downloadLog';
                 console.log(this.qualities)
             },
             download() {
+                if(!this.checkInputsCompleted()) {
+                    this.missingInfo = true
+                    this.newNotification('Alert','Missing video information',3000)
+                    return
+                }
+
+                this.missingInfo = false;
+
                 const defaultFileName = this.userConfig.getUserConfig.defaultFileName;
                 const defaultOutput = this.userConfig.getUserConfig.defaultOutput;
                 const defaultAudioFormat = this.userConfig.getUserConfig.defaultAudioFormat;
@@ -153,7 +173,7 @@ import { useDownloadLogStore } from '../stores/downloadLog';
                     cookiesTxtFilePath: cookiesTxtFilePath,
                 })
                 this.$router.push('/downloads');
-                this.newNotification('URL added to queue',3000);
+                this.newNotification('Download log', 'URL added to queue',3000);
             },
             exit() {
                 this.mediaStore.reset();
@@ -166,10 +186,10 @@ import { useDownloadLogStore } from '../stores/downloadLog';
 
                 toast.parentElement.remove();
             },
-            newNotification(message: string, life: number) {
+            newNotification(summary: string, message: string, life: number) {
                 this.$toast.add({
                     severity: 'secondary',
-                    summary: 'Download log',
+                    summary,
                     detail: message,
                     life: life,
                     closable: true
@@ -238,6 +258,7 @@ import { useDownloadLogStore } from '../stores/downloadLog';
         display: flex; 
         align-items: center; 
         justify-content: space-between; 
+        flex-direction: column;
     }
 
     .button-w-title-container {

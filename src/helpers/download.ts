@@ -42,16 +42,15 @@ export const download = (download: DownloadInProgress) => {
     )
     getProgressInfo(download.id);
     const subtitles_type = userStore.getUserConfig.metadata.downloadSubtitlesInFile.type;
-    console.log(userStore.getUserConfig.metadata.downloadSubtitlesInFile.lang)
-    const subtitles_lang = userStore.getUserConfig.metadata.downloadSubtitlesInFile.lang
-    // .map(lang=>{
-    //     return findConfigCode(lang,supportedLangs)
-    // })
+    const subtitles_lang = userStore.getUserConfig.postProcessing.embedSubtitles.lang
+    .map(lang=>{
+        return findConfigCode(lang,supportedLangs)
+    }).join(', ');
     invoke('download',{
         ...download,
         additionalConfig: {
             restrict_filename: JSON.stringify(userStore.getUserConfig.downloads.restrictFilename),
-            trim_filename: JSON.stringify(userStore.getUserConfig.downloads.trimFilename) == '0' ? '' : JSON.stringify(userStore.getUserConfig.downloads.trimFilename),
+            trim_filename: JSON.stringify(userStore.getUserConfig.downloads.trimFilename),
             disable_part_files: JSON.stringify(userStore.getUserConfig.downloads.disablePartFiles),
             rate_limit: userStore.getUserConfig.downloads.downloadRateLimit??'',
             number_of_retries: JSON.stringify(userStore.getUserConfig.downloads.numberOfRetries),
@@ -63,7 +62,7 @@ export const download = (download: DownloadInProgress) => {
             subtitles_type,
             subtitles_lang,
         }
-    }).then((response: any)=>{
+    }).then((response: any)=>{ 
         if(loadingStore.getActiveDownloadById(download.id)?.cancelled) {
             loadingStore.setActiveDownloadById(download.id,
                 ['cancelled'],

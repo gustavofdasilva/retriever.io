@@ -37,7 +37,7 @@ type UserPostprocessing = {
     embedChaptersInVideo: boolean,
     embedSubtitles: {
         enabled: boolean,
-        lang: string
+        lang: string[]
     },
 }
 
