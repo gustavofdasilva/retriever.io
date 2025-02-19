@@ -7,6 +7,7 @@ import toasteventbus from "primevue/toasteventbus";
 import { audioQualities, videoQualities } from "../constants/qualities";
 import { useUserConfig } from "../stores/userConfig";
 import { inject } from "vue";
+import { supportedLangs } from "../constants/ytdlpVariables";
 
 // The findConfigCode function is used to send the selected info formatted to the backend
 export const findConfigCode = (name: string, arr: YTDLPOptions): string => {
@@ -40,7 +41,29 @@ export const download = (download: DownloadInProgress) => {
         ['loading'],[true]
     )
     getProgressInfo(download.id);
-    invoke('download',download).then((response: any)=>{
+    const subtitles_type = userStore.getUserConfig.metadata.downloadSubtitlesInFile.type;
+    console.log(userStore.getUserConfig.metadata.downloadSubtitlesInFile.lang)
+    const subtitles_lang = userStore.getUserConfig.metadata.downloadSubtitlesInFile.lang
+    // .map(lang=>{
+    //     return findConfigCode(lang,supportedLangs)
+    // })
+    invoke('download',{
+        ...download,
+        additionalConfig: {
+            restrict_filename: JSON.stringify(userStore.getUserConfig.downloads.restrictFilename),
+            trim_filename: JSON.stringify(userStore.getUserConfig.downloads.trimFilename) == '0' ? '' : JSON.stringify(userStore.getUserConfig.downloads.trimFilename),
+            disable_part_files: JSON.stringify(userStore.getUserConfig.downloads.disablePartFiles),
+            rate_limit: userStore.getUserConfig.downloads.downloadRateLimit??'',
+            number_of_retries: JSON.stringify(userStore.getUserConfig.downloads.numberOfRetries),
+            file_access_retries: JSON.stringify(userStore.getUserConfig.downloads.fileAccessRetries),
+            embed_thumbnail: JSON.stringify(userStore.getUserConfig.postProcessing.embedThumbnailCoverArt),
+            embed_chapters: JSON.stringify(userStore.getUserConfig.postProcessing.embedChaptersInVideo),
+            embed_subtitles: JSON.stringify(userStore.getUserConfig.postProcessing.embedSubtitles),
+            download_desc_file: JSON.stringify(userStore.getUserConfig.metadata.downloadDescriptionInFileDefault),
+            subtitles_type,
+            subtitles_lang,
+        }
+    }).then((response: any)=>{
         if(loadingStore.getActiveDownloadById(download.id)?.cancelled) {
             loadingStore.setActiveDownloadById(download.id,
                 ['cancelled'],
