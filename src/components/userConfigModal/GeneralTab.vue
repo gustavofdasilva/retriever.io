@@ -1,7 +1,23 @@
 <template>
     <div style="width: 100%;">
+        <Dialog v-model:visible="clearRecentDownloadsVisible" modal header="Are you sure?" style="width: 30%;" >
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <p style="text-align: center;">
+                    This action will delete ALL recent downloads from the system, restarting the app. Are you sure you want to proceed?
+                </p>
+                <Button @click="deleteRecentDownloads" style="width: 100%; margin-top: 1em;" label="Confirm" severity="danger" outlined />
+            </div>
+        </Dialog>
+        <Dialog v-model:visible="clearUserConfigVisible" modal header="Are you sure?" style="width: 30%;" >
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <p style="text-align: center;">
+                    This action will delete ALL user config from the system, completely reseting the app and restarting. Are you sure you want to proceed?
+                </p>
+                <Button @click="deleteUserConfig" style="width: 100%; margin-top: 1em;" label="Confirm" severity="danger" outlined />
+            </div>
+        </Dialog>
         <Button :disabled="!changes" :severity="changes ? 'primary' : 'secondary'"  style="position: absolute;  bottom: 10px; right: 20px;" @click="saveConfig"  label="Save changes"  />
-        <div class="config-options">
+        <!-- <div class="config-options">
             <span>
                 Enable system notification:
             </span>
@@ -18,6 +34,22 @@
                 Keep ffmpeg up to date:
             </span>
             <ToggleSwitch v-if="newUserConfig.keepUpToDate" v-model="newUserConfig.keepUpToDate.ffmpeg" />
+        </div> -->
+        <div class="config-options">
+            <span>
+                Clear all recent downloads:
+            </span>
+            <div style="flex: 1; display: flex; align-items: flex-end; justify-content: center; flex-direction: column;">    
+                <Button @click="clearRecentDownloadsVisible=true"  label="Clear" severity="danger" outlined  />
+            </div>
+        </div>
+        <div class="config-options">
+            <span>
+                Clear all user config:
+            </span>
+            <div style="flex: 1; display: flex; align-items: flex-end; justify-content: center; flex-direction: column;">    
+                <Button @click="clearUserConfigVisible=true"  label="Clear" severity="danger" outlined />
+            </div>
         </div>
     </div>
 
@@ -33,6 +65,8 @@ import { useUserConfig } from '../../stores/userConfig';
 import FloatLabel from 'primevue/floatlabel';
 import { audioExtensions, videoExtensions } from '../../constants/fileExtensions';
 import ToggleSwitch from 'primevue/toggleswitch';
+import Dialog from 'primevue/dialog';
+import { clearHist } from '../../helpers/history';
 
     export default {
         name: "TheHeader",
@@ -41,7 +75,8 @@ import ToggleSwitch from 'primevue/toggleswitch';
             Button,
             AutoComplete,
             FloatLabel,
-            ToggleSwitch
+            ToggleSwitch,
+            Dialog
         },
         data() {
             return {
@@ -54,6 +89,9 @@ import ToggleSwitch from 'primevue/toggleswitch';
                 filteredAudioExtensions:[] as string[],
                 videoExtensions: videoExtensions,
                 filteredVideoExtensions:[] as string[],
+                clearRecentDownloadsVisible: false,
+                clearUserConfigVisible: false,                
+
             }
         },
         setup() {
@@ -88,6 +126,14 @@ import ToggleSwitch from 'primevue/toggleswitch';
             this.newUserConfig = JSON.parse(JSON.stringify(this.userConfig));
         },
         methods: {
+            deleteRecentDownloads() {
+                this.clearRecentDownloadsVisible=false;
+                clearHist();
+            },  
+            deleteUserConfig() {
+                this.clearUserConfigVisible=false;
+                deleteConfig();
+            },  
             searchAudioExt(event:any) {
                 this.filteredAudioExtensions = event.query ? this.audioExtensions.filter((quality) => {
                     return quality.name.toLowerCase().includes(event.query.toLowerCase());

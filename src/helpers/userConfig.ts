@@ -1,4 +1,5 @@
 import { Store } from '@tauri-apps/plugin-store'
+import { exit, relaunch } from '@tauri-apps/plugin-process';
 
 export function getEmptyUserConfig(): UserConfig {
     return {
@@ -63,8 +64,8 @@ export async function initConfigFile(): Promise<boolean> { //Return true if alre
 
 export async function deleteConfig() {
     const store = await Store.load('user-config.json');
-    console.log('reset');
     await store.reset();
+    exit(); //REFACTOR: relaunch() instead of exit()
 }
 
 export async function changeConfig<K extends keyof UserConfig>(config: K, value: UserConfig[K]) {

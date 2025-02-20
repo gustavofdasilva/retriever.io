@@ -41,20 +41,20 @@ export const download = (download: DownloadInProgress) => {
         ['loading'],[true]
     )
     getProgressInfo(download.id);
-    const subtitles_type = userStore.getUserConfig.metadata.downloadSubtitlesInFile.type;
-    const subtitles_lang = userStore.getUserConfig.postProcessing.embedSubtitles.lang
+    const subtitles_type = userStore.getUserConfig.metadata.downloadSubtitlesInFile.enabled ? userStore.getUserConfig.metadata.downloadSubtitlesInFile.type : '';
+    const subtitles_lang = userStore.getUserConfig.postProcessing.embedSubtitles.enabled ? userStore.getUserConfig.postProcessing.embedSubtitles.lang
     .map(lang=>{
         return findConfigCode(lang,supportedLangs)
-    }).join(', ');
+    }).join(', ') : '';
     invoke('download',{
         ...download,
         additionalConfig: {
             restrict_filename: JSON.stringify(userStore.getUserConfig.downloads.restrictFilename),
-            trim_filename: JSON.stringify(userStore.getUserConfig.downloads.trimFilename),
+            trim_filename: userStore.getUserConfig.downloads.trimFilename ? JSON.stringify(userStore.getUserConfig.downloads.trimFilename) : '0',
             disable_part_files: JSON.stringify(userStore.getUserConfig.downloads.disablePartFiles),
             rate_limit: (userStore.getUserConfig.downloads.downloadRateLimit??'') == '' ? '' : userStore.getUserConfig.downloads.downloadRateLimit?.replace('B',''),
-            number_of_retries: JSON.stringify(userStore.getUserConfig.downloads.numberOfRetries),
-            file_access_retries: JSON.stringify(userStore.getUserConfig.downloads.fileAccessRetries),
+            number_of_retries: JSON.stringify(userStore.getUserConfig.downloads.numberOfRetries) == 'null' ? '0' : JSON.stringify(userStore.getUserConfig.downloads.numberOfRetries),
+            file_access_retries: JSON.stringify(userStore.getUserConfig.downloads.fileAccessRetries) == 'null' ? '0' : JSON.stringify(userStore.getUserConfig.downloads.fileAccessRetries),
             embed_thumbnail: JSON.stringify(userStore.getUserConfig.postProcessing.embedThumbnailCoverArt),
             embed_chapters: JSON.stringify(userStore.getUserConfig.postProcessing.embedChaptersInVideo),
             embed_subtitles: JSON.stringify(userStore.getUserConfig.postProcessing.embedSubtitles),

@@ -53,7 +53,7 @@
 
         <Paginator class="paginator" v-if="downloadLogStore.getDownloadLog.length!=0" :rows="10" :totalRecords="downloadLogStore.getDownloadLog.length" @page="filterLogs" ></Paginator>
 
-        <p v-if="downloadLogStore.getDownloadLog.length==0" style="text-align: center; margin-top: 2em;">No recent downloads found. Start retrieving!</p>
+        <p v-if="downloadLogStore.getDownloadLog.length==0 && loadingStore.getActiveDownloads.length==0 && loadingStore.getPendingDownloads.length==0" style="text-align: center; margin-top: 2em;">No recent downloads found. Start retrieving!</p>
     </div>
 </template>
 

@@ -15,7 +15,7 @@
       </button>
     </div>
   </div>
-  <Toast position="bottom-right" group="downloadProgressSummarized">
+  <Toast :position="userConfig.getUserConfig.interface.notificationPosition" group="downloadProgressSummarized">
       <template #container="{message, closeCallback}">
           <div id="DOWNLOAD_TOAST_SUMMARIZED" class="download-toast" >
               <Menu 
@@ -41,7 +41,7 @@
           </div>
       </template>
   </Toast>
-  <Toast position="bottom-right" group="downloadProgress">
+  <Toast :position="userConfig.getUserConfig.interface.notificationPosition" group="downloadProgress">
       <template #container="{message, closeCallback}">
           <div :id="`DOWNLOAD_TOAST_${message.summary}`" v-if="loadingStore.getActiveDownloadById(message.summary)" class="download-toast" >
               <Menu 
@@ -66,7 +66,7 @@
           </div>
       </template>
   </Toast>
-  <Toast position="bottom-right" />
+  <Toast :position="userConfig.getUserConfig.interface.notificationPosition" />
   <div id="main-app">
     <Dialog class="config-modal" v-model:visible="initConfigModalVisible" modal :draggable="false" :closable="false" header="Start app">     
       <Stepper value="1">
@@ -112,7 +112,7 @@
                 <div class="steppanel-container">
                     <div class="steppanel-content">
                       <p style="font-size: 1.5em; margin-bottom: .2em; font-weight: 600;">All set to start!</p>
-                      <p style="margin: 1em 0;"> For more information and tutorials, access the <a href="#" >github repository</a> </p>
+                      <p style="margin: 1em 0;"> For more information and tutorials, access the <button style="text-decoration: underline; color: var(--primary-500);" @click="()=>{openLink('https://github.com/gustavofdasilva/retrieverplusplus')}" >github repository</button> </p>
 
                       <div style="display: flex; align-items: center;">
                         <p style="margin: 2em .5em; color: var(--surface-600);"> Thank you for choosing retriever++</p><span style="color: var(--surface-600);" class="pi pi-heart"></span>
@@ -137,7 +137,7 @@ import Home from './views/Home.vue';
 import TheHeader from './components/TheHeader.vue';
 import Toast from 'primevue/toast';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { changeConfig, initConfigFile, readConfigFile } from './helpers/userConfig';
+import { initConfigFile, readConfigFile } from './helpers/userConfig';
 import { useFSStore } from './stores/fileSystem';
 import { useUserConfig } from './stores/userConfig';
 import Menubar from 'primevue/menubar';
@@ -156,7 +156,7 @@ import { useLoadingStore } from './stores/loading';
 import { invoke } from '@tauri-apps/api/core';
 import ProgressBar from 'primevue/progressbar';
 import Menu from 'primevue/menu';
-import { download } from './helpers/download';
+
 
   export default {
     components: {
