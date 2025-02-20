@@ -196,19 +196,6 @@
                 )" severity="error" size="small" variant="simple">Select a valid value</Message>
             </div>
         </div>
-        <div class="config-options">
-            <span class="name-w-label">
-                <p>
-                    Enable SponsorBlock:
-                </p>
-                <p>
-                    Skip sponsored parts of videos
-                </p>
-            </span>
-            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
-                <ToggleSwitch v-if="newUserConfig.downloads" v-model="newUserConfig.downloads.disablePartFiles" />
-            </div>
-        </div>
         
     </div>
 

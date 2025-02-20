@@ -19,7 +19,6 @@ export function getEmptyUserConfig(): UserConfig {
             concurrentDownloads: 1,
             disablePartFiles: false,
             downloadRateLimit: null,
-            enableSponsorBlock: null,
             fileAccessRetries: null,
             numberOfRetries: null,
             restrictFilename: false,
@@ -34,7 +33,6 @@ export function getEmptyUserConfig(): UserConfig {
                 type: 'Normal'
             },
             downloadThumbnailByDefault: null,
-            downloadVideoAnnotations: false,
         },
         postProcessing: {
             embedChaptersInVideo: false,

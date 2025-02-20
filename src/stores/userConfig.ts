@@ -1,54 +1,7 @@
 import { defineStore } from "pinia";
 import { changeConfig, getEmptyUserConfig } from "../helpers/userConfig";
 
-const emptyUser = {
-    defaultOutput: '',
-    defaultFileName: '%(title)s',
-    defaultAudioFormat: '.mp3',
-    defaultVideoFormat: '.mp4',
-    authentication: {
-        enabled: false,
-        cookiesFromBrowser: '',
-        cookiesTxtFilePath: '',
-    },
-    keepUpToDate: {
-        ytDlp: true,
-        ffmpeg: true,
-    },
-    downloads: {
-        concurrentDownloads: 1,
-        disablePartFiles: false,
-        downloadRateLimit: null,
-        enableSponsorBlock: null,
-        fileAccessRetries: null,
-        numberOfRetries: null,
-        restrictFilename: false,
-        trimFilename: null
-    },
-    enableSystemNotification: false,
-    metadata: {
-        downloadDescriptionInFileDefault: false,
-        downloadSubtitlesInFile: {
-            enabled: false,
-            lang: '',
-            type: 'Normal'
-        },
-        downloadThumbnailByDefault: null,
-        downloadVideoAnnotations: false,
-    },
-    postProcessing: {
-        embedChaptersInVideo: false,
-        embedSubtitles: {
-            enabled: false,
-            lang: ''
-        },
-        embedThumbnailCoverArt: false,
-    },
-    interface: {
-        showDownloadProgressNotification: "Summarized",
-        notificationPosition: "bottom-right"
-    }
-} as UserConfig
+const emptyUser = getEmptyUserConfig();
 
 export const useUserConfig = defineStore("userConfig", {
     state: () =>({

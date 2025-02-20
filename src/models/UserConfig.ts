@@ -29,7 +29,6 @@ type UserDownloads = {
     downloadRateLimit: string | null,
     numberOfRetries: number | null,
     fileAccessRetries: number | null,
-    enableSponsorBlock: number | null
 }
 
 type UserPostprocessing = {
@@ -44,7 +43,6 @@ type UserPostprocessing = {
 type UserMetadata = {
     downloadThumbnailByDefault: YTDLPOption | null,
     downloadDescriptionInFileDefault: boolean,
-    downloadVideoAnnotations: boolean,
     downloadSubtitlesInFile: {
         enabled: boolean,
         type: string,

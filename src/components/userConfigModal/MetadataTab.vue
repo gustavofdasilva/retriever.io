@@ -20,14 +20,6 @@
         </div>
         <div class="config-options">
             <span>
-                Download video annotations by default:
-            </span>
-            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
-                <ToggleSwitch v-if="newUserConfig.metadata" v-model="newUserConfig.metadata.downloadVideoAnnotations" />
-            </div>
-        </div>
-        <div class="config-options">
-            <span>
                 Download Subtitles in a file by default:
             </span>
             <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
