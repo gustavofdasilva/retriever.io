@@ -26,7 +26,7 @@ type UserDownloads = {
     trimFilename: number | null,
     disablePartFiles: boolean,
     concurrentDownloads: number | null,
-    downloadRateLimit: number | null,
+    downloadRateLimit: string | null,
     numberOfRetries: number | null,
     fileAccessRetries: number | null,
     enableSponsorBlock: number | null

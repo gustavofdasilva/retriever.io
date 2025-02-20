@@ -52,7 +52,7 @@ export const download = (download: DownloadInProgress) => {
             restrict_filename: JSON.stringify(userStore.getUserConfig.downloads.restrictFilename),
             trim_filename: JSON.stringify(userStore.getUserConfig.downloads.trimFilename),
             disable_part_files: JSON.stringify(userStore.getUserConfig.downloads.disablePartFiles),
-            rate_limit: userStore.getUserConfig.downloads.downloadRateLimit??'',
+            rate_limit: (userStore.getUserConfig.downloads.downloadRateLimit??'') == '' ? '' : userStore.getUserConfig.downloads.downloadRateLimit?.replace('B',''),
             number_of_retries: JSON.stringify(userStore.getUserConfig.downloads.numberOfRetries),
             file_access_retries: JSON.stringify(userStore.getUserConfig.downloads.fileAccessRetries),
             embed_thumbnail: JSON.stringify(userStore.getUserConfig.postProcessing.embedThumbnailCoverArt),

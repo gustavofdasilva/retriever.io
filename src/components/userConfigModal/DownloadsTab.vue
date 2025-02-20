@@ -136,11 +136,12 @@
                     Rate limit:
                 </p>
                 <p>
-                    Minimum download rate in bytes per second (Example: 30k or 30m). Empty = disabled
+                    Minimum download rate in bytes per second (Example: 30k or 30m).<br> Empty = disabled
                 </p>
             </span>
             <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
-                <input v-if="newUserConfig.downloads" type="text" name="downloadRateLimit" id="downloadRateLimit" v-model="newUserConfig.downloads.downloadRateLimit">
+                <!-- <input v-if="newUserConfig.downloads" type="text" name="downloadRateLimit" id="downloadRateLimit" v-model="newUserConfig.downloads.downloadRateLimit"> -->
+                <AutoComplete v-if="newUserConfig.downloads" forceSelection style="width: 7em;" type="text" name="downloadRateLimit" id="downloadRateLimit" v-model="newUserConfig.downloads.downloadRateLimit" :suggestions="rateLimitSuggestions" @complete="searchRateLimit" />
             </div>
         </div>
         <div class="config-options">
@@ -247,6 +248,7 @@ import Message from 'primevue/message';
                 videoExtensions: videoExtensions,
                 filteredVideoExtensions:[] as string[],
                 missingInfo: false,
+                rateLimitSuggestions: [] as string[],
             }
         },
         setup() {
@@ -298,6 +300,15 @@ import Message from 'primevue/message';
                 }
                 console.log(this.newUserConfig)
                 return true
+            },
+            searchRateLimit(event:any) {
+                if (!event.query.match(/^\d+$/g)) {
+                    this.rateLimitSuggestions=[]
+                    this.newUserConfig.downloads.downloadRateLimit = '';
+                    return
+                }
+
+                this.rateLimitSuggestions = ['KB','MB'].map((item) => event.query + '' + item);
             },
             searchAudioExt(event:any) {
                 this.filteredAudioExtensions = event.query ? this.audioExtensions.filter((quality) => {
