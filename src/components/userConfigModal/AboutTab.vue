@@ -8,24 +8,25 @@
                 </p>
             </div>
             <p style="color: var(--surface-600); margin-top: 1em;">
-                Version: 0.1.0
+                Version: {{ appVersion }}
             </p>
             <div class="social-content">
-                <a href="#">
+                <button @click="openLink('https://github.com/gustavofdasilva/retrieverplusplus')" >
                     <span class="pi pi-github" ></span>
-                </a>
-                <a href="#">
+                </button>
+                <button>
                     <span class="pi pi-instagram" ></span>
-                </a>
-                <a href="#">
+                </button>
+                <button>
                     <span class="pi pi-twitter" ></span>
-                </a>
+                </button>
             </div>
             <p style="color: var(--surface-300); margin-top: 3em;">
-                Useful links: <a href="#">yt-dlp</a> <a href="#">ffmpeg</a> <a href="#">Retriever++ website</a>
+                Useful links: 
+                <button @click="openLink('https://github.com/yt-dlp/yt-dlp')">yt-dlp</button> <button @click="openLink('https://www.ffmpeg.org')" >ffmpeg</button> <button>Retriever++ website</button>
             </p>
             <p style="color: var(--surface-300);">
-                <a href="#">Terms and License</a> 
+                <button>Terms and License</button>
             </p>
         </div>
     </div>
@@ -42,6 +43,8 @@ import { useUserConfig } from '../../stores/userConfig';
 import FloatLabel from 'primevue/floatlabel';
 import { audioExtensions, videoExtensions } from '../../constants/fileExtensions';
 import ToggleSwitch from 'primevue/toggleswitch';
+import { getVersion } from '@tauri-apps/api/app';
+import { open } from '@tauri-apps/plugin-shell';
 
     export default {
         name: "TheHeader",
@@ -64,6 +67,7 @@ import ToggleSwitch from 'primevue/toggleswitch';
                 videoExtensions: videoExtensions,
                 filteredVideoExtensions:[] as string[],
                 filteredLangs: [] as string[],
+                appVersion: '',
             }
         },
         setup() {
@@ -86,6 +90,9 @@ import ToggleSwitch from 'primevue/toggleswitch';
             }
         },
         mounted() {
+            getVersion().then((version) => {
+                this.appVersion = version;
+            }); 
             this.userConfigStore.$subscribe((userConfig) => {
                 //@ts-ignore
                 this.userConfig = JSON.parse(JSON.stringify(userConfig.events.target.userConfig)); 
@@ -96,6 +103,9 @@ import ToggleSwitch from 'primevue/toggleswitch';
             this.newUserConfig = JSON.parse(JSON.stringify(this.userConfig));
         },
         methods: {
+            openLink(link: string) {
+                open(link);
+            },
             searchSupportedLangs(event:any) {
                 this.filteredLangs = event.query ? supportedLangs.filter((item) => {
                     return item.name.toLowerCase().includes(event.query.toLowerCase());
@@ -185,13 +195,29 @@ import ToggleSwitch from 'primevue/toggleswitch';
         justify-content: center;
         margin-top: 1em;
     }
-        .social-content a {
+        .social-content button {
             color: var(--surface-300);
             margin: 1em;
+            transition: .2s ease all;
         }
+            .social-content button:hover {
+                transition: .2s ease all;
+                color: var(--red-stroke);
+                margin: 1em;
+            }
             .social-content span {
                 font-size: 1.5em;
             }
+
+    p button {
+        color: var(--red-stroke);
+        text-decoration: underline;
+        transition: .2s ease all;
+    }
+        p button:hover {
+            color: var(--red-stroke-hover);
+            transition: .2s ease all;
+        }
 
     .config-sidebar {
         border-right: 1px solid var(--surface-700);
