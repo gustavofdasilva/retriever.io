@@ -2,6 +2,8 @@ import { exit } from '@tauri-apps/plugin-process';
 import { useLoadingStore } from '../stores/loading';
 import { invoke } from '@tauri-apps/api/core';
 import toasteventbus from 'primevue/toasteventbus';
+import { getCurrentWindow } from '@tauri-apps/api/window';
+import { open } from '@tauri-apps/plugin-shell';
 
 const titlebarMenuOptions = [
     {
@@ -10,20 +12,13 @@ const titlebarMenuOptions = [
             {
                 label: 'Minimize',
                 command: () => {
-
+                    const appWindow = getCurrentWindow();
+                    appWindow.minimize();
                 },
             },
             {
                 label: 'Settings',
-                command: () => {
-
-                },
-            },
-            {
-                label: 'Import URLs by file',
-                command: () => {
-                    
-                },
+                command: () => {},
             },
             {
                 label: 'Quit',
@@ -70,19 +65,26 @@ const titlebarMenuOptions = [
             {
                 label: 'Toggle full screen',
                 command: () => {
-
+                    const appWindow = getCurrentWindow();
+                    appWindow.toggleMaximize();
                 },
             },
             {
                 label: 'Zoom in',
                 command: () => {
-
+                    document.body.style.zoom=String(Number(document.body.style.zoom)+0.1);
                 },
             },
             {
                 label: 'Zoom out',
                 command: () => {
-
+                    document.body.style.zoom=String(Number(document.body.style.zoom)-0.1);
+                },
+            },
+            {
+                label: 'Reset zoom',
+                command: () => {
+                    document.body.style.zoom="1";
                 },
             },
         ],
@@ -90,25 +92,25 @@ const titlebarMenuOptions = [
     {
         label: 'Help',
         items: [
-            {
-                label: 'Tutorials',
-                icon:'pi pi-external-link',
-                command: () => {
+            // {
+            //     label: 'Tutorials',
+            //     icon:'pi pi-external-link',
+            //     command: () => {
 
-                },
-            },
-            {
-                label: 'Docs',
-                icon:'pi pi-external-link',
-                command: () => {
+            //     },
+            // },
+            // {
+            //     label: 'Docs',
+            //     icon:'pi pi-external-link',
+            //     command: () => {
 
-                },
-            },
+            //     },
+            // },
             {
                 label: 'Repository in github',
                 icon:'pi pi-external-link',
                 command: () => {
-
+                    open('https://github.com/gustavofdasilva/retrieverplusplus')
                 },
             },
         ],

@@ -127,7 +127,7 @@
         </StepPanels>
     </Stepper>
     </Dialog>
-    <TheHeader style="height: 12vh"/>
+    <TheHeader style="height: 12vh" ref="appHeader" />
     <RouterView/>
   </div>
 </template>
@@ -221,6 +221,7 @@ import { download } from './helpers/download';
       }
     },
     async mounted() {
+      this.setItemsCommands();
       await initConfigFile().then((res)=>{
         if(!res) {
           this.initConfigModalVisible = true;
@@ -233,6 +234,13 @@ import { download } from './helpers/download';
       });
     },
     methods: {  
+      setItemsCommands() {
+        //!Refactor - Set the settings commands
+        this.items[0].items[1].command = () => { 
+          //@ts-ignore
+          this.$refs.appHeader.toggleConfigModalVisible();
+        }
+      },
       calcSummarizedProgress(downloads: DownloadInProgress[]): number | null {
         let actualProgress = 0;
 

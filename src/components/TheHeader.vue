@@ -197,6 +197,9 @@ import InterfaceTab from './userConfigModal/InterfaceTab.vue';
                     this.configModalVisible = false;
                 }
             },
+            toggleConfigModalVisible() {
+                this.configModalVisible = !this.configModalVisible;
+            },
             checkView(view: string) {
                 console.log(this.$route.path);
                 return view == this.$route.path;
