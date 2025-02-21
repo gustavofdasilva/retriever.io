@@ -202,7 +202,7 @@ import Button from 'primevue/button';
         }
     }
 </script>
-<style scoped>
+<style scoped lang="scss" >
     .sub-title{
         margin: 2em 0 0.6em 0;
         font-size: 1.5em;
@@ -225,8 +225,8 @@ import Button from 'primevue/button';
         align-items: center;
         justify-content: center;
         flex-direction: column;
-        margin-top: 10vh;
-        min-height: 78vh;
+        margin-top: 5em;
+        min-height: 16em;
         width: 100%;
         padding-bottom: 2em;
     }
@@ -279,6 +279,12 @@ import Button from 'primevue/button';
         align-items: center;
         justify-content: center;
         flex-direction: column;
+        transition: all .2s ease;
+
+        @media screen and (max-width: 768px) {
+            width: 85%;
+            transition: all .2s ease;
+        }
     }
 
     p {

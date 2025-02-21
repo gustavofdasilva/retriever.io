@@ -205,7 +205,7 @@ import Message from 'primevue/message';
 
 </script>
 
-<style scoped>
+<style scoped lang="scss">
     .download-toast {
         margin: 1.5em 1.2em;
     }
@@ -222,6 +222,10 @@ import Message from 'primevue/message';
         padding: 1.5em 1em;
         margin: 0.5em 0.5em;
         position: relative;
+
+        @media screen and (max-width: 600px) {
+            flex-direction: column;
+        }
     }
 
     .thumbnail {
@@ -232,6 +236,12 @@ import Message from 'primevue/message';
         width: 45%;
         margin-right: 1em;
         border-radius: 8px;
+
+        @media screen and (max-width: 600px) {
+            width: 100%;
+            height: 5em;
+            margin: 0 0 1em 0;
+        }
     }
     
     .metadata {
@@ -240,6 +250,10 @@ import Message from 'primevue/message';
         justify-content: center;
         flex-direction: column;
         width: 70%;
+
+        @media screen and (max-width: 600px) {
+            width: 100%;
+        }
     }
 
     p {

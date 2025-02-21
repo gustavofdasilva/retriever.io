@@ -110,7 +110,7 @@ import RecentDownloadDetailedContainer from '../components/RecentDownloadDetaile
         }
     }
 </script>
-<style scoped>
+<style scoped lang="scss">
     .sub-title{
         margin: 2em 0 0.6em 0;
         font-size: 1.5em;
@@ -172,6 +172,12 @@ import RecentDownloadDetailedContainer from '../components/RecentDownloadDetaile
         align-items: center;
         justify-content: center;
         flex-direction: column;
+        transition: all .2s ease;
+
+        @media screen and (max-width: 820px) {
+            width: 85%;
+            transition: all .2s ease;
+        }
     }
 
     p {

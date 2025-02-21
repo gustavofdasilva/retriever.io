@@ -39,7 +39,7 @@
     --sb-thumb-color: #494949;
     --sb-size: 12px;
 
-    --titlebar-height: 42px;
+    --titlebar-height: 46px;
 
     /* --primary-50: #feeaf0;
     --primary-100: #feeaf0;
@@ -65,7 +65,7 @@
     --primary-900: #006634;
     --primary-950: #006634;
 
-    --primary-dark-900: #1d1a20;
+    --primary-dark-900: #1b201d;
 
     --surface-0: #f9f9f9;
     --surface-50: #f9f9f9;
@@ -165,10 +165,12 @@ input:-webkit-autofill {
   justify-content: space-between;
   align-items: center;
   position: fixed;
+  flex-wrap: nowrap;
   top: 0;
   left: 0;
   right: 0;
   z-index: 999;
+  padding: .2em .3em 0 .3em;
 }
 .titlebar-button {
   display: inline-flex;

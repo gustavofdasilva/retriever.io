@@ -2,20 +2,34 @@
     width: 75%;
     height: 80%;
     display: flex;
+
+    @media screen and (max-width: 768px) {
+        width: 90%;
+    }
 }
 
 .accounts-modal {
     width: 60%;
     max-height: 80%;
     display: flex;
+
+    @media screen and (max-width: 768px) {
+        width: 90%;
+    }
 }
 
 .crud-account-modal {
     width: 40%;
     display: flex;
+    
+
+    @media screen and (max-width: 768px) {
+        width: 70%;
+    }
 }
 
 .p-dialog-content {
     display: flex;
     height: 100%;
+    
 }

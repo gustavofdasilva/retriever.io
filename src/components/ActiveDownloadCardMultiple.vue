@@ -250,7 +250,7 @@ import Message from 'primevue/message';
 
 </script>
 
-<style scoped>
+<style scoped lang="scss">
     .active-card-container {
         width: 100%;
         background-color: var(--black-background-900);
@@ -263,6 +263,9 @@ import Message from 'primevue/message';
         padding: 1.5em 1em;
         margin: 0.5em 0.5em;
         position: relative;
+        @media screen and (max-width: 600px) {
+            flex-direction: column;
+        }
     }
 
     .thumbnail {
@@ -277,6 +280,13 @@ import Message from 'primevue/message';
         width: 50%;
         margin-right: 1em;
         border-radius: var(--p-form-field-border-radius);
+
+        
+        @media screen and (max-width: 600px) {
+            width: 100%;
+            height: 3em;
+            margin: 0 0 1em 0;
+        }
     }
     
     .metadata {
@@ -285,6 +295,10 @@ import Message from 'primevue/message';
         justify-content: center;
         flex-direction: column;
         width: 70%;
+        
+        @media screen and (max-width: 600px) {
+            width: 100%;
+        }
     }
 
     p {

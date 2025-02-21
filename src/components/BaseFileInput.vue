@@ -135,11 +135,10 @@ export default {
     }
 
     .fileInputContainer {
-        min-height: 42px;
         border-radius: var(--p-form-field-border-radius);
         border: 1px solid var(--black-background-800);
         font-size: 1em;
-        padding: 0.5em 1em;
+        padding: 0.3em 1em;
         font-family: inherit;
         color: var(--white-text);
         background-color: var(--black-background-900);

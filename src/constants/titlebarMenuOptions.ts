@@ -69,24 +69,25 @@ const titlebarMenuOptions = [
                     appWindow.toggleMaximize();
                 },
             },
-            {
-                label: 'Zoom in',
-                command: () => {
-                    document.body.style.zoom=String(Number(document.body.style.zoom)+0.1);
-                },
-            },
-            {
-                label: 'Zoom out',
-                command: () => {
-                    document.body.style.zoom=String(Number(document.body.style.zoom)-0.1);
-                },
-            },
-            {
-                label: 'Reset zoom',
-                command: () => {
-                    document.body.style.zoom="1";
-                },
-            },
+            //! REFACTOR: Zoom in and out is not working properly
+            // {
+            //     label: 'Zoom in',
+            //     command: () => {
+            //         document.body.style.zoom=String(Number(document.body.style.zoom)+0.1);
+            //     },
+            // },
+            // {
+            //     label: 'Zoom out',
+            //     command: () => {
+            //         document.body.style.zoom=String(Number(document.body.style.zoom)-0.1);
+            //     },
+            // },
+            // {
+            //     label: 'Reset zoom',
+            //     command: () => {
+            //         document.body.style.zoom="1";
+            //     },
+            // },
         ],
     },
     {

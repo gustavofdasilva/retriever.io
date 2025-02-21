@@ -1,9 +1,9 @@
 <template>    
   <div data-tauri-drag-region class="titlebar"> <!--TITLE BAR-->
-    <div style="width: 50%; font-size: .8rem; z-index: 10000;">
-      <Menubar :model="items" />
+    <div class="titlebar-menu">
+      <Menubar data-tauri-drag-region style="padding: 0;" breakpoint="370px" :model="items" />
     </div>
-    <div>
+    <div style="display: flex; align-items: center; flex-wrap: nowrap;">
       <button class="titlebar-button" id="titlebar-minimize" @click="minimize">
         <i class="pi pi-minus" alt="minimize" ></i>
       </button>
@@ -127,7 +127,7 @@
         </StepPanels>
     </Stepper>
     </Dialog>
-    <TheHeader style="height: 12vh" ref="appHeader" />
+    <TheHeader style="height: 80px; z-index: 999;" ref="appHeader" />
     <RouterView/>
   </div>
 </template>
@@ -336,7 +336,7 @@ import Menu from 'primevue/menu';
   }
 </script>
 
-<style scoped> 
+<style scoped lang="scss"> 
   .download-toast {
       margin: 1.5em 1.2em;
   }
@@ -358,6 +358,17 @@ import Menu from 'primevue/menu';
   .p-steppanels {
     height: 80%;
     display: flex;
+  }
+
+  .titlebar-menu {
+    width: fit-content; 
+    font-size: .8rem; 
+    z-index: 10000;
+
+    @media screen and (max-width: 370px) {
+      font-size: .9em;
+      flex: 1;
+    }
   }
 
   .steppanel-container {

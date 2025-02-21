@@ -1,8 +1,8 @@
 <template>
-    <nav>
+    <nav style="overflow-x: auto;">
         <Dialog class="config-modal" v-model:visible="configModalVisible" :draggable="false" modal header="Settings">
-            <div class="config-sidebar">
-                <div>
+            <div class="config-sidebar" style="overflow-x: hidden;">
+                <div style="width: 100%; ">
                     <Button style="width: 100%;" @click="configModalView = 'General'"  label="General" :severity="configModalView == 'General' ? 'primary' : 'secondary'" />
                     <Button style="width: 100%;" @click="configModalView = 'Interface'"  label="Interface" :severity="configModalView == 'Interface' ? 'primary' : 'secondary'" />
                     <Button style="width: 100%;" @click="configModalView = 'Downloads'"  label="Downloads" :severity="configModalView == 'Downloads' ? 'primary' : 'secondary'" />
@@ -11,13 +11,24 @@
                     <Button style="width: 100%;" @click="configModalView = 'About'"  label="About" :severity="configModalView == 'About' ? 'primary' : 'secondary'" />
                 </div>
                 <div>
-                    <p style="color: var(--surface-700);">
+                    <p style="color: var(--surface-700); white-space: nowrap;">
                         Retriever ++
                     </p>
                 </div>
             </div>
+            
             <Tabs v-model:value="configModalView" class="config-content" style="overflow-y: auto;">
                 <TabPanels>
+                    <div class="top-buttons">
+                        <div style="display: flex; width: fit-content;">
+                            <Button style="margin-right: 1em;" @click="configModalView = 'General'"  label="General" :severity="configModalView == 'General' ? 'primary' : 'secondary'" />
+                            <Button style="margin-right: 1em;" @click="configModalView = 'Interface'"  label="Interface" :severity="configModalView == 'Interface' ? 'primary' : 'secondary'" />
+                            <Button style="margin-right: 1em;" @click="configModalView = 'Downloads'"  label="Downloads" :severity="configModalView == 'Downloads' ? 'primary' : 'secondary'" />
+                            <Button style="margin-right: 1em;" @click="configModalView = 'Postprocessing'"  label="Postprocessing" :severity="configModalView == 'Postprocessing' ? 'primary' : 'secondary'" />
+                            <Button style="margin-right: 1em;" @click="configModalView = 'Metadata'"  label="Metadata" :severity="configModalView == 'Metadata' ? 'primary' : 'secondary'" />
+                            <Button @click="configModalView = 'About'"  label="About" :severity="configModalView == 'About' ? 'primary' : 'secondary'" />
+                        </div>
+                    </div>
                     <TabPanel value="General">
                         <GeneralTab v-if="configModalView == 'General'" /> <!--v-if to force unmount-->
                     </TabPanel>
@@ -42,21 +53,27 @@
         <Dialog class="accounts-modal" v-model:visible="accountsModalVisible" :draggable="false" modal header="Authentication">
             <AuthenticationModal/>
         </Dialog>
-        <div class="options">
-            <img src="../assets/vue.svg" alt="logo"/>
-            <div style="margin-left: 2em;">
-                <Button class="btn-page"  label="Simple" :severity="checkView('/') ? 'primary' : 'secondary'" @click="()=>{changeView('/')}" />
-                <Button class="btn-page"  label="Detailed"  :severity="checkView('/singleDetailed') ? 'primary' : 'secondary'" @click="()=>{changeView('/singleDetailed')}" />
-                <Button class="btn-page"  label="Multiple" :severity="checkView('/multiple') ? 'primary' : 'secondary'" @click="()=>{changeView('/multiple')}"  />
-                <Button class="btn-page"  label="Multiple detailed" :severity="checkView('/multipleDetailed') ? 'primary' : 'secondary'" @click="()=>{changeView('/multipleDetailed')}"  />
+        <img src="../assets/vue.svg" alt="logo" style="min-width: none;"/>
+        <div class="pages-container" style="margin: 0 1.5em; display: flex; align-items: center; flex: 1; overflow-x: auto;">
+            <div class="options" style="padding-left: 5px; align-items: flex-start; justify-content: flex-start;">
+                <div style="display: flex; align-items: center; flex-wrap: nowrap; height: fit-content;">
+                    <Button class="btn-page"  label="Simple" :severity="checkView('/') ? 'primary' : 'secondary'" @click="()=>{changeView('/')}" />
+                    <Button class="btn-page"  label="Detailed"  :severity="checkView('/singleDetailed') ? 'primary' : 'secondary'" @click="()=>{changeView('/singleDetailed')}" />
+                    <Button class="btn-page"  label="Multiple" :severity="checkView('/multiple') ? 'primary' : 'secondary'" @click="()=>{changeView('/multiple')}"  />
+                    <Button class="btn-page" style="white-space: nowrap;"  label="Multiple detailed" :severity="checkView('/multipleDetailed') ? 'primary' : 'secondary'" @click="()=>{changeView('/multipleDetailed')}"  />
+                </div>
             </div>
+            <!--!ADD: fade in overflow-->
+
+            <!-- <div style="position: absolute; background: linear-gradient(90deg, rgba(0,0,0,0) 0%, var(--surface-700) 100%); width: 5px; height: 100%; right: 0; top: 0;"></div>
+            <div style="position: absolute; background: linear-gradient(90deg, var(--surface-700) 0%, rgba(0,0,0,0) 100%); width: 5px; height: 100%; left: 0; top: 0;"></div> -->
         </div>
         <div class="path-and-settings">
             <BaseFileInput 
-                style="margin: 0 1em 0 0; font-size: 0.93em;"
+                style="margin: 0 .5em 0 0; font-size: 0.93em;"
                 :path="userConfigStore.userConfig.defaultOutput"
                 @folder-selected="setDefaultFolder"/>
-                <Button icon="pi pi-download" class="btn-page" style=" margin-right: .5em;" variant="text" :severity="checkView('/downloads') ? 'primary' : 'secondary'" @click="()=>{changeView('/downloads')}"  />
+                <Button icon="pi pi-download" style=" margin-right: .5em; " variant="text" :severity="checkView('/downloads') ? 'primary' : 'secondary'" @click="()=>{changeView('/downloads')}"  />
                 <Button icon="pi pi-user" @click="()=>accountsModalVisible=true" style=" margin-right: .5em;"  variant="text" size="large" severity="secondary" />
                 <Button icon="pi pi-cog" @click="()=>configModalVisible=true" variant="text" size="large" severity="secondary" />
         </div>
@@ -238,7 +255,7 @@ import InterfaceTab from './userConfigModal/InterfaceTab.vue';
         }
     }
 </script>
-<style scoped>
+<style scoped lang="scss">
     nav {
         background-color: var(--black-background-850);
         border-bottom: 1px solid var(--black-background-800);
@@ -247,7 +264,11 @@ import InterfaceTab from './userConfigModal/InterfaceTab.vue';
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 2em;
+        padding: 0 1.5em;
+    }
+
+    nav::-webkit-scrollbar {
+        height: 6px;
     }
 
     .options {
@@ -262,7 +283,7 @@ import InterfaceTab from './userConfigModal/InterfaceTab.vue';
 
     .path-and-settings {
         display: flex;
-        align-items: center;
+        height: fit-content;
     }
 
     .header-button {
@@ -270,28 +291,69 @@ import InterfaceTab from './userConfigModal/InterfaceTab.vue';
         margin-right: 1em;
     }
 
-    .btn-page {
-        padding: .3em 1em;
-    }
 
     .config-sidebar {
         border-right: 1px solid var(--surface-700);
-        padding-right: 1.25rem;
         margin-right: 1em;
+        padding-right: 1.25em;
         display: flex;
-        width: 25%;
+        min-width: 20%;
+        max-width: min-content;
         flex-direction: column;
         justify-content: space-between;
         align-items: center;
+        @media screen and (max-width: 768px) {
+            display: none;
+            
+        }
     }
         .config-sidebar button {
             margin: .2em 0;
         }
 
+    .top-buttons {
+        display: none;
+        width: 100%;  
+        overflow-x: auto;
+        margin-bottom: 1.2em;
+        padding-bottom: .4em;
+        box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.192);
+
+        &::-webkit-scrollbar {
+            height: 0px;
+            transition: .2s ease all;
+        }
+        &:hover::-webkit-scrollbar {
+            height: 6px;
+            transition: .2s ease all;
+        }
+
+        @media screen and (max-width: 768px) {
+            display: block;
+        }
+    }
+
+
+
     .config-content {
         width: 100%;
         height: 90%;
         box-shadow: 0px 10px 15px -3px rgba(0,0,0,0.1);
+    }
+
+    .pages-container::-webkit-scrollbar {
+        height: 0px;
+        transition: .2s ease all;
+    }
+
+    .pages-container:hover::-webkit-scrollbar {
+        height: 5px;
+        transition: .2s ease all;
+    }
+
+    .pages-container {
+        padding-bottom: .2em;
+        position: relative;
     }
 
     .config-content::-webkit-scrollbar {

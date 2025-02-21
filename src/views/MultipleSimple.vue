@@ -2,7 +2,7 @@
     <div class="container" >
         <main>
             <div class="main-sub-container">
-                <div class="loader" :style="[ loadingSearch ? {opacity: '1'} : {opacity:'0'}]" ></div>
+                <div class="loader" :style="[ loadingSearch ? {display: 'block'} : {display:'none'}]" ></div>
                 <div class="search-sub-container" :style="[ loadingSearch ? {opacity: '0.4'} : {opacity:'1'}]">
                     <BaseSearchBar
                         :rows="mediaStore.getMultiUrls.length == 0 ? 5 : 3"
@@ -123,7 +123,7 @@ import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
         }
     }
 </script>
-<style scoped>
+<style scoped lang="scss" >
     .sub-title{
         margin: 2em 0 0.6em 0;
         font-size: 1.5em;
@@ -145,8 +145,8 @@ import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
         align-items: center;
         justify-content: center;
         flex-direction: column;
-        margin-top: 15vh;
-        height: 40vh;
+        margin-top: 8em;
+        height: 16em;
         width: 100%;
     }
 
@@ -185,6 +185,12 @@ import RecentDownloadContainer from '../components/RecentDownloadContainer.vue';
         align-items: center;
         justify-content: center;
         flex-direction: column;
+        transition: all .2s ease;
+
+        @media screen and (max-width: 768px) {
+            width: 85%;
+            transition: all .2s ease;
+        }
     }
 
     p {

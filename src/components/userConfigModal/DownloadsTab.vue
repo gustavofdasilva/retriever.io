@@ -90,6 +90,11 @@
                         newUserConfig.downloads.trimFilename = 0;
                     }
                 }">
+                
+                <Message style="margin-left: 1em;" v-if="(
+                    //@ts-ignore
+                    missingInfo && (newUserConfig.downloads.trimFilename == null || newUserConfig.downloads.trimFilename == '' || newUserConfig.downloads.trimFilename < 0)
+                )" severity="error" size="small" variant="simple">Select a valid value</Message>
             </div>
         </div>
         <div class="config-options">
