@@ -115,7 +115,7 @@
                       <p style="margin: 1em 0;"> For more information and tutorials, access the <button style="text-decoration: underline; color: var(--primary-500);" @click="()=>{openLink('https://github.com/gustavofdasilva/retrieverplusplus')}" >github repository</button> </p>
 
                       <div style="display: flex; align-items: center;">
-                        <p style="margin: 2em .5em; color: var(--surface-600);"> Thank you for choosing retriever++</p><span style="color: var(--surface-600);" class="pi pi-heart"></span>
+                        <p style="margin: 2em .5em; color: var(--surface-600);"> Thank you for choosing Retriever.io</p><span style="color: var(--surface-600);" class="pi pi-heart"></span>
                       </div>
                     </div>
                     <div class="steppanel-buttons">    

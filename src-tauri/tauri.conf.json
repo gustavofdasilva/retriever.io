@@ -1,8 +1,8 @@
 {  
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "retriever-plus-plus",
+  "productName": "retriever-io",
   "version": "0.1.0",
-  "identifier": "com.retriever-plus-plus.app",
+  "identifier": "com.retriever-io.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",

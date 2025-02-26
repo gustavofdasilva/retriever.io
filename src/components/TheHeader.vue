@@ -53,7 +53,9 @@
         <Dialog class="accounts-modal" v-model:visible="accountsModalVisible" :draggable="false" modal header="Authentication">
             <AuthenticationModal/>
         </Dialog>
-        <img src="../assets/vue.svg" alt="logo" style="min-width: none;"/>
+        <button @click="openLink('https://github.com/gustavofdasilva/retriever.io')">
+            <img src="../assets/logo.svg" class="primary-img-filter" alt="logo" style="min-width: none; width:50px;"/>
+        </button>
         <div class="pages-container" style="margin: 0 1.5em; display: flex; align-items: center; flex: 1; overflow-x: auto;">
             <div class="options" style="padding-left: 5px; align-items: flex-start; justify-content: flex-start;">
                 <div style="display: flex; align-items: center; flex-wrap: nowrap; height: fit-content;">
@@ -106,6 +108,7 @@ import PostProcessingTab from './userConfigModal/PostProcessingTab.vue';
 import MetadataTab from './userConfigModal/MetadataTab.vue';
 import AboutTab from './userConfigModal/AboutTab.vue';
 import InterfaceTab from './userConfigModal/InterfaceTab.vue';
+import { open } from '@tauri-apps/plugin-shell';
 
     export default {
         name: "TheHeader",
@@ -167,6 +170,9 @@ import InterfaceTab from './userConfigModal/InterfaceTab.vue';
             }
         },
         methods: {
+            openLink(link: string) {
+                open(link);
+            },
             async setBrowser() {
                 let auth = this.userConfigStore.getUserConfig.authentication ?? {} as UserAuthentication;
 

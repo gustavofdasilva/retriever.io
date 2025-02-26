@@ -2,9 +2,9 @@
     <div style="width: 100%; height: 100%;">
         <div class="about-content">
             <div class="logo-w-title">
-                <img src="/src/assets/vue.svg" alt="logo"/>
+                <img src="/src/assets/logo.svg" alt="logo" class="white-img-filter" style="width: 60px;"/>
                 <p>
-                    Retriever++
+                    Retriever.io
                 </p>
             </div>
             <p style="color: var(--surface-600); margin-top: 1em;">
@@ -23,7 +23,7 @@
             </div>
             <p style="color: var(--surface-300); margin-top: 3em;">
                 Useful links: 
-                <button @click="openLink('https://github.com/yt-dlp/yt-dlp')">yt-dlp</button> <button @click="openLink('https://www.ffmpeg.org')" >ffmpeg</button> <button>Retriever++ website</button>
+                <button @click="openLink('https://github.com/yt-dlp/yt-dlp')">yt-dlp</button> <button @click="openLink('https://www.ffmpeg.org')" >ffmpeg</button> <button>Retriever.io website</button>
             </p>
             <p style="color: var(--surface-300);">
                 <button>Terms and License</button>
@@ -185,7 +185,7 @@ import { open } from '@tauri-apps/plugin-shell';
     }
         .logo-w-title p {
             font-size: 1.1em;
-            margin-left: 1em;
+            margin-left: .5em;
             font-weight: 600;
         }
 

@@ -220,3 +220,11 @@ input:-webkit-autofill {
                      var(--sb-track-color);
   }
 }
+
+.white-img-filter {
+  filter: brightness(0) saturate(100%) invert(90%) sepia(0%) saturate(0%) hue-rotate(110deg) brightness(102%) contrast(100%);
+}
+
+.primary-img-filter {
+  filter: brightness(0) saturate(100%) invert(65%) sepia(74%) saturate(403%) hue-rotate(103deg) brightness(82%) contrast(99%);
+}
