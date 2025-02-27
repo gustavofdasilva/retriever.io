@@ -1,30 +1,18 @@
- // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+mod external_binaries;
 
 use std::{
-    collections::HashMap, env::args, fs, hash::Hash, io::{ stderr, BufRead, BufReader}, os::windows::process, path::Path, process::{Command, Stdio}, vec
+    collections::HashMap,
+    fs,
+    io::{BufRead, BufReader},
+    path::Path,
+    process::{Command, Stdio},
 };
 
 use encoding_rs::WINDOWS_1252;
+use external_binaries::{download_ytdlp, get_binary_url_ytdlp, get_remote_version_ytdlp};
 
-struct AdditionalConfigsYTDLP {
-    restrict_filename: bool,
-    trim_filename: u32,
-    disable_part_files: bool,
-    rate_limit: String,
-    number_of_retries: u32,
-    file_access_retries: u32,
-    embed_thumbnail: bool,
-    embed_chapters: bool,
-    embed_subtitles: bool,
-    download_desc_file: bool,
-    subtitles_type: String,
-    subtitles_lang: String
-
-}
-
-// static mut DOWNLOAD_STATUS: String = String::new();
-static mut DOWNLOAD_STATUS: Vec<HashMap<String,String>> = vec![];
-static mut ACTIVE_PROCESS: Vec<HashMap<String,String>> = vec![];
+static mut DOWNLOAD_STATUS: Vec<HashMap<String, String>> = vec![];
+static mut ACTIVE_PROCESS: Vec<HashMap<String, String>> = vec![];
 
 #[tauri::command]
 async fn check_path_exists(path: String) -> bool {
@@ -32,14 +20,19 @@ async fn check_path_exists(path: String) -> bool {
 }
 
 #[tauri::command]
-async fn get_metadata(url: String, username: String, password: String, cookies_from_browser: String, cookies_txt_file_path: String) -> HashMap<String, String> {
+async fn get_metadata(
+    url: String,
+    username: String,
+    password: String,
+    cookies_from_browser: String,
+    cookies_txt_file_path: String,
+) -> HashMap<String, String> {
     use std::process::Command;
 
     println!("Received!, lets start");
 
-    let mut args:Vec<String> = vec![];
+    let mut args: Vec<String> = vec![];
 
-    
     if username != "" && password != "" {
         args.push("--username".to_string());
         args.push(username);
@@ -55,7 +48,7 @@ async fn get_metadata(url: String, username: String, password: String, cookies_f
         args.push(cookies_txt_file_path);
     }
 
-    args.push("--print".to_string());   
+    args.push("--print".to_string());
     args.push("title".to_string());
     args.push("--print".to_string());
     args.push("channel".to_string());
@@ -75,11 +68,10 @@ async fn get_metadata(url: String, username: String, password: String, cookies_f
     args.push("creator".to_string());
     args.push("--print".to_string());
 
-
     args.push("--skip-download".to_string());
     args.push(url);
 
-    println!("{}",args.join(" "));
+    println!("{}", args.join(" "));
 
     let output = Command::new("yt-dlp")
         .args(args)
@@ -95,7 +87,7 @@ async fn get_metadata(url: String, username: String, password: String, cookies_f
         "STDERR {}",
         String::from_utf8_lossy(&output.stderr).to_string()
     );
-    
+
     if String::from_utf8_lossy(&output.stderr).contains("ERROR:") {
         println!(
             "STDERR {}",
@@ -162,9 +154,9 @@ async fn download(
     thumbnail_path: String,
     username: String,
     password: String,
-    cookies_from_browser: String, 
+    cookies_from_browser: String,
     cookies_txt_file_path: String,
-    additional_config: HashMap<String,String>,
+    additional_config: HashMap<String, String>,
 ) -> HashMap<String, String> {
     use std::process::Command;
 
@@ -172,31 +164,27 @@ async fn download(
     let download_index: usize;
     let process_index: usize;
     unsafe {
-        let mut new_download_status: HashMap<String,String> = HashMap::new();
-            new_download_status.insert("id".to_string(),id.clone());
-            new_download_status.insert("download_status".to_string(), "".to_string());
+        let mut new_download_status: HashMap<String, String> = HashMap::new();
+        new_download_status.insert("id".to_string(), id.clone());
+        new_download_status.insert("download_status".to_string(), "".to_string());
 
-        let mut new_process: HashMap<String,String> = HashMap::new();
-            new_process.insert("id".to_string(), id.clone());
-            new_process.insert("process_id".to_string(), "".to_string());
-
+        let mut new_process: HashMap<String, String> = HashMap::new();
+        new_process.insert("id".to_string(), id.clone());
+        new_process.insert("process_id".to_string(), "".to_string());
 
         DOWNLOAD_STATUS.push(new_download_status);
         ACTIVE_PROCESS.push(new_process);
 
-        
-        download_index = DOWNLOAD_STATUS.iter().position(
-            |download| 
-                download.get(&"id".to_string()).unwrap() == &id
-        ).unwrap();
-        
-        process_index = ACTIVE_PROCESS.iter().position(
-            |process| 
-                process.get(&"id".to_string()).unwrap() == &id
-        ).unwrap();
-    }
+        download_index = DOWNLOAD_STATUS
+            .iter()
+            .position(|download| download.get(&"id".to_string()).unwrap() == &id)
+            .unwrap();
 
-    
+        process_index = ACTIVE_PROCESS
+            .iter()
+            .position(|process| process.get(&"id".to_string()).unwrap() == &id)
+            .unwrap();
+    }
 
     let mut args: Vec<String> = vec![];
 
@@ -241,14 +229,12 @@ async fn download(
         args.append(&mut audio_args);
     }
 
-    if username !="" && password !="" {
+    if username != "" && password != "" {
         args.push("--username".to_string());
         args.push(username);
         args.push("--password".to_string());
         args.push(password);
     }
-
-    
 
     if cookies_from_browser != "" {
         args.push("--cookies-from-browser".to_string());
@@ -292,7 +278,7 @@ async fn download(
         // format!("res:{},ext:{},filesize~{}M",resolution_num,file_ext_default_handle,goalFileSize)
         format_sort_arg.join(","),
     );
-    
+
     if additional_config["restrict_filename"] == "true" {
         args.push("--restrict-filenames".to_string());
     }
@@ -337,20 +323,22 @@ async fn download(
         args.push("--write-description".to_string());
     }
 
-    if additional_config["subtitles_type"] == "Normal" || additional_config["subtitles_type"] == "Both" {
+    if additional_config["subtitles_type"] == "Normal"
+        || additional_config["subtitles_type"] == "Both"
+    {
         args.push("--write-subs".to_string());
     }
 
-    if additional_config["subtitles_type"] == "Autogenerated" || additional_config["subtitles_type"] == "Both" {
+    if additional_config["subtitles_type"] == "Autogenerated"
+        || additional_config["subtitles_type"] == "Both"
+    {
         args.push("--write-auto-subs".to_string());
     }
-    
-    if additional_config["subtitles_type"] != "" || additional_config["embed_subtitles"]=="true"{
+
+    if additional_config["subtitles_type"] != "" || additional_config["embed_subtitles"] == "true" {
         args.push("--sub-langs".to_string());
         args.push(additional_config["subtitles_lang"].to_string());
     }
-
-    
 
     args.push("--print".to_string());
     args.push("after_move:filepath".to_string());
@@ -369,9 +357,9 @@ async fn download(
         .spawn()
         .unwrap();
 
-        unsafe {
-            *ACTIVE_PROCESS[process_index].get_mut("process_id").unwrap() = child.id().to_string();
-        }
+    unsafe {
+        *ACTIVE_PROCESS[process_index].get_mut("process_id").unwrap() = child.id().to_string();
+    }
 
     let stdout = child.stdout.take().expect("Failed to get stdout");
 
@@ -387,20 +375,20 @@ async fn download(
 
             let download_info = String::from_utf8_lossy(&buffer).to_string();
             unsafe {
-                let download_index = DOWNLOAD_STATUS.iter().position(
-                    |download| 
-                        download.get(&"id".to_string()).unwrap() == &id
-                );
+                let download_index = DOWNLOAD_STATUS
+                    .iter()
+                    .position(|download| download.get(&"id".to_string()).unwrap() == &id);
 
                 match download_index {
                     Some(index) => {
                         if index < DOWNLOAD_STATUS.len() {
-                            *DOWNLOAD_STATUS[index].get_mut("download_status").unwrap() = download_info.clone();
-                        }       
-                    },
+                            *DOWNLOAD_STATUS[index].get_mut("download_status").unwrap() =
+                                download_info.clone();
+                        }
+                    }
 
-                    None=>{}
-                }        
+                    None => {}
+                }
             }
 
             buffer.clear();
@@ -417,7 +405,7 @@ async fn download(
         let mut err_string = String::new();
         reader
             .lines()
-            .for_each(|line| err_string.push_str(&format!("{}\n",&line.unwrap().to_string()) ));
+            .for_each(|line| err_string.push_str(&format!("{}\n", &line.unwrap().to_string())));
 
         let mut response: HashMap<String, String> = HashMap::new();
 
@@ -425,7 +413,6 @@ async fn download(
 
         eprintln!("Error while downloading");
         unsafe {
-                    
             DOWNLOAD_STATUS.remove(download_index);
             ACTIVE_PROCESS.remove(process_index);
         }
@@ -460,15 +447,16 @@ async fn download(
 
     response.insert("output".to_string(), output_name.to_string());
     unsafe {
+        let download_index = DOWNLOAD_STATUS
+            .iter()
+            .position(|download| download.get(&"id".to_string()).unwrap() == &download_id)
+            .unwrap();
 
-        let download_index = DOWNLOAD_STATUS.iter().position(
-            |download| 
-                download.get(&"id".to_string()).unwrap() == &download_id).unwrap();
-        
-        let process_index = ACTIVE_PROCESS.iter().position(
-            |process| 
-                process.get(&"id".to_string()).unwrap() == &download_id).unwrap();
-                
+        let process_index = ACTIVE_PROCESS
+            .iter()
+            .position(|process| process.get(&"id".to_string()).unwrap() == &download_id)
+            .unwrap();
+
         DOWNLOAD_STATUS.remove(download_index);
         ACTIVE_PROCESS.remove(process_index);
     }
@@ -477,24 +465,23 @@ async fn download(
 
 #[tauri::command]
 fn get_progress_info(download_id: String) -> String {
-    unsafe { 
-    if DOWNLOAD_STATUS.len() == 0 {
-        return String::new();
-    }
-
-    let download_index = DOWNLOAD_STATUS.iter().position(
-        |download| 
-            download.get(&"id".to_string()).unwrap() == &download_id.clone()
-    );
-        match download_index {
-            Some(index)=>{
-                return DOWNLOAD_STATUS[index].get(&"download_status".to_string()).unwrap().clone();
-            },
-            None=>{
-                return "".to_string()
-            }
+    unsafe {
+        if DOWNLOAD_STATUS.len() == 0 {
+            return String::new();
         }
 
+        let download_index = DOWNLOAD_STATUS
+            .iter()
+            .position(|download| download.get(&"id".to_string()).unwrap() == &download_id.clone());
+        match download_index {
+            Some(index) => {
+                return DOWNLOAD_STATUS[index]
+                    .get(&"download_status".to_string())
+                    .unwrap()
+                    .clone();
+            }
+            None => return "".to_string(),
+        }
     }
 }
 
@@ -543,84 +530,90 @@ fn show_in_folder(path: String) {
 
 #[tauri::command]
 fn delete_file(path: String) {
-    let _ = fs::remove_file(path).map_err(|e| format!("Error while deleting file: {}",e));
+    let _ = fs::remove_file(path).map_err(|e| format!("Error while deleting file: {}", e));
 }
 
 #[tauri::command]
-async fn kill_active_process()  {
+async fn kill_active_process() {
     #[cfg(target_os = "windows")]
-       {
-            kill_process_windows();
-       }
-     
-       #[cfg(target_os = "linux")]
-       {
-         //Kill process command in linux
-       }
-     
-       #[cfg(target_os = "macos")]
-       {
-         //Kill process command in macos
-       }
-   }
+    {
+        kill_process_windows();
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        //Kill process command in linux
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        //Kill process command in macos
+    }
+}
 
 #[tauri::command]
-async fn kill_active_process_by_download_id(download_id: String)  {
-
-    unsafe { 
+async fn kill_active_process_by_download_id(download_id: String) {
+    unsafe {
         if ACTIVE_PROCESS.len() == 0 {
-            return 
+            return;
         }
-    
-        let process_index = ACTIVE_PROCESS.iter().position(
-            |download| 
-                download.get(&"id".to_string()).unwrap() == &download_id.clone()
-        );
-            match process_index {
-                Some(index)=>{
-                    let id = ACTIVE_PROCESS[index].get(&"process_id".to_string()).unwrap().clone().parse::<u32>().unwrap_or(0);
-                    if id == 0 {
-                        return
-                    }
-                    
-                    #[cfg(target_os = "windows")]
-                    {
-                        kill_process_windows_by_id(id);
-                    }
-                    
-                    #[cfg(target_os = "linux")]
-                    {
-                        //Kill process command in linux
-                    }
-                    
-                    #[cfg(target_os = "macos")]
-                    {
-                        //Kill process command in macos
-                    }
-                },
-                None=>{}
+
+        let process_index = ACTIVE_PROCESS
+            .iter()
+            .position(|download| download.get(&"id".to_string()).unwrap() == &download_id.clone());
+        match process_index {
+            Some(index) => {
+                let id = ACTIVE_PROCESS[index]
+                    .get(&"process_id".to_string())
+                    .unwrap()
+                    .clone()
+                    .parse::<u32>()
+                    .unwrap_or(0);
+                if id == 0 {
+                    return;
+                }
+
+                #[cfg(target_os = "windows")]
+                {
+                    kill_process_windows_by_id(id);
+                }
+
+                #[cfg(target_os = "linux")]
+                {
+                    //Kill process command in linux
+                }
+
+                #[cfg(target_os = "macos")]
+                {
+                    //Kill process command in macos
+                }
             }
-    
+            None => {}
+        }
     }
 }
 
 fn kill_process_windows() {
-        // Additional check to ensure all child processes are killed
-        let _ = Command::new("wmic")
-            .args(&["process", "where", &format!("name='yt-dlp.exe'"), "delete"])
-            .output().unwrap();
-   }
+    // Additional check to ensure all child processes are killed
+    let _ = Command::new("wmic")
+        .args(&["process", "where", &format!("name='yt-dlp.exe'"), "delete"])
+        .output()
+        .unwrap();
+}
 
-   fn kill_process_windows_by_id(id: u32) {
-        println!("KILLING PROCESS {}, IN WINDOWS",id);
-        let _ = Command::new("taskkill")
-                .args(&["/pid", &id.to_string().as_str(), "/f", "/t"])
-                .output().unwrap();
-   }
+fn kill_process_windows_by_id(id: u32) {
+    println!("KILLING PROCESS {}, IN WINDOWS", id);
+    let _ = Command::new("taskkill")
+        .args(&["/pid", &id.to_string().as_str(), "/f", "/t"])
+        .output()
+        .unwrap();
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_log::Builder::new().build())
@@ -637,7 +630,10 @@ pub fn run() {
             delete_file,
             kill_active_process,
             kill_active_process_by_download_id,
-            check_path_exists
+            check_path_exists,
+            get_binary_url_ytdlp,
+            get_remote_version_ytdlp,
+            download_ytdlp
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

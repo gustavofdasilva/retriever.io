@@ -156,6 +156,7 @@ import { useLoadingStore } from './stores/loading';
 import { invoke } from '@tauri-apps/api/core';
 import ProgressBar from 'primevue/progressbar';
 import Menu from 'primevue/menu';
+import { downloadBinaryYtdlp } from './helpers/externalPrograms';
 
 
   export default {
@@ -232,6 +233,8 @@ import Menu from 'primevue/menu';
           this.userConfig.setUserConfig(userConfig);
         }
       });
+      
+      downloadBinaryYtdlp();
     },
     methods: {  
       setItemsCommands() {
