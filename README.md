@@ -6,7 +6,7 @@
 
 </div>
 
-<p align="center"><i>An user friendly GUI for yt-dlp</i></p>
+<p align="center"><i>An user friendly GUI for yt-dlp (🚧In progress🚧)</i></p>
 
 <div align="center">
   
