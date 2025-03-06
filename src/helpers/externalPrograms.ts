@@ -145,3 +145,37 @@ export async function getYtDlpPath():Promise<String> {
 
     return `${path}/binaries/${name}`;
 }
+
+export async function getYtdlpLocaleVersion(): Promise<string> {
+    let ytdlpVersion = '';
+    const path = await getMainPath();
+    const jsonString: string = await invoke('get_json_locale_version',{
+        path
+    });
+
+    const versionObj: any = JSON.parse(jsonString);
+    for (const param in versionObj) {
+        if(param.includes('yt-dlp')) {
+            ytdlpVersion = versionObj[param];       
+        }
+    }
+
+    return ytdlpVersion;
+}
+
+export async function getFFLocaleVersion(): Promise<string> {
+    let ffVersion = '';
+    const path = await getMainPath();
+    const jsonString: string = await invoke('get_json_locale_version',{
+        path
+    });
+
+    const versionObj: any = JSON.parse(jsonString);
+    for (const param in versionObj) {
+        if(param.includes('ffmpeg')) {
+            ffVersion = versionObj[param];       
+        }
+    }
+
+    return ffVersion;
+}

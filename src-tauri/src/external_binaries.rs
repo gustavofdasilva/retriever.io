@@ -72,6 +72,32 @@ pub async fn get_remote_version_ytdlp() -> String {
     }
 }
 
+#[tauri::command]
+pub async fn get_json_locale_version(path: String) -> String { //JSON string
+
+    let info_file_path = format!("{}/binaries/info.json", &path);
+    if Path::new(&info_file_path).exists() {
+        let mut info_file = fs::File::options()
+        .read(true)
+        .write(true)
+        .create(true).open(&info_file_path).unwrap();
+        let mut info_string = String::new();
+        
+        let result = fs::File::read_to_string(&mut info_file, &mut info_string);
+        match result {
+            Ok(_)=>{
+                let json_value: Value = serde_json::from_str(&info_string).unwrap();
+
+                return json_value.to_string();
+            }
+            Err(_)=>{return "".to_string()}
+        }
+    } else {
+        return "".to_string()
+    }
+}
+
+
 #[tauri::command]	
 pub async fn check_version_binary(binary_url: String, version: String, path: String) -> String {
     let name = binary_url.split('/').last().unwrap();

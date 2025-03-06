@@ -9,7 +9,7 @@ use std::{
 };
 
 use encoding_rs::WINDOWS_1252;
-use external_binaries::{check_version_binary, download_binary, get_binary_info_ff, get_binary_url_ytdlp, get_remote_version_ytdlp};
+use external_binaries::{check_version_binary, download_binary, get_binary_info_ff, get_binary_url_ytdlp, get_json_locale_version, get_remote_version_ytdlp};
 
 static mut DOWNLOAD_STATUS: Vec<HashMap<String, String>> = vec![];
 static mut ACTIVE_PROCESS: Vec<HashMap<String, String>> = vec![];
@@ -639,7 +639,8 @@ pub fn run() {
             get_remote_version_ytdlp,
             download_binary,
             check_version_binary,
-            get_binary_info_ff
+            get_binary_info_ff,
+            get_json_locale_version
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

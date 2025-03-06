@@ -10,6 +10,12 @@
             <p style="color: var(--surface-600); margin-top: 1em;">
                 Version: {{ appVersion }}
             </p>
+            <p style="color: var(--surface-600); margin-top: 1em;">
+                yt-dlp version: {{ ytdlpVersion }}
+            </p>
+            <p style="color: var(--surface-600); margin-top: .1em;">
+                ffmpeg and ffprobe version: {{ ffVersion }}
+            </p>
             <div class="social-content">
                 <button @click="openLink('https://github.com/gustavofdasilva/retrieverplusplus')" >
                     <span class="pi pi-github" ></span>
@@ -45,6 +51,7 @@ import { audioExtensions, videoExtensions } from '../../constants/fileExtensions
 import ToggleSwitch from 'primevue/toggleswitch';
 import { getVersion } from '@tauri-apps/api/app';
 import { open } from '@tauri-apps/plugin-shell';
+import { getFFLocaleVersion, getYtdlpLocaleVersion } from '../../helpers/externalPrograms';
 
     export default {
         name: "TheHeader",
@@ -68,6 +75,8 @@ import { open } from '@tauri-apps/plugin-shell';
                 filteredVideoExtensions:[] as string[],
                 filteredLangs: [] as string[],
                 appVersion: '',
+                ytdlpVersion: '',
+                ffVersion: '',
             }
         },
         setup() {
@@ -93,11 +102,19 @@ import { open } from '@tauri-apps/plugin-shell';
             getVersion().then((version) => {
                 this.appVersion = version;
             }); 
+            getYtdlpLocaleVersion().then((version)=>{
+                this.ytdlpVersion = version;
+            })
+            getFFLocaleVersion().then((version)=>{
+                this.ffVersion = version;
+            })
+
             this.userConfigStore.$subscribe((userConfig) => {
                 //@ts-ignore
                 this.userConfig = JSON.parse(JSON.stringify(userConfig.events.target.userConfig)); 
                 this.newUserConfig = JSON.parse(JSON.stringify(this.userConfig));
             });
+
 
             this.userConfig = JSON.parse(JSON.stringify(this.userConfigStore.getUserConfig)); //guarantee that is a completely new object with cloned information
             this.newUserConfig = JSON.parse(JSON.stringify(this.userConfig));
