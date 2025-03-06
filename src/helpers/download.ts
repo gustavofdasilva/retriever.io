@@ -8,6 +8,7 @@ import { audioQualities, videoQualities } from "../constants/qualities";
 import { useUserConfig } from "../stores/userConfig";
 import { inject } from "vue";
 import { supportedLangs } from "../constants/ytdlpVariables";
+import { getYtDlpPath } from "./externalPrograms";
 
 // The findConfigCode function is used to send the selected info formatted to the backend
 export const findConfigCode = (name: string, arr: YTDLPOptions): string => {
@@ -34,7 +35,7 @@ export const checkFormat = (value: string): string => {
     return 'Video'
 }
 
-export const download = (download: DownloadInProgress) => {
+export const download = async (download: DownloadInProgress) => {
     const loadingStore = useLoadingStore();
     const userStore = useUserConfig();
     loadingStore.setActiveDownloadById(download.id,
@@ -46,8 +47,12 @@ export const download = (download: DownloadInProgress) => {
     .map(lang=>{
         return findConfigCode(lang,supportedLangs)
     }).join(', ') : '';
+
+    const ytDlpPath = await getYtDlpPath();
+
     invoke('download',{
         ...download,
+        ytDlpPath,
         additionalConfig: {
             restrict_filename: JSON.stringify(userStore.getUserConfig.downloads.restrictFilename),
             trim_filename: userStore.getUserConfig.downloads.trimFilename ? JSON.stringify(userStore.getUserConfig.downloads.trimFilename) : '0',

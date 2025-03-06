@@ -9,7 +9,7 @@ use std::{
 };
 
 use encoding_rs::WINDOWS_1252;
-use external_binaries::{download_ytdlp, get_binary_url_ytdlp, get_remote_version_ytdlp};
+use external_binaries::{check_version_binary, download_binary, get_binary_info_ff, get_binary_url_ytdlp, get_remote_version_ytdlp};
 
 static mut DOWNLOAD_STATUS: Vec<HashMap<String, String>> = vec![];
 static mut ACTIVE_PROCESS: Vec<HashMap<String, String>> = vec![];
@@ -21,6 +21,7 @@ async fn check_path_exists(path: String) -> bool {
 
 #[tauri::command]
 async fn get_metadata(
+    yt_dlp_path: String,
     url: String,
     username: String,
     password: String,
@@ -29,7 +30,7 @@ async fn get_metadata(
 ) -> HashMap<String, String> {
     use std::process::Command;
 
-    println!("Received!, lets start");
+    println!("Received!, lets start: {}",&yt_dlp_path);
 
     let mut args: Vec<String> = vec![];
 
@@ -73,7 +74,7 @@ async fn get_metadata(
 
     println!("{}", args.join(" "));
 
-    let output = Command::new("yt-dlp")
+    let output = Command::new(&yt_dlp_path)
         .args(args)
         .stdout(Stdio::piped())
         .output()
@@ -142,6 +143,7 @@ async fn get_metadata(
 
 #[tauri::command]
 async fn download(
+    yt_dlp_path: String,
     id: String,
     url: String,
     output: String,
@@ -159,6 +161,8 @@ async fn download(
     additional_config: HashMap<String, String>,
 ) -> HashMap<String, String> {
     use std::process::Command;
+
+    println!("Received!, lets start: {}",&yt_dlp_path);
 
     let download_id: String = id.clone();
     let download_index: usize;
@@ -348,7 +352,7 @@ async fn download(
 
     args.push(url.clone());
 
-    let mut command = Command::new("yt-dlp");
+    let mut command = Command::new(&yt_dlp_path);
 
     let mut child = command
         .args(args.clone())
@@ -633,7 +637,9 @@ pub fn run() {
             check_path_exists,
             get_binary_url_ytdlp,
             get_remote_version_ytdlp,
-            download_ytdlp
+            download_binary,
+            check_version_binary,
+            get_binary_info_ff
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
