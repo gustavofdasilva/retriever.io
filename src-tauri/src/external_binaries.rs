@@ -82,7 +82,6 @@ pub async fn check_version_binary(binary_url: String, version: String, path: Str
         let mut info_file = fs::File::options()
         .read(true)
         .write(true)
-        .truncate(true)
         .create(true).open(&info_file_path).unwrap();
         let mut info_string = String::new();
         

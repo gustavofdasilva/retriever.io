@@ -24,6 +24,22 @@
                 <Button @click="reloadYtdlp" style="width: 100%; margin-top: 1em;" label="Confirm" severity="danger" outlined />
             </div>
         </Dialog>
+        <Dialog v-model:visible="reloadFfmpegVisible" modal header="Are you sure?" style="width: 30%;" > <!--Refactor: These 3 dialogs of binaries have basically the same structure-->
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <p style="text-align: center;">
+                    This action will delete the ffmpeg binary and download the latest version. Are you sure you want to proceed?
+                </p>
+                <Button @click="reloadFfmpeg" style="width: 100%; margin-top: 1em;" label="Confirm" severity="danger" outlined />
+            </div>
+        </Dialog>
+        <Dialog v-model:visible="reloadFfprobeVisible" modal header="Are you sure?" style="width: 30%;" >
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <p style="text-align: center;">
+                    This action will delete the ffprobe binary and download the latest version. Are you sure you want to proceed?
+                </p>
+                <Button @click="reloadFfprobe" style="width: 100%; margin-top: 1em;" label="Confirm" severity="danger" outlined />
+            </div>
+        </Dialog>
         <!-- <Button :disabled="!changes" :severity="changes ? 'primary' : 'secondary'"  style="position: absolute;  bottom: 10px; right: 20px;" @click="saveConfig"  label="Save changes"  /> -->
         <!-- <div class="config-options">
             <span>
@@ -67,6 +83,22 @@
                 <Button @click="reloadYtdlpVisible=true"  label="Reload" severity="danger" outlined />
             </div>
         </div>
+        <div class="config-options">
+            <span>
+                Reload ffmpeg:
+            </span>
+            <div style="flex: 1; display: flex; align-items: flex-end; justify-content: center; flex-direction: column;">    
+                <Button @click="reloadFfmpegVisible=true"  label="Reload" severity="danger" outlined />
+            </div>
+        </div>
+        <div class="config-options">
+            <span>
+                Reload ffprobe:
+            </span>
+            <div style="flex: 1; display: flex; align-items: flex-end; justify-content: center; flex-direction: column;">    
+                <Button @click="reloadFfprobeVisible=true"  label="Reload" severity="danger" outlined />
+            </div>
+        </div>
     </div>
 
 </template>
@@ -83,7 +115,7 @@ import { audioExtensions, videoExtensions } from '../../constants/fileExtensions
 import ToggleSwitch from 'primevue/toggleswitch';
 import Dialog from 'primevue/dialog';
 import { clearHist } from '../../helpers/history';
-import { downloadBinaryYtdlp } from '../../helpers/externalPrograms';
+import { downloadBinaryFfmpeg, downloadBinaryFfprobe, downloadBinaryYtdlp } from '../../helpers/externalPrograms';
 
     export default {
         name: "TheHeader",
@@ -108,7 +140,9 @@ import { downloadBinaryYtdlp } from '../../helpers/externalPrograms';
                 filteredVideoExtensions:[] as string[],
                 clearRecentDownloadsVisible: false,
                 clearUserConfigVisible: false,                
-                reloadYtdlpVisible: false,                
+                reloadYtdlpVisible: false,    
+                reloadFfmpegVisible: false,
+                reloadFfprobeVisible: false,            
 
             }
         },
@@ -155,6 +189,14 @@ import { downloadBinaryYtdlp } from '../../helpers/externalPrograms';
             reloadYtdlp() {
                 this.reloadYtdlpVisible=false;
                 downloadBinaryYtdlp();
+            }, 
+            reloadFfmpeg() {
+                this.reloadFfmpegVisible=false;
+                downloadBinaryFfmpeg();
+            }, 
+            reloadFfprobe() {
+                this.reloadFfprobeVisible=false;
+                downloadBinaryFfprobe();
             }, 
             searchAudioExt(event:any) {
                 this.filteredAudioExtensions = event.query ? this.audioExtensions.filter((quality) => {
