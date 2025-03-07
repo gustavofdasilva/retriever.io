@@ -1,16 +1,108 @@
-# Tauri + Vue + TypeScript
+<div align="center">
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
 
-## Recommended IDE Setup
+[![Vue Badge](https://img.shields.io/badge/built%20with-tauri-orange.svg)](https://v2.tauri.app) [![License Badge](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/license/mit)
+[![Contributions Welcome Badge](https://img.shields.io/badge/contributions_welcome-blue)](#contributing)
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+</div>
 
-## Type Support For `.vue` Imports in TS
+<p align="center"><i>An user friendly GUI for yt-dlp (🚧In progress🚧)</i></p>
 
-Since TypeScript cannot handle type information for `.vue` imports, they are shimmed to be a generic Vue component type by default. In most cases this is fine if you don't really care about component prop types outside of templates. However, if you wish to get actual prop types in `.vue` imports (for example to get props validation when using manual `h(...)` calls), you can enable Volar's Take Over mode by following these steps:
+<div align="center">
+  
+  ![Hibounote placeholder banner](./.github/assets/banner.png)
+  
+</div>
 
-1. Run `Extensions: Show Built-in Extensions` from VS Code's command palette, look for `TypeScript and JavaScript Language Features`, then right click and select `Disable (Workspace)`. By default, Take Over mode will enable itself if the default TypeScript extension is disabled.
-2. Reload the VS Code window by running `Developer: Reload Window` from the command palette.
+## 🐕 Introduction
+<p align="justify"> 
+Completely free, Retriever.io is a Open Source GUI that works as a frontend for yt-dlp, with a focus on making it easier to use for users with no programming experience.
+</p>
 
-You can learn more about Take Over mode [here](https://github.com/johnsoncodehk/volar/discussions/471).
+Built in `Tauri` and using [yt-dlp](https://github.com/yt-dlp/yt-dlp) in the back-end (core functionalities), the app is capable of:
+- Download videos from many websites, check the [supported websites](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md);
+- Select a specific file extension;
+- Trim the file;
+- Download multiples files at once;
+- 🚧(coming soon!) Edit multiple videos/audios at once🚧;
+
+ ![Retriever.io placeholder banner](./.github/assets/landing-page-screenshot.png)
+
+<p align="justify">Retriever.io is a tool that makes downloading public content easier. the end user is responsible for what they download, how they use and distribute that content.</p>
+
+<p align="justify">According to the software license agreement, you must have the right to download the content you are downloading. You personally retain all responsibility for the content downloaded by you. This software is not intended for downloading copyrighted material.</p>
+
+See the [yt-dlp documentation](https://github.com/yt-dlp/yt-dlp) for more information about using yt-dlp.
+
+
+
+
+<br>
+
+## 👨‍💻Development
+If you want to contribute, see the [contributing](./contributing.md) section. Your help will be very important to build the project!
+<details><summary>Pre-requisites</summary>
+<br>
+To be able to start development on Retriever++, make sure you have the following prerequisites:
+<ul>
+<br>
+<li><a href="https://nodejs.org/en">Node (v18.20 or higher)</a></li>
+<li><a href="https://www.npmjs.com">NPM (v10 or higher)</a></li>
+<li><a href="https://v2.tauri.app/start/">Tauri enviroment ready</a></li>
+</ul>
+</details>
+
+1. Clone the repository and install dependencies:
+```
+git clone https://github.com/gustavofdasilva/retriever.io
+cd retriever.io
+npm install
+```
+<br>
+
+2. Run `npm run tauri dev` for a dev enviroment. The application will automatically reload if you change any of the source files.
+```
+npm run tauri dev
+```
+The development environment should now be set up.
+<br>
+
+## 💡Contributing
+Retriever.io is an open-source project. I really apreciate any effort on it. You can help by: 
+- Finding bugs; 
+- Proposing new features;
+- Improving the docs; 
+- Improving the general design
+- Many more!
+
+Find the contributing guide [here](./contributing.md)
+
+<br>
+
+## 💬Stay in touch
+- [Roadmap and Goals](https://github.com/gustavofdasilva/retriever.io/discussions/1)
+
+<br>
+
+## 🎨Assets used
+
+### Logo
+
+[OpenMoji](https://openmoji.org/library/emoji-1F415/#variant=black). License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/#)
+
+### Components
+- [Prime vue](https://primevue.org)
+
+### Icons
+
+- [Prime icons](https://github.com/primefaces/primeicons)
+- [Fontawesome](https://fontawesome.com)
+
+### Background images
+
+- [Haikei](https://app.haikei.app)
+
+<br>
+
+## 📃License
+Retriever.io is licensed under the [MIT License](https://opensource.org/license/mit). See the LICENSE file for more information.

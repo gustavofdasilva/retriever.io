@@ -156,6 +156,7 @@ import { useLoadingStore } from './stores/loading';
 import { invoke } from '@tauri-apps/api/core';
 import ProgressBar from 'primevue/progressbar';
 import Menu from 'primevue/menu';
+import { downloadBinaryFfmpeg, downloadBinaryFfprobe, downloadBinaryYtdlp } from './helpers/externalPrograms';
 
 
   export default {
@@ -232,8 +233,17 @@ import Menu from 'primevue/menu';
           this.userConfig.setUserConfig(userConfig);
         }
       });
+      
+    },
+    created() {
+      this.downloadBinaries();
     },
     methods: {  
+      async downloadBinaries() {
+        await downloadBinaryYtdlp();
+        await downloadBinaryFfmpeg();
+        await downloadBinaryFfprobe();
+      },
       setItemsCommands() {
         //!Refactor - Set the settings commands
         this.items[0].items[1].command = () => { 
