@@ -1,6 +1,6 @@
 import { Store } from "@tauri-apps/plugin-store";
 import { useDownloadLogStore } from "../stores/downloadLog";
-import { exit, relaunch } from "@tauri-apps/plugin-process";
+import { exit } from "@tauri-apps/plugin-process";
 
 export async function addToHist(newDownload: DownloadLog) {
     const store = await Store.load('download-history.json');

@@ -105,7 +105,7 @@
 <script lang="ts">
 import Button from 'primevue/button';
 import { useFSStore } from '../../stores/fileSystem';
-import { changeConfig, deleteConfig, getEmptyUserConfig } from '../../helpers/userConfig';
+import { changeConfig, deleteConfig } from '../../helpers/userConfig';
 import ytdlpVariables from '../../constants/ytdlpVariables';
 import AutoComplete from 'primevue/autocomplete';
 import BaseFileInput from '../BaseFileInput.vue';

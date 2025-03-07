@@ -92,11 +92,13 @@ import DownloadPendingCard from './DownloadPendingCard.vue';
         },
         async mounted() {
             this.loadingStore.$subscribe((mutation, state)=> {
+                console.log(mutation);
                 this.activeDownloads = state.activeDownloads;
                 this.pendingDownloads = state.pendingDownloads;
             })
             
             this.downloadLogStore.$subscribe((mutation, state) => {
+                console.log(mutation);
                 this.filteredLogs = state.downloadLog.slice(this.first,this.first+10>=state.downloadLog.length?state.downloadLog.length:this.first+10);
             })
 

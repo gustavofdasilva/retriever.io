@@ -1,7 +1,6 @@
 import { defineStore } from "pinia";
 import { useUserConfig } from "./userConfig";
 import { download } from "../helpers/download";
-import toasteventbus from "primevue/toasteventbus";
 
 export const useLoadingStore = defineStore("loading", {
     state: () =>({

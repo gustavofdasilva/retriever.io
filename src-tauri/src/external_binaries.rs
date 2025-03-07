@@ -1,7 +1,6 @@
-use std::{collections::HashMap, fs::{self, remove_file}, io::{BufReader, Read, Write}, path::Path};
+use std::{collections::HashMap, fs::{self, remove_file}, io::{ Read, Write}, path::Path};
 
 use serde_json::{json, Value};
-use tauri::utils::write_if_changed;
 use tauri_plugin_http::reqwest;
 
 
@@ -23,8 +22,8 @@ pub async fn get_binary_url_ytdlp(platform: String, version: String) -> String {
 
 #[tauri::command]
 pub async fn get_binary_info_ff(platform: String) -> HashMap<String, String> {
-    let mut binaryInfo: HashMap<String, String> = HashMap::new();
-    let mut ff_platform = String::new();
+    let mut binary_info: HashMap<String, String> = HashMap::new();
+    let ff_platform;
 
     if platform == "windows".to_string() {
         ff_platform = "windows-64".to_string();
@@ -43,17 +42,19 @@ pub async fn get_binary_info_ff(platform: String) -> HashMap<String, String> {
             let json_value: Value = serde_json::from_str(&response.text_with_charset("utf-8").await.unwrap()).unwrap();
 
             let version = json_value["version"].as_str().unwrap_or("");
-            let ffmpeg_url = json_value["bin"][&ff_platform]["ffmpeg"].as_str().unwrap_or("");
-            let ffprobe_url = json_value["bin"][&ff_platform]["ffprobe"].as_str().unwrap_or("");
+            let ffmpeg_url = json_value["bin"][ff_platform.clone()]["ffmpeg"].as_str().unwrap_or("");
+            let ffprobe_url = json_value["bin"][ff_platform.clone()]["ffprobe"].as_str().unwrap_or("");
+            
+            println!("{}",ff_platform);
 
-            binaryInfo.insert("version".to_string(), version.to_string());
-            binaryInfo.insert("ffmpeg_url".to_string(), ffmpeg_url.to_string());
-            binaryInfo.insert("ffprobe_url".to_string(), ffprobe_url.to_string());
+            binary_info.insert("version".to_string(), version.to_string());
+            binary_info.insert("ffmpeg_url".to_string(), ffmpeg_url.to_string());
+            binary_info.insert("ffprobe_url".to_string(), ffprobe_url.to_string());
         }
         Err(_) => {},
     }
 
-    return binaryInfo;
+    return binary_info;
 }
 
 #[tauri::command]

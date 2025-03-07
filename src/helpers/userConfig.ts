@@ -1,5 +1,5 @@
 import { Store } from '@tauri-apps/plugin-store'
-import { exit, relaunch } from '@tauri-apps/plugin-process';
+import { exit } from '@tauri-apps/plugin-process';
 
 export function getEmptyUserConfig(): UserConfig {
     return {

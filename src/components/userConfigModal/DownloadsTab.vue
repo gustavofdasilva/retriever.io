@@ -23,6 +23,7 @@
                     :pt="{
                         root(root:any) {
                             root.instance.onOptionSelect = (event: any, option:any) => {
+                                console.log(event);
                                 let optionArray = Array.from(option)
                                 const varValue = variables.find((el:any)=>el.label==option)
                                 for (let i = 0; i < optionArray.length; i++) {

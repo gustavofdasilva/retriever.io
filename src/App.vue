@@ -16,8 +16,8 @@
     </div>
   </div>
   <Toast :position="userConfig.getUserConfig.interface.notificationPosition" group="downloadProgressSummarized">
-      <template #container="{message, closeCallback}">
-          <div id="DOWNLOAD_TOAST_SUMMARIZED" class="download-toast" >
+      <template #container="{ closeCallback}">
+          <div id="DOWNLOAD_TOAST_SUMMARIZED" class="download-toast"   >
               <Menu 
                 ref="menu" 
                 id="overlay_menu" 
