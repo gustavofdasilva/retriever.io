@@ -14,10 +14,10 @@
                 <button @click="openLink('https://github.com/gustavofdasilva/retrieverplusplus')" >
                     <span class="pi pi-github" ></span>
                 </button>
-                <button>
+                <button  @click="openLink('https://www.instagram.com/retriever.io.app/')">
                     <span class="pi pi-instagram" ></span>
                 </button>
-                <button>
+                <button  @click="openLink('https://x.com/retriever_io')">
                     <span class="pi pi-twitter" ></span>
                 </button>
             </div>
