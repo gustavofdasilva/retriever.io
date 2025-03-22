@@ -67,6 +67,7 @@
                     :pt="{
                         root(root:any) {
                             root.instance.onOptionSelect = (event:any, option:any) => {
+                                console.log(event);
                                 let optionArray = Array.from(option)
                                 const varValue = variables.find((el:any)=>el.label==option)
 
@@ -159,7 +160,6 @@ import { checkFormat, findConfigCode } from '../helpers/download';
 import { useUserConfig } from '../stores/userConfig';
 import { useDownloadLogStore } from '../stores/downloadLog';
 import { findAccount } from '../helpers/accounts';
-import { addToHist } from '../helpers/history';
 import Message from 'primevue/message';
 
 

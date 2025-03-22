@@ -49,12 +49,12 @@
 import Button from 'primevue/button';
 import { useFSStore } from '../../stores/fileSystem';
 import { changeConfig, getEmptyUserConfig } from '../../helpers/userConfig';
-import ytdlpVariables, { supportedLangs } from '../../constants/ytdlpVariables';
+import { supportedLangs } from '../../constants/ytdlpVariables';
 import AutoComplete from 'primevue/autocomplete';
 import BaseFileInput from '../BaseFileInput.vue';
 import { useUserConfig } from '../../stores/userConfig';
 import FloatLabel from 'primevue/floatlabel';
-import { audioExtensions, imageExtensions, videoExtensions } from '../../constants/fileExtensions';
+import { imageExtensions } from '../../constants/fileExtensions';
 import ToggleSwitch from 'primevue/toggleswitch';
 import Message from 'primevue/message';
 

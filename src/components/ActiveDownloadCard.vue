@@ -37,7 +37,6 @@
     </div>
 </template>
 <script lang="ts">
-import { invoke } from '@tauri-apps/api/core';
 import { useMediaStore } from '../stores/media';
 import { useFSStore } from '../stores/fileSystem';
 import { useLoadingStore } from '../stores/loading';
@@ -53,7 +52,6 @@ import AutoComplete, { AutoCompleteCompleteEvent } from 'primevue/autocomplete';
 import FloatLabel from 'primevue/floatlabel';
 import { findConfigCode } from '../helpers/download';
 import { findAccount } from '../helpers/accounts';
-import { addToHist } from '../helpers/history';
 import { useDownloadLogStore } from '../stores/downloadLog';
 import Message from 'primevue/message';
 

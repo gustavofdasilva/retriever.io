@@ -12,7 +12,7 @@
                 </div>
                 <div>
                     <p style="color: var(--surface-700); white-space: nowrap;">
-                        Retriever ++
+                        Retriever.io
                     </p>
                 </div>
             </div>
@@ -87,7 +87,7 @@ import { useFSStore } from '../stores/fileSystem';
 import BaseButton from './BaseButton.vue';
 import BaseFileInput from './BaseFileInput.vue';
 import BaseIconButton from './BaseIconButton.vue';
-import { changeConfig, deleteConfig, readConfigFile } from '../helpers/userConfig';
+import { changeConfig, deleteConfig } from '../helpers/userConfig';
 import Dialog from 'primevue/dialog';
 import Tabs from 'primevue/tabs';
 import TabPanel from 'primevue/tabpanel';

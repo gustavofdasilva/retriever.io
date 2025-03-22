@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { appLocalDataDir } from '@tauri-apps/api/path';
-import { platform, version, arch } from '@tauri-apps/plugin-os';
+import { platform, version } from '@tauri-apps/plugin-os';
 import toasteventbus from 'primevue/toasteventbus';
 
 

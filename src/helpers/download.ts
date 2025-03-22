@@ -6,7 +6,6 @@ import { addToHist } from "./history";
 import toasteventbus from "primevue/toasteventbus";
 import { audioQualities, videoQualities } from "../constants/qualities";
 import { useUserConfig } from "../stores/userConfig";
-import { inject } from "vue";
 import { supportedLangs } from "../constants/ytdlpVariables";
 import { getYtDlpPath } from "./externalPrograms";
 
