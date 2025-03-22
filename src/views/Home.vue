@@ -61,6 +61,7 @@ import { useDownloadLogStore } from '../stores/downloadLog';
 import { findAccount } from '../helpers/accounts';
 import { useUserConfig } from '../stores/userConfig';
 import Button from 'primevue/button';
+import { getYtDlpPath } from '../helpers/externalPrograms';
 
     export default {
         components: {
@@ -107,7 +108,7 @@ import Button from 'primevue/button';
             this.downloadLogStore.loadDownloadHistory();
         },
         methods: {
-            getMetadata(inputText: string) {
+            async getMetadata(inputText: string) {
                 this.loadingSearch = true
                 const enabledAuth = this.userConfig.getUserConfig.authentication.enabled;
                 const cookiesFromBrowser = enabledAuth ? this.userConfig.getUserConfig.authentication.cookiesFromBrowser: "";
@@ -120,8 +121,9 @@ import Button from 'primevue/button';
                     password='';
                 }
 
-                console.log(username,password);
+                const ytDlpPath = await getYtDlpPath();
                 invoke('get_metadata',{
+                    ytDlpPath,
                     url: inputText, 
                     username: username,
                     password: password,

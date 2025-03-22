@@ -53,6 +53,7 @@ import { useLoadingStore } from '../stores/loading';
 import { findAccount } from '../helpers/accounts';
 import { useUserConfig } from '../stores/userConfig';
 import Button from 'primevue/button';
+import { getYtDlpPath } from '../helpers/externalPrograms';
 
     export default {
         components: {
@@ -96,7 +97,7 @@ import Button from 'primevue/button';
             this.loadDownloadHistory();
         },
         methods: {
-            getMetadata(inputText: string) {
+            async getMetadata(inputText: string) {
 
                 this.loadingSearch = true
 
@@ -111,7 +112,9 @@ import Button from 'primevue/button';
                     password='';
                 }
 
+                const ytDlpPath = await getYtDlpPath();
                 invoke('get_metadata',{
+                    ytDlpPath,
                     url: inputText, 
                     username: username,
                     password: password,

@@ -54,6 +54,7 @@ import FloatLabel from 'primevue/floatlabel';
 import { findConfigCode } from '../helpers/download';
 import { findAccount } from '../helpers/accounts';
 import Message from 'primevue/message';
+import { getYtDlpPath } from '../helpers/externalPrograms';
 
     export default {
         components: {
@@ -203,7 +204,10 @@ import Message from 'primevue/message';
                     password='';
                 }
 
+                
+                const ytDlpPath = await getYtDlpPath();
                 const res: any = await invoke('get_metadata',{
+                    ytDlpPath,
                     url: url, 
                     username: username,
                     password: password,

@@ -19,10 +19,11 @@ export const audioExtensions: YTDLPOptions = [
     {name:'.wav',code:"wav"},
 ]
 
-export const imageExtensions: YTDLPOptions = [
-    {name:'.png',code:"png"},
-    {name:'.jpg',code:"jpg"},
-    {name:'.webp',code:"webp"},
+export const imageExtensions: YTDLPOptions = [ //REFACTOR - Using to download thumbnail, but is not working in any tested website
+    {name:'Enabled',code:"enabled"},
+    // {name:'.png',code:"png"},
+    // {name:'.jpg',code:"jpg"},
+    // {name:'.webp',code:"webp"},
 ]
 
 export const fileExtensions: YTDLPOptions = [

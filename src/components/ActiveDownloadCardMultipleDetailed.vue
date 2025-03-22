@@ -150,6 +150,7 @@ import Message from 'primevue/message';
 import { addToHist, clearHist, createHistFile, readHistFile } from '../helpers/history';
 import { useUserConfig } from '../stores/userConfig';
 import { findAccount } from '../helpers/accounts';
+import { getYtDlpPath } from '../helpers/externalPrograms';
 
 
     export default {
@@ -386,8 +387,11 @@ import { findAccount } from '../helpers/accounts';
                     username='';
                     password='';
                 }
+                
+                const ytDlpPath = await getYtDlpPath();
 
                 const res:any = await invoke('get_metadata',{
+                    ytDlpPath,
                     url: url, 
                     username: username,
                     password: password,
