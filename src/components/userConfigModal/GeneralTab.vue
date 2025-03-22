@@ -1,5 +1,6 @@
 <template>
     <div style="width: 100%;">
+        <Button :disabled="!changes" :severity="changes ? 'primary' : 'secondary'"  style="position: absolute; bottom: 10px; right: 20px;" @click="saveConfig"  label="Save changes"  />
         <Dialog v-model:visible="clearRecentDownloadsVisible" modal header="Are you sure?" style="width: 30%;" >
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
                 <p style="text-align: center;">
@@ -97,6 +98,56 @@
             </span>
             <div style="flex: 1; display: flex; align-items: flex-end; justify-content: center; flex-direction: column;">    
                 <Button @click="reloadFfprobeVisible=true"  label="Reload" severity="danger" outlined />
+            </div>
+        </div>
+        <div class="config-options">
+            <span class="name-w-label">
+                <p>
+                    Use custom yt-dlp binary:
+                </p>
+            </span>
+            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
+                <ToggleSwitch v-if="newUserConfig.customBinaries" v-model="newUserConfig.customBinaries.ytDlp.enabled" />
+            </div>
+        </div>
+        <div v-if="newUserConfig.customBinaries && newUserConfig.customBinaries.ytDlp.enabled"  class="config-options" style="margin-left: 1em;">
+            <span>
+                yt-dlp path:
+            </span>
+
+            <div style="flex: 1;">
+                <BaseFileInput
+                v-if="newUserConfig.customBinaries"
+                style="font-size: 0.93em; width: 100%;"
+                :path="newUserConfig.customBinaries.ytDlp.path"
+                :directory="false"
+                :extensions="[]"
+                @folder-selected="setYtDlpPath"/>
+
+            </div>
+        </div>
+        <div class="config-options">
+            <span class="name-w-label">
+                <p>
+                    Use custom ffmpeg binary:
+                </p>
+            </span>
+            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end;">
+                <ToggleSwitch v-if="newUserConfig.customBinaries" v-model="newUserConfig.customBinaries.ffmpeg.enabled" />
+            </div>
+        </div>
+        <div v-if="newUserConfig.customBinaries && newUserConfig.customBinaries.ffmpeg.enabled"  class="config-options" style="margin-left: 1em;">
+            <span>
+                ffmpeg path:
+            </span>
+
+            <div style="flex: 1;">
+                <BaseFileInput
+                v-if="newUserConfig.customBinaries"
+                style="font-size: 0.93em; width: 100%;"
+                :path="newUserConfig.customBinaries.ffmpeg.path"
+                @folder-selected="setFfmpegPath"/>
+
             </div>
         </div>
     </div>
@@ -239,6 +290,14 @@ import { downloadBinaryFfmpeg, downloadBinaryFfprobe, downloadBinaryYtdlp } from
             changeView(newViewPath: string) {
                 this.$router.push(newViewPath);
             },
+            //! Refactor: This function is repeated, review folder-selection in baseFileInput to remake
+            setYtDlpPath(path: string) {
+                this.newUserConfig.customBinaries['ytDlp'].path = path;
+            },
+            setFfmpegPath(path: string) {
+                this.newUserConfig.customBinaries['ffmpeg'].path = path;
+            },
+
             setDefaultFolderUserConfig(path: string) {
                 this.newUserConfig.defaultOutput = path;
 

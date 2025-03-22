@@ -40,6 +40,10 @@ export default {
             type: Boolean,
             default: true
         },
+        extensions: {
+            type: Array,
+            default: () => ['txt']
+        }
     },
     data() {
         return {
@@ -105,7 +109,7 @@ export default {
                 //@ts-ignore
                 filters: this.filter ? this.filter : [{
                     name: 'Text file',
-                    extensions: ['txt']
+                    extensions: this.extensions
                 }]
             });
             

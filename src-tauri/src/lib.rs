@@ -144,6 +144,7 @@ async fn get_metadata(
 #[tauri::command]
 async fn download(
     yt_dlp_path: String,
+    ffmpeg_path: String,
     id: String,
     url: String,
     output: String,
@@ -191,6 +192,11 @@ async fn download(
     }
 
     let mut args: Vec<String> = vec![];
+
+    if ffmpeg_path != "" {
+        args.push("--ffmpeg-location".to_string());
+        args.push(ffmpeg_path);
+    }
 
     let resolution_num = resolution.trim_end_matches('p');
 
