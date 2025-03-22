@@ -41,17 +41,20 @@ export const download = async (download: DownloadInProgress) => {
         ['loading'],[true]
     )
     getProgressInfo(download.id);
-    const subtitles_type = userStore.getUserConfig.metadata.downloadSubtitlesInFile.enabled ? userStore.getUserConfig.metadata.downloadSubtitlesInFile.type : '';
-    const subtitles_lang = userStore.getUserConfig.postProcessing.embedSubtitles.enabled ? userStore.getUserConfig.postProcessing.embedSubtitles.lang
+    const userConfig = userStore.getUserConfig;
+    const subtitles_type = userConfig.metadata.downloadSubtitlesInFile.enabled ? userConfig.metadata.downloadSubtitlesInFile.type : '';
+    const subtitles_lang = userConfig.postProcessing.embedSubtitles.enabled ? userConfig.postProcessing.embedSubtitles.lang
     .map(lang=>{
         return findConfigCode(lang,supportedLangs)
     }).join(', ') : '';
 
-    const ytDlpPath = await getYtDlpPath();
-
+    const ytDlpPath = userConfig.customBinaries.ytDlp.enabled ? userConfig.customBinaries.ytDlp.path : await getYtDlpPath();
+    const ffmpegPath = userConfig.customBinaries.ffmpeg.enabled ? userConfig.customBinaries.ffmpeg.path : '';
+    
     invoke('download',{
         ...download,
         ytDlpPath,
+        ffmpegPath,
         additionalConfig: {
             restrict_filename: JSON.stringify(userStore.getUserConfig.downloads.restrictFilename),
             trim_filename: userStore.getUserConfig.downloads.trimFilename ? JSON.stringify(userStore.getUserConfig.downloads.trimFilename) : '0',

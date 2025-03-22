@@ -13,7 +13,8 @@ type UserConfig = {
     downloads: UserDownloads,
     postProcessing: UserPostprocessing,
     metadata: UserMetadata,
-    accounts?: Account[]
+    accounts?: Account[],
+    customBinaries: CustomBinaries,
 }
 
 type UserInterface = {
@@ -54,4 +55,15 @@ type UserAuthentication = {
     enabled: boolean,
     cookiesTxtFilePath: string,
     cookiesFromBrowser: string,
+}
+
+type CustomBinaries = {
+    ytDlp: {
+        enabled: boolean,
+        path: string,
+    },
+    ffmpeg: {
+        enabled: boolean,
+        path: string,
+    }
 }

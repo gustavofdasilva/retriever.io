@@ -121,7 +121,8 @@ import { getYtDlpPath } from '../helpers/externalPrograms';
                     password='';
                 }
 
-                const ytDlpPath = await getYtDlpPath();
+                const ytDlpPath = this.userConfig.getUserConfig.customBinaries.ytDlp.enabled ? this.userConfig.getUserConfig.customBinaries.ytDlp.path : await getYtDlpPath();
+
                 invoke('get_metadata',{
                     ytDlpPath,
                     url: inputText, 
