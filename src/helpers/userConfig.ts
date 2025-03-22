@@ -46,6 +46,16 @@ export function getEmptyUserConfig(): UserConfig {
         interface: {
             showDownloadProgressNotification: 'Summarized',
             notificationPosition: 'bottom-right'
+        },
+        customBinaries: {
+            ytDlp: {
+                enabled: false,
+                path: '',
+            },
+            ffmpeg: {
+                enabled: false,
+                path: '',
+            },
         }
     }
 }
