@@ -7,7 +7,7 @@ import toasteventbus from "primevue/toasteventbus";
 import { audioQualities, videoQualities } from "../constants/qualities";
 import { useUserConfig } from "../stores/userConfig";
 import { supportedLangs } from "../constants/ytdlpVariables";
-import { getYtDlpPath } from "./externalPrograms";
+import { getBinariesPath, getYtDlpPath } from "./externalPrograms";
 
 // The findConfigCode function is used to send the selected info formatted to the backend
 export const findConfigCode = (name: string, arr: YTDLPOptions): string => {
@@ -49,7 +49,7 @@ export const download = async (download: DownloadInProgress) => {
     }).join(', ') : '';
 
     const ytDlpPath = userConfig.customBinaries.ytDlp.enabled ? userConfig.customBinaries.ytDlp.path : await getYtDlpPath();
-    const ffmpegPath = userConfig.customBinaries.ffmpeg.enabled ? userConfig.customBinaries.ffmpeg.path : '';
+    const ffmpegPath = userConfig.customBinaries.ffmpeg.enabled ? userConfig.customBinaries.ffmpeg.path : await getBinariesPath();
     
     invoke('download',{
         ...download,
@@ -86,7 +86,13 @@ export const download = async (download: DownloadInProgress) => {
             return;
         }
 
-        const outputFullPath = response.output.split('\\')
+        let outputFullPath;
+        if(response.output.includes("\\")){
+            outputFullPath = response.output.split('\\');
+        } else if (response.output.includes("/")) {
+            outputFullPath = response.output.split('/');
+        }
+
         const outputName = outputFullPath[outputFullPath.length-1];
 
         let startTime, endTime;

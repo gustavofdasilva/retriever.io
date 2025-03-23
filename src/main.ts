@@ -83,7 +83,10 @@ app.use(router)
 app.use(pinia)
 app.use(PrimeVue, {
     theme: {
-        preset: themePreset
+        preset: themePreset,
+        options:{
+            darkModeSelector: '.retriever-dark'
+        }
     }
 });
 app.directive('tooltip',Tooltip);
