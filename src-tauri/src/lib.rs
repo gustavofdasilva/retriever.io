@@ -1,11 +1,7 @@
 mod external_binaries;
 
 use std::{
-    collections::HashMap,
-    fs::{self},
-    io::{BufRead, BufReader},
-    path::{Path, PathBuf},
-    process::{Command, Stdio},
+    collections::HashMap, fs::{self}, io::{BufRead, BufReader}, os::windows::process::CommandExt, path::{Path, PathBuf}, process::{Command, Stdio}
 };
 
 use std::fs::metadata;
@@ -15,6 +11,8 @@ use external_binaries::{check_version_binary, download_binary, get_binary_info_f
 
 static mut DOWNLOAD_STATUS: Vec<HashMap<String, String>> = vec![];
 static mut ACTIVE_PROCESS: Vec<HashMap<String, String>> = vec![];
+
+const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 #[tauri::command]
 async fn check_path_exists(path: String) -> bool {
@@ -79,6 +77,7 @@ async fn get_metadata(
     let output = Command::new(&yt_dlp_path)
         .args(args)
         .stdout(Stdio::piped())
+        .creation_flags(CREATE_NO_WINDOW)
         .output()
         .unwrap();
  
@@ -122,8 +121,8 @@ async fn get_metadata(
     #[cfg(target_os = "windows")]
     {
         let formatted_output;
-        stdout = formatted_output.to_string();
         (formatted_output, _, _) = WINDOWS_1252.decode(&output.stdout);
+        stdout = formatted_output.to_string();
     }
 
     #[cfg(target_os = "linux")]
@@ -379,6 +378,7 @@ async fn download(
         .args(args.clone())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
+        .creation_flags(CREATE_NO_WINDOW)
         .spawn()
         .unwrap();
 
@@ -466,7 +466,7 @@ async fn download(
     {
         let formatted_output;
         (formatted_output, _, _) = WINDOWS_1252.decode(&output.stdout);
-        let stdout = formatted_output.to_string();
+        stdout = formatted_output.to_string();
     }
 
     #[cfg(target_os = "linux")]
@@ -523,20 +523,22 @@ fn get_progress_info(download_id: String) -> String {
 fn show_in_folder(path: String) {
     #[cfg(target_os = "windows")]
     {
-        Command::new("explorer").args([&path]).spawn().unwrap();
+        Command::new("explorer").args([&path]).creation_flags(CREATE_NO_WINDOW).spawn().unwrap();
     }
 
     #[cfg(target_os = "linux")]
     {
         Command::new( "xdg-open" )
         .arg( &path ) // <- Specify the directory you'd like to open.
+        .creation_flags(CREATE_NO_WINDOW)
         .spawn( )
         .unwrap( );
     }
 
     #[cfg(target_os = "macos")]
     {
-        Command::new("open").args(["-R", &path]).spawn().unwrap();
+        Command::new("open").args(["-R", &path])
+        .creation_flags(CREATE_NO_WINDOW).spawn().unwrap();
     }
 }
 
@@ -609,6 +611,8 @@ fn kill_process_windows() {
     // Additional check to ensure all child processes are killed
     let _ = Command::new("wmic")
         .args(&["process", "where", &format!("name='yt-dlp.exe'"), "delete"])
+        
+        .creation_flags(CREATE_NO_WINDOW)
         .output()
         .unwrap();
 }
@@ -617,6 +621,8 @@ fn kill_process_windows_by_id(id: u32) {
     println!("KILLING PROCESS {}, IN WINDOWS", id);
     let _ = Command::new("taskkill")
         .args(&["/pid", &id.to_string().as_str(), "/f", "/t"])
+        
+        .creation_flags(CREATE_NO_WINDOW)
         .output()
         .unwrap();
 }
@@ -625,6 +631,8 @@ fn kill_process_linux() {
     // Additional check to ensure all child processes are killed
     let _ = Command::new("pkill")
         .args(&["-f","yt-dlp"])
+        
+        .creation_flags(CREATE_NO_WINDOW)
         .output()
         .unwrap();
 }
@@ -633,6 +641,8 @@ fn kill_process_linux_by_id(id: u32) {
     println!("KILLING PROCESS {}, IN LINUX", id);
     let _ = Command::new("kill")
         .args(&["-9", &id.to_string().as_str()])
+        
+        .creation_flags(CREATE_NO_WINDOW)
         .output()
         .unwrap();
 }
