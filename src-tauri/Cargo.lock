@@ -3452,8 +3452,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "retriever-plus-plus"
-version = "0.1.0"
+name = "retriever-io"
+version = "1.0.0"
 dependencies = [
  "encoding_rs",
  "serde",

@@ -29,10 +29,10 @@
             </div>
             <p style="color: var(--surface-300); margin-top: 3em;">
                 Useful links: 
-                <button @click="openLink('https://github.com/yt-dlp/yt-dlp')">yt-dlp</button> <button @click="openLink('https://www.ffmpeg.org')" >ffmpeg</button> <button>Retriever.io website</button>
+                <button @click="openLink('https://github.com/yt-dlp/yt-dlp')">yt-dlp</button> <button @click="openLink('https://www.ffmpeg.org')" >ffmpeg</button> <button @click="openLink(website_url)">Retriever.io website</button>
             </p>
             <p style="color: var(--surface-300);">
-                <button>Terms and License</button>
+                <button  @click="openLink(`${website_url}/terms`)" >Terms and License</button>
             </p>
         </div>
     </div>
@@ -64,6 +64,7 @@ import { getFFLocaleVersion, getYtdlpLocaleVersion } from '../../helpers/externa
         },
         data() {
             return {
+                website_url: 'https://retriever-io-web.vercel.app',
                 changes: false,
                 userConfig: {} as UserConfig,
                 newUserConfig: getEmptyUserConfig(),
