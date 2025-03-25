@@ -1,8 +1,11 @@
 mod external_binaries;
 
 use std::{
-    collections::HashMap, fs::{self}, io::{BufRead, BufReader}, os::windows::process::CommandExt, path::{Path, PathBuf}, process::{Command, Stdio}
+    collections::HashMap, fs::{self}, io::{BufRead, BufReader}, path::{Path, PathBuf}, process::{Child, Command, Output, Stdio}
 };
+
+
+
 
 use std::fs::metadata;
 
@@ -74,12 +77,25 @@ async fn get_metadata(
 
     println!("{}", args.join(" "));
 
-    let output = Command::new(&yt_dlp_path)
-        .args(args)
-        .stdout(Stdio::piped())
-        .creation_flags(CREATE_NO_WINDOW)
-        .output()
-        .unwrap();
+    let output: Output;
+
+    #[cfg(target_os = "windows")] {
+        output = Command::new(&yt_dlp_path)
+            .args(args)
+            .stdout(Stdio::piped())
+            .creation_flags(CREATE_NO_WINDOW)
+            .output()
+            .unwrap();
+    }
+
+    #[cfg(target_os = "linux")] {
+        output = Command::new(&yt_dlp_path)
+            .args(args)
+            .stdout(Stdio::piped())
+            .output()
+            .unwrap();
+    }
+
  
     println!(
         "STDERR {}",
@@ -374,13 +390,26 @@ async fn download(
 
     let mut command = Command::new(&yt_dlp_path);
 
-    let mut child = command
+    let mut child: Child;
+
+    #[cfg(target_os = "windows")] {
+        child = command
         .args(args.clone())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .creation_flags(CREATE_NO_WINDOW)
         .spawn()
         .unwrap();
+    }
+
+    #[cfg(target_os = "linux")] {
+        child = command
+        .args(args.clone())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    }
 
     unsafe {
         *ACTIVE_PROCESS[process_index].get_mut("process_id").unwrap() = child.id().to_string();
@@ -528,9 +557,9 @@ fn show_in_folder(path: String) {
 
     #[cfg(target_os = "linux")]
     {
+
         Command::new( "xdg-open" )
         .arg( &path ) // <- Specify the directory you'd like to open.
-        .creation_flags(CREATE_NO_WINDOW)
         .spawn( )
         .unwrap( );
     }
@@ -608,43 +637,44 @@ async fn kill_active_process_by_download_id(download_id: String) {
 }
 
 fn kill_process_windows() {
-    // Additional check to ensure all child processes are killed
+    #[cfg(target_os = "windows")] {
     let _ = Command::new("wmic")
         .args(&["process", "where", &format!("name='yt-dlp.exe'"), "delete"])
-        
         .creation_flags(CREATE_NO_WINDOW)
         .output()
         .unwrap();
+    }
 }
 
 fn kill_process_windows_by_id(id: u32) {
+    #[cfg(target_os = "windows")] {
     println!("KILLING PROCESS {}, IN WINDOWS", id);
     let _ = Command::new("taskkill")
         .args(&["/pid", &id.to_string().as_str(), "/f", "/t"])
-        
         .creation_flags(CREATE_NO_WINDOW)
         .output()
         .unwrap();
+    }
 }
 
 fn kill_process_linux() {
+    #[cfg(target_os = "linux")] {
     // Additional check to ensure all child processes are killed
     let _ = Command::new("pkill")
         .args(&["-f","yt-dlp"])
-        
-        .creation_flags(CREATE_NO_WINDOW)
         .output()
         .unwrap();
+    }
 }
 
 fn kill_process_linux_by_id(id: u32) {
+    #[cfg(target_os = "linux")] {
     println!("KILLING PROCESS {}, IN LINUX", id);
     let _ = Command::new("kill")
         .args(&["-9", &id.to_string().as_str()])
-        
-        .creation_flags(CREATE_NO_WINDOW)
         .output()
         .unwrap();
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
