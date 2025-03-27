@@ -163,6 +163,12 @@ export async function getYtdlpLocaleVersion(): Promise<string> {
     return ytdlpVersion;
 }
 
+export async function getBinariesPath():Promise<String> {
+    const path = await getMainPath();
+
+    return `${path}/binaries/`;
+}
+
 export async function getFFLocaleVersion(): Promise<string> {
     let ffVersion = '';
     const path = await getMainPath();

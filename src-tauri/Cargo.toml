@@ -1,7 +1,7 @@
 [package]
-name = "retriever-plus-plus"
-version = "0.1.0"
-description = "A Tauri App"
+name = "retriever-io"
+version = "1.0.0"
+description = "An user friendly GUI for yt-dlp"
 authors = ["you"]
 edition = "2021"
 

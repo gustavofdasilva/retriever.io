@@ -1,18 +1,21 @@
 mod external_binaries;
 
 use std::{
-    collections::HashMap,
-    fs,
-    io::{BufRead, BufReader},
-    path::Path,
-    process::{Command, Stdio},
+    collections::HashMap, fs::{self}, io::{BufRead, BufReader}, path::{Path, PathBuf}, process::{Child, Command, Output, Stdio}
 };
+
+
+
+
+use std::fs::metadata;
 
 use encoding_rs::WINDOWS_1252;
 use external_binaries::{check_version_binary, download_binary, get_binary_info_ff, get_binary_url_ytdlp, get_json_locale_version, get_remote_version_ytdlp};
 
 static mut DOWNLOAD_STATUS: Vec<HashMap<String, String>> = vec![];
 static mut ACTIVE_PROCESS: Vec<HashMap<String, String>> = vec![];
+
+const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 #[tauri::command]
 async fn check_path_exists(path: String) -> bool {
@@ -74,12 +77,26 @@ async fn get_metadata(
 
     println!("{}", args.join(" "));
 
-    let output = Command::new(&yt_dlp_path)
-        .args(args)
-        .stdout(Stdio::piped())
-        .output()
-        .unwrap();
+    let output: Output;
 
+    #[cfg(target_os = "windows")] {
+        output = Command::new(&yt_dlp_path)
+            .args(args)
+            .stdout(Stdio::piped())
+            .creation_flags(CREATE_NO_WINDOW)
+            .output()
+            .unwrap();
+    }
+
+    #[cfg(target_os = "linux")] {
+        output = Command::new(&yt_dlp_path)
+            .args(args)
+            .stdout(Stdio::piped())
+            .output()
+            .unwrap();
+    }
+
+ 
     println!(
         "STDERR {}",
         String::from_utf8_lossy(&output.stdout).to_string()
@@ -95,27 +112,40 @@ async fn get_metadata(
             String::from_utf8_lossy(&output.stderr).to_string()
         );
 
-        let formatted_stderr;
-
+        
+        
+        let mut response: HashMap<String, String> = HashMap::new();
+        
         #[cfg(target_os = "windows")]
         {
+            let formatted_stderr;
             (formatted_stderr, _, _) = WINDOWS_1252.decode(&output.stderr);
+            response.insert("error".to_string(), formatted_stderr.to_string());
         }
 
-        let mut response: HashMap<String, String> = HashMap::new();
-        response.insert("error".to_string(), formatted_stderr.to_string());
+        #[cfg(target_os = "linux")]{
+            
+            response.insert("error".to_string(), String::from_utf8_lossy(&output.stderr).to_string());
+        }
 
         return response;
     }
 
-    let formatted_output;
-
+    let stdout:String;
+    
+    
     #[cfg(target_os = "windows")]
     {
+        let formatted_output;
         (formatted_output, _, _) = WINDOWS_1252.decode(&output.stdout);
+        stdout = formatted_output.to_string();
     }
 
-    let stdout = formatted_output.to_string();
+    #[cfg(target_os = "linux")]
+    {
+        stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    }
+
     let title = stdout.lines().nth(0).unwrap().to_string();
     let channel = stdout.lines().nth(1).unwrap().to_string();
     let thumbnail = stdout.lines().nth(2).unwrap().to_string();
@@ -360,12 +390,26 @@ async fn download(
 
     let mut command = Command::new(&yt_dlp_path);
 
-    let mut child = command
+    let mut child: Child;
+
+    #[cfg(target_os = "windows")] {
+        child = command
+        .args(args.clone())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .creation_flags(CREATE_NO_WINDOW)
+        .spawn()
+        .unwrap();
+    }
+
+    #[cfg(target_os = "linux")] {
+        child = command
         .args(args.clone())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
         .unwrap();
+    }
 
     unsafe {
         *ACTIVE_PROCESS[process_index].get_mut("process_id").unwrap() = child.id().to_string();
@@ -443,14 +487,23 @@ async fn download(
         String::from_utf8_lossy(&output.stderr).to_string()
     );
 
-    let formatted_output;
-
+    
+    
+    let stdout: String;
+    
     #[cfg(target_os = "windows")]
     {
+        let formatted_output;
         (formatted_output, _, _) = WINDOWS_1252.decode(&output.stdout);
+        stdout = formatted_output.to_string();
     }
 
-    let stdout = formatted_output.to_string();
+    #[cfg(target_os = "linux")]
+    {
+        stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    }
+
+
     let output_name = stdout.lines().nth(0).unwrap_or("video");
 
     let mut response: HashMap<String, String> = HashMap::new();
@@ -499,42 +552,22 @@ fn get_progress_info(download_id: String) -> String {
 fn show_in_folder(path: String) {
     #[cfg(target_os = "windows")]
     {
-        Command::new("explorer").args([&path]).spawn().unwrap();
+        Command::new("explorer").args([&path]).creation_flags(CREATE_NO_WINDOW).spawn().unwrap();
     }
 
     #[cfg(target_os = "linux")]
     {
-        if path.contains(",") {
-            let new_path = match metadata(&path).unwrap().is_dir() {
-                true => path,
-                false => {
-                    let mut path2 = PathBuf::from(path);
-                    path2.pop();
-                    path2.into_os_string().into_string().unwrap()
-                }
-            };
-            Command::new("xdg-open").arg(&new_path).spawn().unwrap();
-        } else {
-            if let Ok(Fork::Child) = daemon(false, false) {
-                Command::new("dbus-send")
-                    .args([
-                        "--session",
-                        "--dest=org.freedesktop.FileManager1",
-                        "--type=method_call",
-                        "/org/freedesktop/FileManager1",
-                        "org.freedesktop.FileManager1.ShowItems",
-                        format!("array:string:\"file://{path}\"").as_str(),
-                        "string:\"\"",
-                    ])
-                    .spawn()
-                    .unwrap();
-            }
-        }
+
+        Command::new( "xdg-open" )
+        .arg( &path ) // <- Specify the directory you'd like to open.
+        .spawn( )
+        .unwrap( );
     }
 
     #[cfg(target_os = "macos")]
     {
-        Command::new("open").args(["-R", &path]).spawn().unwrap();
+        Command::new("open").args(["-R", &path])
+        .creation_flags(CREATE_NO_WINDOW).spawn().unwrap();
     }
 }
 
@@ -552,7 +585,7 @@ async fn kill_active_process() {
 
     #[cfg(target_os = "linux")]
     {
-        //Kill process command in linux
+        kill_process_linux();
     }
 
     #[cfg(target_os = "macos")]
@@ -590,7 +623,7 @@ async fn kill_active_process_by_download_id(download_id: String) {
 
                 #[cfg(target_os = "linux")]
                 {
-                    //Kill process command in linux
+                    kill_process_linux_by_id(id);
                 }
 
                 #[cfg(target_os = "macos")]
@@ -604,19 +637,44 @@ async fn kill_active_process_by_download_id(download_id: String) {
 }
 
 fn kill_process_windows() {
-    // Additional check to ensure all child processes are killed
+    #[cfg(target_os = "windows")] {
     let _ = Command::new("wmic")
         .args(&["process", "where", &format!("name='yt-dlp.exe'"), "delete"])
+        .creation_flags(CREATE_NO_WINDOW)
         .output()
         .unwrap();
+    }
 }
 
 fn kill_process_windows_by_id(id: u32) {
+    #[cfg(target_os = "windows")] {
     println!("KILLING PROCESS {}, IN WINDOWS", id);
     let _ = Command::new("taskkill")
         .args(&["/pid", &id.to_string().as_str(), "/f", "/t"])
+        .creation_flags(CREATE_NO_WINDOW)
         .output()
         .unwrap();
+    }
+}
+
+fn kill_process_linux() {
+    #[cfg(target_os = "linux")] {
+    // Additional check to ensure all child processes are killed
+    let _ = Command::new("pkill")
+        .args(&["-f","yt-dlp"])
+        .output()
+        .unwrap();
+    }
+}
+
+fn kill_process_linux_by_id(id: u32) {
+    #[cfg(target_os = "linux")] {
+    println!("KILLING PROCESS {}, IN LINUX", id);
+    let _ = Command::new("kill")
+        .args(&["-9", &id.to_string().as_str()])
+        .output()
+        .unwrap();
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
