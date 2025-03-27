@@ -6,7 +6,7 @@
 
 </div>
 
-<p align="center"><i>An user friendly GUI for yt-dlp (🚧In progress🚧)</i></p>
+<p align="center"><i>An user friendly GUI for yt-dlp</i></p>
 
 <div align="center">
   
@@ -81,6 +81,8 @@ Find the contributing guide [here](./contributing.md)
 
 ## 💬Stay in touch
 - [Roadmap and Goals](https://github.com/gustavofdasilva/retriever.io/discussions/1)
+- [Instagram](https://www.instagram.com/retriever.io.app/)
+- [X - Twitter](https://x.com/retriever_io)
 
 <br>
 
